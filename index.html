@@ -138,6 +138,95 @@
     animation-fill-mode: forwards;
   }
 
+  /* --- Password gate --- */
+  #gate {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    z-index: 100;
+    animation: fadeDown 0.4s ease both;
+  }
+
+  #gate.hidden { display: none; }
+
+  .gate-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .gate-logo h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    letter-spacing: -0.03em;
+  }
+
+  .gate-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .gate-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88rem;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+
+  .gate-input:focus { border-color: var(--accent); }
+  .gate-input.error { border-color: #ff4f4f; animation: shake 0.3s ease; }
+
+  .gate-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 4px;
+    color: #0a0a0a;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    padding: 14px;
+    text-transform: uppercase;
+    transition: opacity 0.15s;
+  }
+
+  .gate-btn:hover { opacity: 0.85; }
+
+  .gate-hint {
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    min-height: 14px;
+  }
+
+  .gate-hint.err { color: #ff4f4f; }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25%      { transform: translateX(-6px); }
+    75%      { transform: translateX(6px); }
+  }
+
+  /* --- end gate --- */
+
   @keyframes fadeDown {
     from { opacity: 0; transform: translateY(-12px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -235,6 +324,59 @@
 </nav>
 
 <footer>Apex Systematic &mdash; Internal Index</footer>
+
+<!-- Password gate overlay -->
+<div id="gate">
+  <div class="gate-logo">
+    <div class="dot"></div>
+    <h2>Apex Systematic</h2>
+  </div>
+  <div class="gate-form">
+    <input id="pw" class="gate-input" type="password" placeholder="Enter password" autocomplete="current-password" />
+    <button class="gate-btn" onclick="checkPw()">Unlock &rarr;</button>
+    <span id="hint" class="gate-hint"></span>
+  </div>
+</div>
+
+<script>
+  const HASH = '5fc801e0ddcb20d56c44309e726d4c13ef0bd6ba68a3120719d122ff9d2faa46';
+  const SESSION_KEY = 'apx_auth';
+
+  function unlock() {
+    document.getElementById('gate').classList.add('hidden');
+  }
+
+  async function hashInput(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function checkPw() {
+    const input = document.getElementById('pw');
+    const hint  = document.getElementById('hint');
+    const hashed = await hashInput(input.value);
+    if (hashed === HASH) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      unlock();
+    } else {
+      hint.textContent = 'Incorrect password';
+      hint.classList.add('err');
+      input.classList.add('error');
+      input.value = '';
+      setTimeout(function() {
+        input.classList.remove('error');
+        hint.textContent = '';
+        hint.classList.remove('err');
+      }, 1200);
+    }
+  }
+
+  document.getElementById('pw').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') checkPw();
+  });
+
+  if (sessionStorage.getItem(SESSION_KEY) === '1') unlock();
+</script>
 
 </body>
 </html>
