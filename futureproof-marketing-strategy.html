@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FutureProof — Complete Marketing Strategy</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+    :root {
+      --gold:        #b8963e;
+      --gold-light:  #d4ae5e;
+      --gold-pale:   #f5edd8;
+      --gold-dark:   #9a7020;
+      --ink:         #0f0f0f;
+      --ink-soft:    #2e2e2e;
+      --slate:       #4a4a4a;
+      --muted:       #6b6b6b;
+      --rule:        #e2d9c8;
+      --bg-page:     #faf9f7;
+      --bg-dark:     #111111;
+      --bg-mid:      #1a1a1a;
+      --bg-section:  #f0ebe2;
+      --white:       #ffffff;
+      --red:         #c0392b;
+      --green:       #27ae60;
+      --amber:       #e67e22;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 10pt; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      color: var(--ink);
+      background: var(--bg-page);
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 0 100px;
+    }
+
+    /* ── COVER ── */
+    .cover {
+      background: var(--bg-dark);
+      padding: 72px 64px 60px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+    .cover::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 3px; height: 100%;
+      background: var(--gold);
+    }
+    .cover-noise {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .cover-brand {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--white);
+      letter-spacing: 0.04em;
+      margin-bottom: 40px;
+    }
+    .cover-brand em { font-style: italic; font-weight: 400; color: var(--gold); }
+    .cover-kicker {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 18px;
+    }
+    .cover-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    .cover-title em { font-style: italic; font-weight: 400; color: var(--gold-light); }
+    .cover-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.7;
+      max-width: 540px;
+      margin-bottom: 40px;
+    }
+    .cover-meta-row {
+      display: flex;
+      gap: 32px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(184,150,62,0.2);
+    }
+    .cover-meta-item { }
+    .cover-meta-label {
+      font-size: 7px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      margin-bottom: 4px;
+    }
+    .cover-meta-value {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      font-weight: 500;
+    }
+
+    /* ── NAV ── */
+    .toc {
+      background: var(--bg-section);
+      padding: 40px 64px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .toc-label {
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 48px;
+    }
+    .toc-item {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(226,217,200,0.5);
+      text-decoration: none;
+      color: inherit;
+    }
+    .toc-item:hover .toc-item-title { color: var(--gold-dark); }
+    .toc-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      color: var(--gold);
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .toc-item-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--ink-soft);
+      transition: color 0.15s;
+    }
+
+    /* ── MAIN CONTENT ── */
+    .content { padding: 0 64px; }
+
+    /* ── SECTION ── */
+    .section {
+      margin-top: 72px;
+      padding-top: 0;
+    }
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 36px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--rule);
+    }
+    .section-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+      opacity: 0.3;
+      flex-shrink: 0;
+      margin-top: -6px;
+    }
+    .section-title-group { }
+    .section-kicker {
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      margin-bottom: 6px;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+    .section-title em { font-style: italic; font-weight: 400; }
+
+    /* ── BLOCKS ── */
+    .block { margin-bottom: 36px; }
+    .block-label {
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* Hero statement */
+    .hero-statement {
+      background: var(--bg-dark);
+      padding: 32px 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-statement::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: var(--gold);
+    }
+    .hero-statement-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-style: italic;
+      color: var(--white);
+      line-height: 1.5;
+      font-weight: 400;
+    }
+    .hero-statement-text em { color: var(--gold-light); font-style: normal; }
+
+    /* Pain point cards */
+    .pain-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .pain-card {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      padding: 22px 20px;
+    }
+    .pain-card-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--gold);
+      opacity: 0.4;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .pain-card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .pain-card-body {
+      font-size: 10.5px;
+      color: var(--slate);
+      line-height: 1.65;
+    }
+
+    /* Tone pills */
+    .tone-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .tone-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--white);
+      border: 1px solid var(--rule);
+    }
+    .tone-do {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .do { background: #eaf7f0; color: var(--green); }
+    .dont { background: #fdecea; color: var(--red); }
+    .tone-text {
+      font-size: 10.5px;
+      color: var(--ink-soft);
+      line-height: 1.5;
+    }
+
+    /* Persona card */
+    .persona-card {
+      background: var(--bg-dark);
+      padding: 36px 36px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .persona-card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 3px; height: 100%;
+      background: var(--gold);
+    }
+    .persona-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+    .persona-role {
+      font-size: 10px;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 28px;
+    }
+    .persona-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 32px;
+    }
+    .persona-block-label {
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      margin-bottom: 10px;
+    }
+    .persona-list {
+      list-style: none;
+    }
+    .persona-list li {
+      font-size: 10.5px;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.6;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .persona-list li::before {
+      content: '—';
+      color: var(--gold);
+      flex-shrink: 0;
+      font-size: 9px;
+      margin-top: 2px;
+    }
+
+    /* Week plan */
+    .week-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 0;
+      border: 1px solid var(--rule);
+      margin-bottom: 24px;
+    }
+    .week-col {
+      padding: 20px 18px;
+      border-right: 1px solid var(--rule);
+    }
+    .week-col:last-child { border-right: none; }
+    .week-col-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      font-weight: 500;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      margin-bottom: 6px;
+    }
+    .week-col-theme {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .week-col-posts {
+      font-size: 9.5px;
+      color: var(--slate);
+      line-height: 1.65;
+    }
+
+    /* Post idea cards */
+    .post-idea {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      margin-bottom: 12px;
+      display: flex;
+    }
+    .post-idea-num {
+      background: var(--bg-dark);
+      color: var(--gold);
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 56px;
+      flex-shrink: 0;
+    }
+    .post-idea-body { padding: 18px 20px; }
+    .post-idea-tag {
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      margin-bottom: 8px;
+    }
+    .post-idea-hook {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+    .post-idea-note {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* Timeline */
+    .timeline { position: relative; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 18px;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: var(--rule);
+    }
+    .tl-item {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .tl-dot {
+      width: 36px;
+      height: 36px;
+      background: var(--bg-dark);
+      border: 1px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .tl-dot-inner {
+      font-size: 7px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-align: center;
+      line-height: 1.2;
+    }
+    .tl-content {
+      padding-top: 6px;
+      flex: 1;
+    }
+    .tl-week {
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      margin-bottom: 4px;
+    }
+    .tl-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .tl-body {
+      font-size: 10.5px;
+      color: var(--slate);
+      line-height: 1.7;
+    }
+    .tl-body ul { list-style: none; }
+    .tl-body ul li {
+      padding: 3px 0;
+      display: flex;
+      gap: 8px;
+    }
+    .tl-body ul li::before {
+      content: '→';
+      color: var(--gold);
+      flex-shrink: 0;
+      font-size: 10px;
+    }
+
+    /* Objection cards */
+    .objection {
+      border: 1px solid var(--rule);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .objection-header {
+      background: var(--bg-section);
+      padding: 16px 22px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .objection-icon {
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .objection-q {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+    .objection-body { padding: 20px 22px; }
+    .objection-label {
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      margin-bottom: 8px;
+    }
+    .objection-answer {
+      font-size: 11px;
+      color: var(--slate);
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+    .objection-content-note {
+      background: var(--gold-pale);
+      padding: 10px 14px;
+      font-size: 10px;
+      color: var(--ink-soft);
+      line-height: 1.55;
+    }
+    .objection-content-note strong { color: var(--gold-dark); }
+
+    /* CTA block */
+    .cta-block {
+      background: var(--bg-dark);
+      padding: 28px 32px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .cta-block::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: var(--gold);
+    }
+    .cta-label {
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .cta-text {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 15px;
+      color: var(--white);
+      line-height: 1.55;
+      font-weight: 400;
+    }
+    .cta-text em { color: var(--gold-light); font-style: normal; }
+    .cta-note {
+      margin-top: 10px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.35);
+    }
+
+    /* Metrics table */
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--rule);
+      font-size: 10.5px;
+    }
+    .metrics-table th {
+      background: var(--bg-dark);
+      color: var(--gold);
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      text-align: left;
+    }
+    .metrics-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--rule);
+      color: var(--slate);
+      line-height: 1.55;
+      vertical-align: top;
+    }
+    .metrics-table tr:last-child td { border-bottom: none; }
+    .metrics-table tr:nth-child(even) td { background: var(--bg-section); }
+    .metrics-table .metric-name {
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .metric-badge {
+      display: inline-block;
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border: 1px solid;
+    }
+    .badge-green { color: var(--green); border-color: rgba(39,174,96,0.3); background: #eaf7f0; }
+    .badge-amber { color: var(--amber); border-color: rgba(230,126,34,0.3); background: #fef5ec; }
+    .badge-red   { color: var(--red);   border-color: rgba(192,57,43,0.3);  background: #fdecea; }
+
+    /* Note box */
+    .note-box {
+      background: var(--bg-section);
+      border-left: 3px solid var(--gold);
+      padding: 14px 20px;
+      margin-top: 20px;
+      font-size: 10.5px;
+      color: var(--slate);
+      line-height: 1.65;
+    }
+    .note-box strong { color: var(--ink); font-weight: 600; }
+
+    /* Platform card */
+    .platform-card {
+      display: flex;
+      gap: 20px;
+      border: 1px solid var(--rule);
+      padding: 22px 24px;
+      background: var(--white);
+      margin-bottom: 12px;
+    }
+    .platform-badge {
+      background: var(--bg-dark);
+      color: var(--gold);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      align-self: flex-start;
+      flex-shrink: 0;
+    }
+    .platform-body { flex: 1; }
+    .platform-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .platform-why {
+      font-size: 10.5px;
+      color: var(--slate);
+      line-height: 1.65;
+    }
+
+    /* Conversion funnel */
+    .funnel {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .funnel-step {
+      display: flex;
+      align-items: stretch;
+    }
+    .funnel-connector {
+      width: 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .funnel-dot {
+      width: 10px;
+      height: 10px;
+      border: 2px solid var(--gold);
+      background: var(--bg-page);
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 18px;
+    }
+    .funnel-line {
+      flex: 1;
+      width: 1px;
+      background: var(--rule);
+      margin: 0 auto;
+    }
+    .funnel-step:last-child .funnel-line { display: none; }
+    .funnel-content {
+      flex: 1;
+      padding: 14px 0 24px 16px;
+    }
+    .funnel-stage {
+      font-size: 7.5px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      margin-bottom: 4px;
+    }
+    .funnel-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .funnel-body {
+      font-size: 10.5px;
+      color: var(--slate);
+      line-height: 1.65;
+    }
+
+    /* Rule */
+    .section-rule {
+      border: none;
+      border-top: 1px solid var(--rule);
+      margin: 0;
+    }
+
+    /* Pivot table */
+    .pivot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .pivot-card {
+      border: 1px solid var(--rule);
+      padding: 20px 20px;
+    }
+    .pivot-card-header {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .pivot-stay { color: var(--green); }
+    .pivot-pivot { color: var(--red); }
+    .pivot-list {
+      list-style: none;
+      font-size: 10.5px;
+      color: var(--slate);
+      line-height: 1.65;
+    }
+    .pivot-list li {
+      padding: 4px 0;
+      display: flex;
+      gap: 8px;
+    }
+    .pivot-list li::before { flex-shrink: 0; }
+    .stay li::before { content: '✓'; color: var(--green); }
+    .pivot li::before { content: '✗'; color: var(--red); }
+
+    @media print {
+      body { padding: 0; }
+      .section { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-noise"></div>
+  <div class="cover-brand">Future<em>Proof</em></div>
+  <div class="cover-kicker">Complete Go-to-Market Strategy</div>
+  <div class="cover-title">From Zero<br>to <em>First Clients.</em></div>
+  <div class="cover-sub">A full marketing strategy for FutureProof — built for 4 hours/day, $50/month, and a LinkedIn-first distribution model. Seven sections. Ready to execute.</div>
+  <div class="cover-meta-row">
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Budget</div>
+      <div class="cover-meta-value">$50 / month</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Time</div>
+      <div class="cover-meta-value">Up to 4 hrs / day</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Primary Channel</div>
+      <div class="cover-meta-value">LinkedIn</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Price Point</div>
+      <div class="cover-meta-value">$995 / report</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <div class="toc-label">Contents</div>
+  <div class="toc-grid">
+    <a class="toc-item" href="#s1"><span class="toc-num">01</span><span class="toc-item-title">Positioning &amp; Messaging</span></a>
+    <a class="toc-item" href="#s5"><span class="toc-num">05</span><span class="toc-item-title">Objection Handling</span></a>
+    <a class="toc-item" href="#s2"><span class="toc-num">02</span><span class="toc-item-title">Target Audience</span></a>
+    <a class="toc-item" href="#s6"><span class="toc-num">06</span><span class="toc-item-title">Conversion Strategy</span></a>
+    <a class="toc-item" href="#s3"><span class="toc-num">03</span><span class="toc-item-title">Content Strategy</span></a>
+    <a class="toc-item" href="#s7"><span class="toc-num">07</span><span class="toc-item-title">Success Metrics</span></a>
+    <a class="toc-item" href="#s4"><span class="toc-num">04</span><span class="toc-item-title">Launch Sequence</span></a>
+    <a class="toc-item" href="#"><span class="toc-num"></span><span class="toc-item-title"></span></a>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════════════════════════ -->
+<!-- SECTION 1 — POSITIONING -->
+<!-- ═══════════════════════════════════ -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <div class="section-title-group">
+      <div class="section-kicker">Foundation</div>
+      <div class="section-title">Positioning &amp; <em>Messaging</em></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">Core Value Proposition — One Sentence</div>
+    <div class="hero-statement">
+      <div class="hero-statement-text">FutureProof gives senior professionals their <em>personal</em> AI displacement risk score, a precise timeline, and a first-move plan — built around their actual work, not their job title.</div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">The 3 Pain Points This Report Solves</div>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="pain-card-num">01</div>
+        <div class="pain-card-title">Generic Risk = No Actionable Signal</div>
+        <div class="pain-card-body">Every AI risk tool outputs by job title. Two directors at the same company with the same title can have completely different exposure profiles. Generic answers breed paralysis, not decisions.</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-card-num">02</div>
+        <div class="pain-card-title">Calibration Error in Both Directions</div>
+        <div class="pain-card-body">High-performers routinely misread their own risk — underestimating it because they use AI tools, or overestimating it because they're in a disrupted sector. Both errors are costly. This report corrects both.</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-card-num">03</div>
+        <div class="pain-card-title">Plans That Don't Fit Real Lives</div>
+        <div class="pain-card-body">Career advice assumes unlimited time. Senior professionals have 1-2 hours a week, not 10. The FutureProof plan is built around actual availability — because a plan that doesn't fit your life isn't a plan.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">Primary Emotional Trigger — Lead With This</div>
+    <div class="note-box">
+      <strong>Fear of invisible risk — not fear of AI itself.</strong> Your buyer isn't afraid of AI in the abstract. They're afraid of being wrong. Of making a major career decision without the right data. Of watching the layer below them get eliminated and not knowing if they're next. The trigger is epistemic anxiety: "I don't actually know my number, and that uncertainty is costing me." Lead with clarity as the antidote, not alarm as the hook.
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">Tone of Voice — Rules of the Voice</div>
+    <div class="tone-grid">
+      <div class="tone-row">
+        <span class="tone-do do">Do</span>
+        <span class="tone-text">Precise and data-grounded. Cite specific numbers, percentages, timeframes. The authority comes from specificity.</span>
+      </div>
+      <div class="tone-row">
+        <span class="tone-do dont">Don't</span>
+        <span class="tone-text">Apocalyptic AI-doom framing. "AI will destroy your career" repels your audience. They've heard it. It's noise.</span>
+      </div>
+      <div class="tone-row">
+        <span class="tone-do do">Do</span>
+        <span class="tone-text">Calm confidence — the tone of someone who has seen the data and knows what it says. Steady, not breathless.</span>
+      </div>
+      <div class="tone-row">
+        <span class="tone-do dont">Don't</span>
+        <span class="tone-text">Corporate consultancy-speak. No "leverage synergies," no "future-ready workforce." Human language only.</span>
+      </div>
+      <div class="tone-row">
+        <span class="tone-do do">Do</span>
+        <span class="tone-text">Personal and first-person. You built this for your wife. That story is the emotional core of everything.</span>
+      </div>
+      <div class="tone-row">
+        <span class="tone-do dont">Don't</span>
+        <span class="tone-text">Hype and urgency tactics. No countdown timers, no "limited spots," no manufactured scarcity. It cheapens the product.</span>
+      </div>
+      <div class="tone-row">
+        <span class="tone-do do">Do</span>
+        <span class="tone-text">Name the insight precisely. "Using AI tools is not the same as being safe from them" is better than "many people misunderstand AI risk."</span>
+      </div>
+      <div class="tone-row">
+        <span class="tone-do dont">Don't</span>
+        <span class="tone-text">Over-explain the methodology. The product is the output — a number, a timeline, a first move. Trust the reader to trust the result.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="section-rule">
+
+<!-- ═══════════════════════════════════ -->
+<!-- SECTION 2 — TARGET AUDIENCE -->
+<!-- ═══════════════════════════════════ -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <div class="section-title-group">
+      <div class="section-kicker">Who You're Talking To</div>
+      <div class="section-title">Target <em>Audience</em></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">Primary Buyer Persona</div>
+    <div class="persona-card">
+      <div class="persona-name">The Senior Professional in a Disrupted Sector</div>
+      <div class="persona-role">Director / VP / Senior Manager · 35–52 · $120K–$250K total comp</div>
+      <div class="persona-grid">
+        <div>
+          <div class="persona-block-label">Role Profile</div>
+          <ul class="persona-list">
+            <li>10+ years in their domain. Credentialed. Respected internally.</li>
+            <li>Works in a sector with visible AI activity: pharma, consulting, finance, marketing, legal, healthcare administration.</li>
+            <li>Manages a team or a complex portfolio of work — not execution-only.</li>
+            <li>Has invested heavily in their career: postgrad degrees, certifications, professional networks.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="persona-block-label">Core Fears</div>
+          <ul class="persona-list">
+            <li>Being wrong about their exposure — in either direction.</li>
+            <li>Making a panic move that destroys seniority and equity they've built.</li>
+            <li>Watching colleagues act and not knowing if they should too.</li>
+            <li>Realising too late that the window to reposition closed.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="persona-block-label">Motivations</div>
+          <ul class="persona-list">
+            <li>Wants clarity, not content. They've read 40 articles. None gave them an answer.</li>
+            <li>Willing to pay for signal vs. noise — they spend $995 on a dinner, a flight, a course without thinking.</li>
+            <li>Wants a plan they can actually execute — not a 60-page PDF.</li>
+            <li>Respects specificity. Vague advice insults their intelligence.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="persona-block-label">Secondary Persona</div>
+          <ul class="persona-list">
+            <li>The concerned partner — spouse or partner of a senior professional who wants an objective answer to bring to their household conversation.</li>
+            <li>Highly motivated buyer. Emotional purchase driver. Often the one who shares the post that converts.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">Where They Spend Time Online</div>
+    <div class="tone-grid">
+      <div class="tone-row">
+        <span class="tone-do do">1st</span>
+        <span class="tone-text"><strong>LinkedIn</strong> — professional identity, career news, industry updates. This is where they go when something at work makes them anxious.</span>
+      </div>
+      <div class="tone-row">
+        <span class="tone-do do">2nd</span>
+        <span class="tone-text"><strong>Newsletters</strong> — Morning Brew, The Hustle, industry-specific digests. Passive consumption but high attention.</span>
+      </div>
+      <div class="tone-row">
+        <span class="tone-do dont">Low</span>
+        <span class="tone-text"><strong>Twitter / X</strong> — declining professional use. Lots of noise, low signal for senior B2C buyers.</span>
+      </div>
+      <div class="tone-row">
+        <span class="tone-do dont">Skip</span>
+        <span class="tone-text"><strong>TikTok / Instagram</strong> — wrong context entirely. These platforms signal amateur, not premium advisor.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">Content They Already Consume</div>
+    <div class="note-box">
+      They read: <strong>McKinsey / WEF AI reports</strong> (but can't personalise them), <strong>sector-specific trade publications</strong>, <strong>thoughtful LinkedIn essays</strong> from practitioners (not influencers), <strong>HBR articles</strong> on leadership and career strategy. They listen to podcasts during commutes — mostly business/strategy-oriented. The content gap they feel is: all of this gives them macro data, none of it gives them their own number. That gap is your product.
+    </div>
+  </div>
+</div>
+
+<hr class="section-rule">
+
+<!-- ═══════════════════════════════════ -->
+<!-- SECTION 3 — CONTENT STRATEGY -->
+<!-- ═══════════════════════════════════ -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <div class="section-title-group">
+      <div class="section-kicker">Organic Distribution</div>
+      <div class="section-title">Content <em>Strategy</em></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">Platform Focus — Where to Put Your Hours</div>
+    <div class="platform-card">
+      <div class="platform-badge">Primary</div>
+      <div class="platform-body">
+        <div class="platform-name">LinkedIn — 90% of your content effort</div>
+        <div class="platform-why">Your buyer is a senior professional who uses LinkedIn as their professional nervous system. They check it when something at work makes them anxious — which is exactly the moment you want to appear. LinkedIn's algorithm currently rewards personal, narrative-driven text posts more than any other format, and your origin story is purpose-built for this. You already have a two-week content calendar live. The edge here is consistency and insight depth, not production value.</div>
+      </div>
+    </div>
+    <div class="platform-card">
+      <div class="platform-badge">Secondary</div>
+      <div class="platform-body">
+        <div class="platform-name">Email — build from day one, even with zero subscribers</div>
+        <div class="platform-why">Every person who takes the free score assessment is a potential subscriber. A simple fortnightly email (Substack or Brevo — you already have Brevo) keeps FutureProof top of mind between LinkedIn sessions. Cost: 1–2 hours every two weeks. This becomes your most valuable owned asset over 6–12 months. Start it even with 5 subscribers.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">4-Week Content Themes</div>
+    <div class="week-strip">
+      <div class="week-col">
+        <div class="week-col-num">Week 01</div>
+        <div class="week-col-theme">Origin &amp; Proof of Concept</div>
+        <div class="week-col-posts">Establish who you are and why this exists. The wife story. The first case study. A clean CTA. Goal: earn the right to be taken seriously. 3 posts.</div>
+      </div>
+      <div class="week-col">
+        <div class="week-col-num">Week 02</div>
+        <div class="week-col-theme">Depth &amp; Differentiation</div>
+        <div class="week-col-posts">Show the nuance — overestimating risk is as dangerous as underestimating it. The real-constraints angle. The price reveal. Goal: create "this is different" recognition. 3 posts.</div>
+      </div>
+      <div class="week-col">
+        <div class="week-col-num">Week 03</div>
+        <div class="week-col-theme">Education &amp; Industry Signals</div>
+        <div class="week-col-posts">Teach something. Share a sector-specific insight. Comment on a relevant news event through the FutureProof lens. Goal: attract followers who aren't yet buyers. 3 posts.</div>
+      </div>
+      <div class="week-col">
+        <div class="week-col-num">Week 04</div>
+        <div class="week-col-theme">Social Proof &amp; Invitation</div>
+        <div class="week-col-posts">First client testimonial (if available). A "what I've learned from N assessments" synthesis post. A direct invitation to book. Goal: convert warm followers. 3 posts.</div>
+      </div>
+    </div>
+    <div class="note-box"><strong>Cadence:</strong> 3 posts per week — Monday, Wednesday, Friday. Plain text for narrative/insight posts. Canva graphic for data posts. Never post more than once per day. Quality over volume always wins at this price point.</div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">5 Specific Post Ideas — Hooks Written Out</div>
+
+    <div class="post-idea">
+      <div class="post-idea-num">1</div>
+      <div class="post-idea-body">
+        <div class="post-idea-tag">Week 3 · Education · Plain Text</div>
+        <div class="post-idea-hook">"The most dangerous sentence in a McKinsey AI report is: 'roles involving X are at high risk of automation.' Here's what it doesn't tell you — and why that gap might be costing you."</div>
+        <div class="post-idea-note">Unpacks the difference between role-level risk and task-level exposure. Positions FutureProof as solving the exact gap McKinsey creates. Attracts senior readers who've read those reports and felt the frustration.</div>
+      </div>
+    </div>
+
+    <div class="post-idea">
+      <div class="post-idea-num">2</div>
+      <div class="post-idea-body">
+        <div class="post-idea-tag">Week 3 · Industry Signal · Plain Text</div>
+        <div class="post-idea-hook">"I've now assessed professionals across [N] sectors. One pattern keeps showing up that surprised me: the people most certain about their AI risk are almost always wrong — but not randomly wrong."</div>
+        <div class="post-idea-note">Shares a counterintuitive finding from the assessment data. Builds epistemic authority. Draws in readers who are curious about the pattern before revealing it. The hook creates a knowledge gap the post fills.</div>
+      </div>
+    </div>
+
+    <div class="post-idea">
+      <div class="post-idea-num">3</div>
+      <div class="post-idea-body">
+        <div class="post-idea-tag">Week 3 · Hot Take · Plain Text</div>
+        <div class="post-idea-hook">"Taking an AI course to protect your job is often the wrong move. Here's when it helps, and when it's just expensive noise."</div>
+        <div class="post-idea-note">Challenges the dominant career advice narrative (take courses, upskill constantly). Contrarian but data-backed. Will trigger engagement from people who have taken courses and wonder if it mattered. Positions FutureProof as the calibration tool.</div>
+      </div>
+    </div>
+
+    <div class="post-idea">
+      <div class="post-idea-num">4</div>
+      <div class="post-idea-body">
+        <div class="post-idea-tag">Week 4 · Social Proof · Plain Text</div>
+        <div class="post-idea-hook">"A client told me after receiving her report: 'I've spent 18 months worrying about the wrong thing.' Her score was 22/100. Here's what changed for her in the following week."</div>
+        <div class="post-idea-note">Testimonial-adjacent — leads with the client's words, then narrates the behavioural shift. Avoids the stiffness of a direct testimonial quote. The "22/100" number creates recognition for anyone who's seen prior posts (continuity reward for followers).</div>
+      </div>
+    </div>
+
+    <div class="post-idea">
+      <div class="post-idea-num">5</div>
+      <div class="post-idea-body">
+        <div class="post-idea-tag">Week 4 · Direct Invite · Plain Text</div>
+        <div class="post-idea-hook">"I have capacity for [N] new full assessments this month. If you've been thinking about it — here's exactly what you get, what it costs, and what happens after you order."</div>
+        <div class="post-idea-note">A transparent, non-pushy direct offer. The candour about capacity (real or approximate) signals premium scarcity without manufactured urgency. "What happens after you order" reduces purchase anxiety by making the process visible. Strong conversion post for warm followers.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="section-rule">
+
+<!-- ═══════════════════════════════════ -->
+<!-- SECTION 4 — LAUNCH SEQUENCE -->
+<!-- ═══════════════════════════════════ -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <div class="section-title-group">
+      <div class="section-kicker">Week-by-Week Plan</div>
+      <div class="section-title">Launch <em>Sequence</em></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-connector">
+          <div class="tl-dot"><div class="tl-dot-inner">Pre</div></div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-week">Pre-Launch · Days 1–5</div>
+          <div class="tl-title">Profile, Infrastructure &amp; Seed Content</div>
+          <div class="tl-body">
+            <ul>
+              <li>Finalise LinkedIn profile — headline, About section, banner. Every element should be live and consistent with FutureProof's visual identity before posting begins.</li>
+              <li>Connect with 20–30 existing contacts who are in your target persona. No cold outreach yet — warm your existing network first.</li>
+              <li>Publish the first post (Origin Story / Post 01 from your calendar) and comment on 10 posts from others in your space the same day. Engagement begets algorithmic reach.</li>
+              <li>Set up your free score CTA — confirm the link works flawlessly. This is the only funnel entry point in week one.</li>
+              <li>Create a simple Brevo email list called "FutureProof Score Takers." Set up a one-email welcome sequence. Even basic is better than nothing.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-connector">
+          <div class="tl-dot"><div class="tl-dot-inner">W1</div></div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-week">Week 1 — Establish &amp; Earn Trust</div>
+          <div class="tl-title">Execute your existing 3-post plan. Engage obsessively.</div>
+          <div class="tl-body">
+            <ul>
+              <li>Post Monday (Origin), Wednesday (SEO case study + graphic), Friday (CTA). Already written — just execute.</li>
+              <li>Spend 30–45 min per day in comments. Reply to everyone who comments on your posts within 2 hours. LinkedIn rewards this with extended reach windows.</li>
+              <li>Find 5 posts in your target persona's feed and leave substantive comments (not "great post"). Add a thought that earns a reply. This is your best organic growth move.</li>
+              <li>DM anyone who engages meaningfully — a short, human, non-pitchy message. "Glad this landed — if you want your actual number, happy to share the link."</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-connector">
+          <div class="tl-dot"><div class="tl-dot-inner">W2</div></div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-week">Week 2 — Deepen &amp; Introduce Price</div>
+          <div class="tl-title">Complete week 2 of your existing calendar. Start DM outreach.</div>
+          <div class="tl-body">
+            <ul>
+              <li>Post 04 (Pharma Director, Mon), 05 (Real Constraints, Wed), 06 (Price Reveal, Fri). This is where $995 enters the conversation — but credibility has been built first.</li>
+              <li>Send 5 personal DMs to warm connections: "I've been building something I think you'd find genuinely useful — not a pitch, just a score. Happy to share?" Never paste the link unsolicited.</li>
+              <li>If you have a first testimonial, prepare it this week for week 4 deployment.</li>
+              <li>Track: profile views, post impressions, link clicks, and any inbound messages. These are your week 2 benchmarks.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-connector">
+          <div class="tl-dot"><div class="tl-dot-inner">W3</div></div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-week">Week 3 — Educate &amp; Expand Reach</div>
+          <div class="tl-title">Teach. Comment. Grow the top of the funnel.</div>
+          <div class="tl-body">
+            <ul>
+              <li>Use Post Ideas #1, #2, #3 from Section 3 — the McKinsey insight gap, the pattern observation, the AI course hot take.</li>
+              <li>Start following 10 new accounts per week who publish to your target audience. Comment on their posts thoughtfully. Build the association between Jorge Rivero and FutureProof in the feed.</li>
+              <li>Write and send your first fortnightly FutureProof email to your score-takers list (even if it's 8 people). The habit matters more than the list size.</li>
+              <li>Look at what's landing. Double down on the format and framing that got the most engagement in weeks 1–2.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-connector">
+          <div class="tl-dot"><div class="tl-dot-inner">W4</div></div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-week">Week 4 — Convert &amp; Systematise</div>
+          <div class="tl-title">Social proof, direct invitation, and your first conversion review.</div>
+          <div class="tl-body">
+            <ul>
+              <li>Use Post Ideas #4 and #5 — the testimonial-adjacent story and the direct capacity offer.</li>
+              <li>Review all four weeks: which posts got the most saves and shares (not just likes)? Saves and shares indicate buyer-intent-level interest. Prioritise these formats in month 2.</li>
+              <li>Conduct a 30-minute review: how many score-takers, how many warm conversations started, how many DMs sent, how many report sales? These are your month 1 conversion benchmarks.</li>
+              <li>Plan month 2 with a new 4-week calendar. The framework repeats: Establish → Deepen → Educate → Convert. The content rotates.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="note-box"><strong>Budget allocation ($50/month):</strong> $0 on ads — all organic. Spend: $20 Canva Pro (if not already subscribed, for graphics), $0 Brevo (free tier covers early list), $30 reserve for a one-time LinkedIn premium trial in month 2 to access profile visitor data. Do not spend on boosting posts — the algorithm penalises promoted content in feeds.</div>
+</div>
+
+<hr class="section-rule">
+
+<!-- ═══════════════════════════════════ -->
+<!-- SECTION 5 — OBJECTION HANDLING -->
+<!-- ═══════════════════════════════════ -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <div class="section-title-group">
+      <div class="section-kicker">Buyer Psychology</div>
+      <div class="section-title">Objection <em>Handling</em></div>
+    </div>
+  </div>
+
+  <div class="block">
+
+    <div class="objection">
+      <div class="objection-header">
+        <div class="objection-icon">💬</div>
+        <div class="objection-q">"$995 is a lot to spend on a report I've never heard of, from someone I just found on LinkedIn."</div>
+      </div>
+      <div class="objection-body">
+        <div class="objection-label">The Real Objection</div>
+        <div class="objection-answer">This is a trust deficit, not a price objection. The buyer doesn't doubt the value of the information — they doubt your ability to deliver it accurately. The fix is credibility density in your content, not price reduction. They need to see enough case studies, enough specific numbers, and enough demonstrated insight that paying $995 feels safer than not knowing.</div>
+        <div class="objection-label">Preemptive Content Answer</div>
+        <div class="objection-content-note"><strong>Lead with outcomes, not process.</strong> Every case study post shows a real score, a real insight gap, a real strategy change. Before anyone sees the price, they've already seen the product working. By week 4, the price post is the sixth piece of content — not the first thing they encounter. Credibility is front-loaded. Price is back-loaded.</div>
+      </div>
+    </div>
+
+    <div class="objection">
+      <div class="objection-header">
+        <div class="objection-icon">💬</div>
+        <div class="objection-q">"I can get AI career risk information for free. Why would I pay nearly $1,000 for a report?"</div>
+      </div>
+      <div class="objection-body">
+        <div class="objection-label">The Real Objection</div>
+        <div class="objection-answer">This buyer has confused data availability with insight quality. They've read the McKinsey reports and the LinkedIn articles. None of them gave them their number. The objection answers itself — they've already tried the free options and are still uncertain. The job of your content is to make that gap visible without condescending.</div>
+        <div class="objection-label">Preemptive Content Answer</div>
+        <div class="objection-content-note"><strong>The McKinsey insight gap post (Post Idea #1)</strong> is designed exactly for this objection. Use language like: "The WEF report tells you your sector is at risk. It cannot tell you if you are." Name the gap explicitly, then name FutureProof as what fills it. Never disparage free tools — just clarify what they don't do.</div>
+      </div>
+    </div>
+
+    <div class="objection">
+      <div class="objection-header">
+        <div class="objection-icon">💬</div>
+        <div class="objection-q">"How do I know the score is accurate? This feels like it could be just another AI output."</div>
+      </div>
+      <div class="objection-body">
+        <div class="objection-label">The Real Objection</div>
+        <div class="objection-answer">This is the most legitimate objection. It deserves a real answer, not a deflection. The buyer is right to ask it. The answer lies in the methodology — task-level analysis, not title-level — and in the delivery format: a detailed, reasoned report, not a score generator. The fact that you personally deliver and review every report is a competitive advantage in a world of automated tools.</div>
+        <div class="objection-label">Preemptive Content Answer</div>
+        <div class="objection-content-note"><strong>Write one post specifically about the methodology.</strong> Not in technical detail, but in outcome terms: "We don't ask what your job title is. We ask how you actually spend your working week, task by task. Then we model each task's automation exposure — not based on sector trends, but on what's already available commercially today." This makes the methodology legible without being a spec sheet.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="section-rule">
+
+<!-- ═══════════════════════════════════ -->
+<!-- SECTION 6 — CONVERSION STRATEGY -->
+<!-- ═══════════════════════════════════ -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <div class="section-title-group">
+      <div class="section-kicker">No Ad Spend</div>
+      <div class="section-title">Conversion <em>Strategy</em></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">The Conversion Funnel — How Followers Become Buyers</div>
+    <div class="funnel">
+      <div class="funnel-step">
+        <div class="funnel-connector"><div class="funnel-dot"></div><div class="funnel-line"></div></div>
+        <div class="funnel-content">
+          <div class="funnel-stage">Stage 1 · Awareness</div>
+          <div class="funnel-title">Post surfaces in their feed</div>
+          <div class="funnel-body">A specific, insightful post — a case study, a counterintuitive finding, the origin story — stops the scroll. They don't buy here. They follow, save, or comment. Your only job at this stage is to be worth following.</div>
+        </div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-connector"><div class="funnel-dot"></div><div class="funnel-line"></div></div>
+        <div class="funnel-content">
+          <div class="funnel-stage">Stage 2 · Curiosity</div>
+          <div class="funnel-title">They take the free score</div>
+          <div class="funnel-body">The free score is your best conversion tool. It gives the buyer a taste of personalisation — their number, not a generic assessment — at zero cost and zero commitment. The score creates a desire for explanation: "What does 51/100 actually mean for me?" That's the purchase motive.</div>
+        </div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-connector"><div class="funnel-dot"></div><div class="funnel-line"></div></div>
+        <div class="funnel-content">
+          <div class="funnel-stage">Stage 3 · Warm Engagement</div>
+          <div class="funnel-title">DM or comment signals intent</div>
+          <div class="funnel-body">When someone comments "this is exactly where I am" or DMs you after a post, they've self-identified. Respond personally. Don't pitch. Ask a question about their situation. The conversation earns the right to mention the report — never the other way around.</div>
+        </div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-connector"><div class="funnel-dot"></div><div class="funnel-line"></div></div>
+        <div class="funnel-content">
+          <div class="funnel-stage">Stage 4 · Decision</div>
+          <div class="funnel-title">Week 4 content closes the loop</div>
+          <div class="funnel-body">By week 4, followers have seen 9–11 posts. The direct offer (Post Idea #5) lands on a warm audience. The capacity framing ("I have room for N assessments this month") creates legitimate scarcity without manufactured urgency. The transparent process description removes final purchase anxiety.</div>
+        </div>
+      </div>
+      <div class="funnel-step">
+        <div class="funnel-connector"><div class="funnel-dot"></div><div class="funnel-line"></div></div>
+        <div class="funnel-content">
+          <div class="funnel-stage">Stage 5 · Retention &amp; Referral</div>
+          <div class="funnel-title">Client becomes a case study and referrer</div>
+          <div class="funnel-body">Your post-delivery workflow (feedback questionnaire, delivery email) is already built. Add one question: "Is there a colleague or peer you think would benefit from knowing their number?" A warm referral from a satisfied client converts at 3–5x the rate of cold organic traffic.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">CTA Language — What Works at a Premium Price Point</div>
+
+    <div class="cta-block">
+      <div class="cta-label">Primary CTA — Free score entry point</div>
+      <div class="cta-text">"Know your number before you make any career decisions. <em>Free, two minutes, no email required to see your result.</em> Link in comments."</div>
+      <div class="cta-note">Low friction. No commitment. Positions the score as due diligence, not a sales funnel. "Before you make any career decisions" implies they already have decisions to make — which is true.</div>
+    </div>
+
+    <div class="cta-block">
+      <div class="cta-label">Secondary CTA — Warm audience / week 4 offer</div>
+      <div class="cta-text">"If your score is above 50 and you want the full picture — your timeline, your credential moat assessment, and a first-move plan built around your actual life — that's <em>the FutureProof Executive Audit.</em> $995. Link in comments."</div>
+      <div class="cta-note">Names the price directly. Names the product. "Built around your actual life" echoes the real-constraints angle that resonates with the persona. Only use this after two weeks of credibility content — never as a cold open.</div>
+    </div>
+
+    <div class="cta-block">
+      <div class="cta-label">DM CTA — One-to-one conversion</div>
+      <div class="cta-text">"Happy to share more about what the full report covers — not a pitch, just want to make sure it's actually the right fit for your situation before you spend anything."</div>
+      <div class="cta-note">The "right fit" framing is powerful at premium prices. It signals that you're selective, not desperate. It reduces buyer pressure. It builds trust precisely because it doesn't push.</div>
+    </div>
+
+  </div>
+
+  <div class="block">
+    <div class="block-label">Where to Place the Offer in Organic Content</div>
+    <div class="note-box">
+      <strong>Rule 1:</strong> Put the URL in the first comment, never in the post body. LinkedIn suppresses reach on posts with external links.<br><br>
+      <strong>Rule 2:</strong> Every post that mentions FutureProof should include the free score CTA. Not every post needs to pitch the $995 report.<br><br>
+      <strong>Rule 3:</strong> The ratio is 80/20. 80% of posts are purely educational or storytelling — no CTA. 20% include a soft or hard offer. Buyers need to encounter your thinking many times before they encounter your price.<br><br>
+      <strong>Rule 4:</strong> When you do offer the paid product, do it plainly. No hype, no FOMO, no countdown. "Here's what it costs, here's what you get, here's the link." Seniors find pressure tactics condescending.
+    </div>
+  </div>
+</div>
+
+<hr class="section-rule">
+
+<!-- ═══════════════════════════════════ -->
+<!-- SECTION 7 — SUCCESS METRICS -->
+<!-- ═══════════════════════════════════ -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <div class="section-num">07</div>
+    <div class="section-title-group">
+      <div class="section-kicker">Measurement &amp; Calibration</div>
+      <div class="section-title">Success <em>Metrics</em></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">What to Track Weekly — $50/Month Budget</div>
+    <table class="metrics-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Where to Find It</th>
+          <th>What It Tells You</th>
+          <th>Healthy Range (Month 1)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="metric-name">Post Impressions</td>
+          <td>LinkedIn Analytics</td>
+          <td>Reach of your content</td>
+          <td><span class="metric-badge badge-green">200–1,000+ / post</span></td>
+        </tr>
+        <tr>
+          <td class="metric-name">Saves per Post</td>
+          <td>LinkedIn Analytics</td>
+          <td>Buyer-intent signal — saves &gt; likes</td>
+          <td><span class="metric-badge badge-green">5+ saves on insight posts</span></td>
+        </tr>
+        <tr>
+          <td class="metric-name">Follower Growth</td>
+          <td>LinkedIn Analytics</td>
+          <td>Audience accumulation rate</td>
+          <td><span class="metric-badge badge-amber">+20–50 / week organic</span></td>
+        </tr>
+        <tr>
+          <td class="metric-name">Profile Views</td>
+          <td>LinkedIn Dashboard</td>
+          <td>Curiosity about you specifically</td>
+          <td><span class="metric-badge badge-amber">30–80+ / week by week 4</span></td>
+        </tr>
+        <tr>
+          <td class="metric-name">Free Score Takers</td>
+          <td>Site analytics / Brevo</td>
+          <td>Funnel entry conversions</td>
+          <td><span class="metric-badge badge-amber">5–20 / week by week 3</span></td>
+        </tr>
+        <tr>
+          <td class="metric-name">DMs / Comments Received</td>
+          <td>LinkedIn Inbox</td>
+          <td>Warm lead volume</td>
+          <td><span class="metric-badge badge-amber">2–10 / week by week 2</span></td>
+        </tr>
+        <tr>
+          <td class="metric-name">Report Sales</td>
+          <td>Stripe</td>
+          <td>Revenue and conversion rate</td>
+          <td><span class="metric-badge badge-amber">Target 1 in month 1, 2–3 in month 2</span></td>
+        </tr>
+        <tr>
+          <td class="metric-name">Email List Growth</td>
+          <td>Brevo</td>
+          <td>Owned audience building</td>
+          <td><span class="metric-badge badge-green">Any growth is positive early</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="block">
+    <div class="block-label">Realistic Conversion Benchmarks — Cold Organic Audience</div>
+    <div class="note-box">
+      <strong>Month 1 target:</strong> 1 paid report. If your first 3 weeks generate 100+ free score takers, 1–2% will convert to conversations. Of those conversations, 20–30% will close if handled well. At 100 score takers, that's 1–2 conversations, and 1 likely sale. This is a realistic, not pessimistic, benchmark for cold organic — do not measure month 1 against month 6 expectations.<br><br>
+      <strong>Month 2–3 target:</strong> 2–4 paid reports per month. By month 2, you have a content library that continues generating impressions, a small but warm follower base, and your first testimonial. Conversion rate climbs as social proof compounds.<br><br>
+      <strong>The non-obvious benchmark:</strong> Track the ratio of saves-to-impressions on your posts, not likes-to-impressions. Save rate above 0.5% indicates your content is attracting buyers, not just readers. Posts with high save rates should be doubled down on.
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="block-label">When to Pivot vs. Stay the Course</div>
+    <div class="pivot-grid">
+      <div class="pivot-card">
+        <div class="pivot-card-header pivot-stay">Stay the Course — These are Normal</div>
+        <ul class="pivot-list stay">
+          <li>No sales in week 1–2. Too early. Trust hasn't been earned yet.</li>
+          <li>Low follower growth in week 1. LinkedIn growth is non-linear — it spikes.</li>
+          <li>Uneven post performance. Some posts will flop. Post 9 can outperform posts 1–8 combined.</li>
+          <li>Slow score-taker growth. Attribution from LinkedIn to your site takes 3–4 weeks to establish.</li>
+          <li>A case study post underperforms. Try a different sector next time. The format is right; the vertical needs testing.</li>
+        </ul>
+      </div>
+      <div class="pivot-card">
+        <div class="pivot-card-header pivot-pivot">Pivot Signal — Act on These</div>
+        <ul class="pivot-list pivot">
+          <li>Zero DMs or comments after 4 full weeks. Your content isn't creating recognition or resonance. Rewrite the hooks.</li>
+          <li>Profile views not growing after week 3. Your content is reaching people but not making them curious about you. Revisit the About section and headline.</li>
+          <li>Score takers with zero report interest after 60+ takers. The gap between free tool and paid product is too wide. Add a follow-up email after score delivery that bridges the gap.</li>
+          <li>Engagement from wrong audience (students, juniors, recruiters). Your targeting language needs adjustment — add "senior," "director-level," "decade of experience" to your framing.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="note-box" style="margin-top:0;">
+    <strong>The 90-day rule:</strong> Do not evaluate this strategy before 90 days of consistent, weekly execution. LinkedIn organic growth is a compounding curve — it looks flat for 6–8 weeks, then accelerates. Every creator who abandons a LinkedIn strategy does so in the flat period, weeks before the inflection point. Commit to the full 90 days, track the leading indicators (saves, DMs, score takers), and make adjustments to format and hook — not to the channel or the price.
+  </div>
+
+</div>
+
+</div><!-- /content -->
+
+</body>
+</html>

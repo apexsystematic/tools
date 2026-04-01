@@ -1,0 +1,2616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FutureProof — Report Builder</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: #0f0f0f;
+      color: #e8e8e8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 20px 32px;
+      border-bottom: 1px solid #222;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .wordmark { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+    .wordmark em { font-style: italic; color: #b8963e; font-weight: 400; }
+    .badge {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #b8963e; border: 1px solid rgba(184,150,62,0.4); padding: 3px 8px; border-radius: 2px;
+    }
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      height: calc(100vh - 61px);
+    }
+    .left-panel {
+      width: 460px;
+      flex-shrink: 0;
+      padding: 32px;
+      overflow-y: auto;
+      border-right: 1px solid #1e1e1e;
+    }
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #0a0a0a;
+    }
+    .preview-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid #1e1e1e;
+      background: #111;
+      flex-shrink: 0;
+    }
+    .preview-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #444;
+    }
+    .btn-download {
+      background: #b8963e; color: #fff; border: none;
+      padding: 7px 16px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border-radius: 2px; letter-spacing: 0.02em;
+      transition: background 0.15s;
+    }
+    .btn-download:hover { background: #d4ae5e; }
+    .btn-download:disabled { background: #333; color: #555; cursor: not-allowed; }
+    #preview-frame {
+      flex: 1;
+      border: none;
+      background: #fff;
+    }
+    .preview-placeholder {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      color: #333;
+    }
+    .preview-placeholder svg { opacity: 0.3; }
+    .preview-placeholder p { font-size: 13px; color: #444; }
+    h1 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .subtitle { font-size: 13px; color: #666; margin-bottom: 28px; line-height: 1.6; }
+    label {
+      display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #b8963e; margin-bottom: 7px;
+    }
+    textarea {
+      width: 100%; height: 280px;
+      background: #141414; border: 1px solid #2a2a2a; border-radius: 3px;
+      color: #e8e8e8;
+      font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+      font-size: 11.5px; line-height: 1.65; padding: 14px;
+      resize: vertical; outline: none; transition: border-color 0.15s;
+    }
+    textarea:focus { border-color: rgba(184,150,62,0.6); }
+    .actions { display: flex; gap: 10px; margin-top: 14px; align-items: center; }
+    .btn-primary {
+      background: #b8963e; color: #fff; border: none;
+      padding: 10px 22px; font-size: 13px; font-weight: 600;
+      cursor: pointer; border-radius: 3px; letter-spacing: 0.02em;
+      transition: background 0.15s; white-space: nowrap;
+    }
+    .btn-primary:hover { background: #d4ae5e; }
+    .btn-primary:disabled { background: #333; color: #555; cursor: not-allowed; }
+    .btn-clear {
+      background: transparent; color: #666; border: 1px solid #2a2a2a;
+      padding: 10px 16px; font-size: 12px; cursor: pointer; border-radius: 3px;
+      transition: all 0.15s;
+    }
+    .btn-clear:hover { border-color: #555; color: #aaa; }
+    #status { font-size: 12px; }
+    .status-ok    { color: #27ae60; }
+    .status-error { color: #e74c3c; }
+    .status-info  { color: #666; }
+    .summary-box {
+      background: #141414; border: 1px solid #242424; border-radius: 3px;
+      padding: 14px 16px; margin-top: 16px; display: none;
+    }
+    .summary-box h3 {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #b8963e; margin-bottom: 10px;
+    }
+    .summary-row {
+      display: flex; justify-content: space-between; font-size: 12px;
+      padding: 4px 0; border-bottom: 1px solid #1e1e1e; gap: 12px;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { color: #666; white-space: nowrap; }
+    .summary-value { color: #e8e8e8; font-weight: 500; text-align: right; word-break: break-word; }
+    .summary-value.warn { color: #f39c12; }
+    .summary-value.ok   { color: #27ae60; }
+    .missing-list {
+      font-size: 10px; font-family: monospace;
+      color: #e74c3c; margin-top: 8px; line-height: 1.8;
+      max-height: 120px; overflow-y: auto;
+      background: #110000; padding: 8px 10px; border-radius: 2px;
+      display: none;
+    }
+    .divider { border: none; border-top: 1px solid #1e1e1e; margin: 24px 0; }
+    .help-text { font-size: 11px; color: #444; line-height: 1.7; }
+    .help-text code {
+      background: #1a1a1a; padding: 1px 5px; border-radius: 2px; color: #b8963e;
+      font-family: monospace;
+    }
+    footer {
+      padding: 12px 32px; border-top: 1px solid #111;
+      font-size: 10px; color: #333; text-align: center; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="wordmark">Future<em>Proof</em></span>
+  <span class="badge">Report Builder</span>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: Input panel -->
+  <div class="left-panel">
+
+    <h1>Report Builder</h1>
+    <p class="subtitle">
+      Paste Stage 5B JSON below and click Generate.
+      The report renders in the preview panel — download when ready.
+    </p>
+
+    <label for="json-input">Stage 5B JSON Output</label>
+    <textarea
+      id="json-input"
+      placeholder='Paste the full JSON object from Stage 5B here...'
+      spellcheck="false"
+    ></textarea>
+
+    <div class="actions">
+      <button class="btn-primary" id="btn-generate" onclick="generateReport()">
+        Generate Report
+      </button>
+      <button class="btn-clear" onclick="clearAll()">Clear</button>
+      <span id="status" class="status-info"></span>
+    </div>
+
+    <div class="summary-box" id="summary-box">
+      <h3>Report Summary</h3>
+      <div id="summary-rows"></div>
+      <div class="missing-list" id="missing-list"></div>
+    </div>
+
+    <hr class="divider">
+
+    <p class="help-text">
+      The tool replaces all <code>{{PLACEHOLDER}}</code> tokens in the
+      report template with values from your JSON. The preview updates
+      immediately. Use the Download button to save the HTML file, then
+      export to PDF via Doppio.<br><br>
+      Nothing is sent to any server. Everything runs in your browser.
+    </p>
+
+  </div>
+
+  <!-- RIGHT: Preview panel -->
+  <div class="right-panel">
+    <div class="preview-toolbar">
+      <span class="preview-label">Preview</span>
+      <button class="btn-download" id="btn-download" disabled onclick="downloadReport()">
+        Download HTML
+      </button>
+    </div>
+    <div class="preview-placeholder" id="preview-placeholder">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
+        <line x1="9" y1="21" x2="9" y2="9"/>
+      </svg>
+      <p>Report preview will appear here</p>
+    </div>
+    <iframe id="preview-frame" style="display:none;"></iframe>
+  </div>
+
+</div>
+
+<footer>FutureProof &nbsp;·&nbsp; Internal Use Only &nbsp;·&nbsp; Not for distribution</footer>
+
+
+<!-- Report template (non-executing) -->
+<script type="text/x-template" id="report-template">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FutureProof Executive Audit — {{CLIENT_FULL_NAME}}</title>
+  <style>
+    /* ─────────────────────────────────────────────
+       FONTS & ROOT VARIABLES
+    ───────────────────────────────────────────── */
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap');
+
+    :root {
+      --gold:        #b8963e;
+      --gold-light:  #d4ae5e;
+      --gold-pale:   #f5edd8;
+      --gold-dark:   #9a7020;
+      --ink:         #0f0f0f;
+      --ink-mid:     #1c1c1c;
+      --ink-soft:    #2e2e2e;
+      --slate:       #4a4a4a;
+      --muted:       #6b6b6b;
+      --rule:        #e2d9c8;
+      --bg-page:     #faf9f7;
+      --bg-dark:     #111111;
+      --bg-section:  #f0ebe2;
+      --white:       #ffffff;
+
+      --risk-critical: #c0392b;
+      --risk-high:     #e67e22;
+      --risk-moderate: #f39c12;
+      --risk-managed:  #27ae60;
+      --risk-low:      #2980b9;
+    }
+
+    /* ─────────────────────────────────────────────
+       RESET & BASE
+    ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 10pt; background: #faf9f7; height: 100%; }
+
+    body {
+      font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 400;
+      color: var(--ink);
+      background: #faf9f7;
+      min-height: 100%;
+      line-height: 1.65;
+    }
+
+    /* ─────────────────────────────────────────────
+       PAGE SETUP (WeasyPrint / Doppio)
+    ───────────────────────────────────────────── */
+    @media print {
+      html, body, .break-before, .toc-page, .cover {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      thead { display: table-row-group; }
+    }
+
+    @page {
+      size: A4;
+      margin: 18mm 16mm 22mm 16mm;
+      background: #faf9f7;
+
+      @bottom-center {
+        content: element(page-footer);
+      }
+    }
+
+    @page cover { margin: 0; background: #111111; }
+
+    #page-footer {
+      position: running(page-footer);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      border-top: 1px solid var(--rule);
+      padding-top: 4pt;
+      font-size: 7pt;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+    }
+    #page-footer .footer-brand {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 7.5pt;
+      letter-spacing: 0.02em;
+    }
+    #page-footer .footer-brand em { font-style: italic; font-weight: 400; }
+    #page-footer .footer-right { text-align: right; }
+
+    /* ─────────────────────────────────────────────
+       PAGE BREAKS
+    ───────────────────────────────────────────── */
+    .page-break        { page-break-after: always; break-after: page; }
+    .avoid-break       { page-break-inside: avoid; break-inside: avoid; }
+    .break-before      { page-break-before: always; break-before: page; background: #faf9f7; }
+
+    /* ─────────────────────────────────────────────
+       COVER PAGE
+    ───────────────────────────────────────────── */
+    .cover {
+      page: cover;
+      width: 210mm;
+      min-height: 297mm;
+      background: var(--bg-dark);
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Diagonal gold accent bar */
+    .cover::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 3mm;
+      height: 100%;
+      background: var(--gold);
+    }
+
+    /* Top horizontal rule */
+    .cover::after {
+      content: '';
+      position: absolute;
+      top: 38mm; left: 16mm; right: 16mm;
+      height: 1px;
+      background: rgba(184,150,62,0.35);
+    }
+
+    .cover-header {
+      padding: 14mm 16mm 0 16mm;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cover-wordmark {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 16pt;
+      letter-spacing: -0.01em;
+      color: var(--white);
+    }
+    .cover-wordmark em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--gold-light);
+    }
+
+    .cover-badge {
+      font-size: 6.5pt;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      border: 1px solid rgba(184,150,62,0.5);
+      padding: 2pt 6pt;
+      border-radius: 2pt;
+    }
+
+    .cover-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 16mm;
+    }
+
+    .cover-kicker {
+      font-size: 7pt;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6mm;
+    }
+
+    .cover-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28pt;
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--white);
+      margin-bottom: 4mm;
+    }
+    .cover-title em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+
+    .cover-subtitle {
+      font-size: 10pt;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 12mm;
+      font-weight: 300;
+    }
+
+    /* Gold divider */
+    .cover-rule {
+      width: 20mm;
+      height: 2px;
+      background: var(--gold);
+      margin-bottom: 10mm;
+    }
+
+    .cover-client-block {
+      background: rgba(184,150,62,0.08);
+      border: 1px solid rgba(184,150,62,0.25);
+      border-left: 3px solid var(--gold);
+      padding: 6mm 8mm;
+      margin-bottom: 10mm;
+    }
+
+    .cover-client-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 18pt;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 1mm;
+    }
+
+    .cover-client-meta {
+      font-size: 9pt;
+      color: rgba(255,255,255,0.65);
+      font-weight: 300;
+    }
+
+    /* Score pill row */
+    .cover-scores {
+      display: flex;
+      gap: 6mm;
+      margin-bottom: 12mm;
+    }
+
+    .cover-score-pill {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(184,150,62,0.2);
+      padding: 4mm 5mm;
+      text-align: center;
+    }
+    .cover-score-pill .score-label {
+      font-size: 6pt;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 2mm;
+      display: block;
+    }
+    .cover-score-pill .score-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 26pt;
+      font-weight: 700;
+      line-height: 1;
+      display: block;
+    }
+    .score-value.risk-high   { color: var(--risk-high); }
+    .score-value.risk-critical { color: var(--risk-critical); }
+    .score-value.risk-strong { color: var(--gold-light); }
+    .cover-score-pill .score-sub {
+      font-size: 6.5pt;
+      color: rgba(255,255,255,0.45);
+      display: block;
+      margin-top: 1mm;
+    }
+
+    .cover-footer {
+      padding: 6mm 16mm 10mm;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-top: 1px solid rgba(184,150,62,0.15);
+    }
+
+    .cover-footer-left {
+      font-size: 6.5pt;
+      color: rgba(255,255,255,0.35);
+      line-height: 1.5;
+    }
+
+    .cover-footer-right {
+      font-size: 6.5pt;
+      color: rgba(255,255,255,0.35);
+      text-align: right;
+    }
+
+    .cover-confidential {
+      font-size: 6pt;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 1mm;
+    }
+
+    /* ─────────────────────────────────────────────
+       TABLE OF CONTENTS
+    ───────────────────────────────────────────── */
+    .toc-page {
+      padding: 10mm 0;
+      background: #faf9f7;
+    }
+
+    .section-kicker {
+      font-size: 6.5pt;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      display: block;
+      margin-bottom: 3mm;
+    }
+
+    h1.page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22pt;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.2;
+      margin-bottom: 7mm;
+    }
+    h1.page-title em {
+      font-style: italic;
+      color: var(--gold-dark);
+    }
+
+    .toc-table { width: 100%; border-collapse: collapse; }
+    .toc-table tr { border-bottom: 1px solid var(--rule); }
+    .toc-table tr:last-child { border-bottom: none; }
+    .toc-table td {
+      padding: 3mm 0;
+      font-size: 9pt;
+      vertical-align: middle;
+    }
+    .toc-num {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 9pt;
+      color: var(--gold-dark);
+      width: 8mm;
+      font-weight: 700;
+    }
+    .toc-title { font-weight: 500; color: var(--ink); }
+    .toc-sub   { font-size: 7.5pt; color: var(--muted); display: block; font-weight: 300; }
+    .toc-dots  { display: none; }
+    .toc-page-num { display: none; }
+
+    /* ─────────────────────────────────────────────
+       SECTION HEADERS (interior pages)
+    ───────────────────────────────────────────── */
+    .section-header {
+      border-left: 3px solid var(--gold);
+      padding-left: 4mm;
+      margin-bottom: 7mm;
+    }
+
+    h2.section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 17pt;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.2;
+      margin-bottom: 1mm;
+    }
+    h2.section-title em { font-style: italic; color: var(--gold-dark); }
+
+    .section-intro {
+      font-size: 9pt;
+      color: var(--slate);
+      font-weight: 300;
+      line-height: 1.6;
+      margin-bottom: 7mm;
+    }
+
+    /* ─────────────────────────────────────────────
+       TYPOGRAPHY
+    ───────────────────────────────────────────── */
+    h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 12pt;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 3mm;
+    }
+    h3 em { font-style: italic; color: var(--gold-dark); }
+
+    h4 {
+      font-size: 8.5pt;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      margin-bottom: 2mm;
+    }
+
+    p {
+      font-size: 9.5pt;
+      color: var(--ink-soft);
+      margin-bottom: 4mm;
+      line-height: 1.7;
+      text-align: justify;
+    }
+
+    p:last-child { margin-bottom: 0; }
+
+    strong { font-weight: 600; color: var(--ink); }
+
+    /* ─────────────────────────────────────────────
+       SCORE DASHBOARD
+    ───────────────────────────────────────────── */
+    .score-dashboard {
+      display: flex;
+      gap: 5mm;
+      margin-bottom: 8mm;
+    }
+
+    .score-card {
+      flex: 1;
+      border: 1px solid var(--rule);
+      padding: 5mm 6mm;
+      background: var(--white);
+      position: relative;
+    }
+    .score-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .score-card.dri::before { background: var(--risk-high); }
+    .score-card.prs::before { background: var(--gold); }
+
+    .score-card-label {
+      font-size: 6.5pt;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2mm;
+      display: block;
+    }
+
+    .score-card-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 36pt;
+      font-weight: 700;
+      line-height: 1;
+      display: block;
+      margin-bottom: 1mm;
+    }
+    .score-card.dri .score-card-number { color: var(--risk-high); }
+    .score-card.prs .score-card-number { color: var(--gold-dark); }
+
+    .score-card-verdict {
+      font-size: 7.5pt;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 2mm;
+      display: block;
+    }
+    .score-card.dri .score-card-verdict { color: var(--risk-high); }
+    .score-card.prs .score-card-verdict { color: var(--gold-dark); }
+
+    .score-card-note {
+      font-size: 8pt;
+      color: var(--slate);
+      line-height: 1.5;
+    }
+
+    /* Score bar */
+    .score-bar-track {
+      width: 100%;
+      height: 4px;
+      background: var(--rule);
+      border-radius: 2px;
+      margin: 3mm 0 2mm;
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0s;
+    }
+    .score-bar-fill.dri { background: var(--risk-high); } /* default */
+    .score-card.dri.tier-critical .score-bar-fill.dri { background: var(--risk-critical); }
+    .score-card.dri.tier-high     .score-bar-fill.dri { background: var(--risk-high); }
+    .score-card.dri.tier-moderate .score-bar-fill.dri { background: var(--risk-moderate); }
+    .score-card.dri.tier-managed  .score-bar-fill.dri { background: var(--risk-managed); }
+    .score-bar-fill.prs { background: var(--gold); }
+    .score-card.prs.tier-strong  .score-bar-fill.prs { background: var(--risk-managed); }
+    .score-card.prs.tier-good    .score-bar-fill.prs { background: var(--gold); }
+    .score-card.prs.tier-limited .score-bar-fill.prs { background: var(--risk-moderate); }
+    .score-card.prs.tier-weak    .score-bar-fill.prs { background: var(--risk-critical); }
+
+    /* Score stat row */
+    .score-stats {
+      display: flex;
+      gap: 4mm;
+      margin-top: 3mm;
+    }
+    .score-stat {
+      flex: 1;
+      text-align: center;
+      border: 1px solid var(--rule);
+      padding: 2.5mm;
+    }
+    .score-stat-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 11pt;
+      font-weight: 700;
+      color: var(--gold-dark);
+      display: block;
+    }
+    .score-stat-lbl {
+      font-size: 6.5pt;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ─────────────────────────────────────────────
+       ANALYST NOTE BOX
+    ───────────────────────────────────────────── */
+    .analyst-note {
+      background: var(--bg-section);
+      border-left: 3px solid var(--gold);
+      padding: 5mm 6mm;
+      margin: 6mm 0;
+    }
+    .analyst-note-label {
+      font-size: 6.5pt;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      display: block;
+      margin-bottom: 2mm;
+    }
+    .analyst-note p {
+      font-size: 9pt;
+      color: var(--ink-soft);
+      margin: 0;
+      line-height: 1.65;
+      text-align: justify;
+    }
+
+    /* ─────────────────────────────────────────────
+       TASK TABLE
+    ───────────────────────────────────────────── */
+    /* DRI task table */
+    .task-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 6mm;
+      font-size: 8pt;
+    }
+    .task-table thead tr {
+      background: var(--ink-mid);
+      color: var(--white);
+    }
+    .task-table thead th {
+      padding: 2.5mm 3mm;
+      text-align: left;
+      font-size: 6pt;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    /* Main data rows */
+    .task-table tbody tr.task-main-row {
+      border-top: 1px solid var(--rule);
+    }
+    .task-table tbody tr.task-main-row:first-of-type {
+      border-top: none;
+    }
+    .task-table tbody tr.task-note-row {
+      background: var(--bg-section);
+    }
+    .task-table tbody td {
+      padding: 2.5mm 3mm;
+      vertical-align: top;
+      color: var(--ink-soft);
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .task-name { font-size: 8pt; font-weight: 600; color: var(--ink); display: block; }
+    .task-time { font-size: 7pt; color: var(--muted); }
+    .task-note-cell {
+      font-size: 7.5pt;
+      color: var(--slate);
+      line-height: 1.55;
+      padding: 2mm 3mm 3.5mm 3mm !important;
+      text-align: justify;
+    }
+
+    /* Risk badge */
+    .risk-badge {
+      display: inline-block;
+      padding: 1pt 5pt;
+      border-radius: 2pt;
+      font-size: 6.5pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .risk-badge.critical { background: #fdecea; color: var(--risk-critical); border: 1px solid #f5c6c2; }
+    .risk-badge.high     { background: #fef3e8; color: var(--risk-high);     border: 1px solid #f9d5a8; }
+    .risk-badge.moderate { background: #fef9e7; color: #b8860b;              border: 1px solid #f7d87e; }
+    .risk-badge.managed  { background: #eafaf1; color: var(--risk-managed);  border: 1px solid #a9dfbf; }
+    .risk-badge.low      { background: #ebf5fb; color: var(--risk-low);      border: 1px solid #aed6f1; }
+
+    /* Mini score bar in table */
+    .mini-bar-track {
+      width: 40mm;
+      height: 3px;
+      background: var(--rule);
+      border-radius: 2px;
+      margin-top: 2mm;
+      overflow: hidden;
+    }
+    .mini-bar-fill { height: 100%; border-radius: 2px; }
+    .mini-bar-fill.critical { background: var(--risk-critical); }
+    .mini-bar-fill.high     { background: var(--risk-high); }
+    .mini-bar-fill.moderate { background: var(--risk-moderate); }
+    .mini-bar-fill.managed  { background: var(--risk-managed); }
+    .mini-bar-fill.low      { background: var(--risk-low); }
+
+    /* Score number in table */
+    .task-score-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 13pt;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    /* ─────────────────────────────────────────────
+       PIVOT PATHWAY CARD
+    ───────────────────────────────────────────── */
+    .pivot-card {
+      border: 1px solid var(--rule);
+      margin-bottom: 7mm;
+      background: var(--white);
+      position: relative;
+    }
+    .pivot-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--gold);
+    }
+
+    .pivot-card-header {
+      background: var(--ink-mid);
+      color: var(--white);
+      padding: 5mm 6mm;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 4mm;
+    }
+
+    .pivot-rank {
+      font-family: 'Playfair Display', serif;
+      font-size: 24pt;
+      font-weight: 700;
+      font-style: italic;
+      color: var(--gold-light);
+      line-height: 1;
+      flex-shrink: 0;
+      width: 10mm;
+    }
+
+    .pivot-title-block { flex: 1; }
+
+    .pivot-type-label {
+      font-size: 6pt;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      display: block;
+      margin-bottom: 1mm;
+    }
+
+    .pivot-role-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 13pt;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.2;
+    }
+
+    .pivot-meta-row {
+      display: flex;
+      gap: 5mm;
+      margin-top: 2mm;
+      flex-wrap: wrap;
+    }
+    .pivot-meta-item {
+      font-size: 7.5pt;
+      color: rgba(255,255,255,0.6);
+    }
+    .pivot-meta-item strong { color: var(--gold-light); }
+
+    .pivot-score-block {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .pivot-score-item { margin-bottom: 2mm; }
+    .pivot-score-label {
+      font-size: 6pt;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      display: block;
+    }
+    .pivot-score-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 16pt;
+      font-weight: 700;
+      color: var(--gold-light);
+      line-height: 1;
+    }
+
+    .pivot-card-body { padding: 5mm 6mm; }
+
+    .pivot-rationale {
+      font-size: 9pt;
+      color: var(--ink-soft);
+      line-height: 1.7;
+      margin-bottom: 5mm;
+      text-align: justify;
+    }
+
+    .pivot-skills-row {
+      display: flex;
+      gap: 4mm;
+      margin-bottom: 5mm;
+    }
+    .pivot-skills-col {
+      flex: 1;
+      background: var(--bg-section);
+      padding: 4mm;
+    }
+    .pivot-skills-col h4 { font-size: 7pt; margin-bottom: 2mm; }
+    .skill-pill {
+      display: inline-block;
+      background: var(--white);
+      border: 1px solid var(--rule);
+      font-size: 7.5pt;
+      padding: 1pt 5pt;
+      margin: 1.5pt;
+      color: var(--slate);
+    }
+    .skill-pill.build {
+      background: var(--gold-pale);
+      border-color: rgba(184,150,62,0.3);
+      color: var(--gold-dark);
+    }
+
+    .pivot-first-step {
+      border: 1px solid rgba(184,150,62,0.3);
+      background: rgba(245,237,216,0.4);
+      padding: 4mm 5mm;
+    }
+    .pivot-first-step h4 { margin-bottom: 1.5mm; }
+    .pivot-first-step p { font-size: 8.5pt; margin: 0; }
+
+    /* ─────────────────────────────────────────────
+       TIMELINE CHART
+    ───────────────────────────────────────────── */
+    .timeline {
+      width: 100%;
+      margin-bottom: 7mm;
+    }
+
+    .timeline-header {
+      display: flex;
+      border-bottom: 1.5px solid var(--rule);
+      padding-bottom: 2mm;
+      margin-bottom: 3mm;
+    }
+    .timeline-header-label {
+      font-size: 6.5pt;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      flex: 1;
+      text-align: center;
+    }
+
+    .timeline-row {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--rule);
+      padding: 2.5mm 0;
+      gap: 2mm;
+    }
+
+    .timeline-label {
+      width: 48mm;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .timeline-label-title { font-size: 8.5pt; font-weight: 600; color: var(--ink); }
+    .timeline-label-sub   { font-size: 7pt; color: var(--muted); }
+
+    .timeline-cells {
+      flex: 1;
+      display: flex;
+      gap: 1mm;
+    }
+    .timeline-cell {
+      flex: 1;
+      border-radius: 1px;
+      min-height: 8mm;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 6pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    /* Legacy tc- classes */
+    .tc-watch    { background: #fef9e7; color: #b8860b; border: 1px solid #f7d87e; }
+    .tc-risk     { background: #fef3e8; color: var(--risk-high); border: 1px solid #f9d5a8; }
+    .tc-critical { background: #fdecea; color: var(--risk-critical); border: 1px solid #f5c6c2; }
+    .tc-clear    { background: var(--bg-section); color: var(--muted); border: 1px solid var(--rule); }
+    .tc-action   { background: rgba(184,150,62,0.12); color: var(--gold-dark); border: 1px solid rgba(184,150,62,0.3); }
+    /* Semantic classes used by Stage 5B output */
+    .timeline-cell.safe     { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+    .timeline-cell.watch    { background: #fef9e7; color: #9a7d0a; border: 1px solid #f7d87e; }
+    .timeline-cell.risk     { background: #fef3e8; color: var(--risk-high); border: 1px solid #f9d5a8; }
+    .timeline-cell.critical { background: #fdecea; color: var(--risk-critical); border: 1px solid #f5c6c2; }
+    .timeline-cell.evolving { background: rgba(184,150,62,0.1); color: var(--gold-dark); border: 1px solid rgba(184,150,62,0.35); }
+
+    /* ─────────────────────────────────────────────
+       90-DAY ACTION PLAN
+    ───────────────────────────────────────────── */
+    .plan-phase {
+      margin-bottom: 6mm;
+      border: 1px solid var(--rule);
+    }
+
+    .plan-phase-header {
+      background: var(--ink-mid);
+      color: var(--white);
+      padding: 3mm 5mm;
+      display: flex;
+      align-items: center;
+      gap: 4mm;
+    }
+    .plan-phase-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 14pt;
+      font-weight: 700;
+      font-style: italic;
+      color: var(--gold-light);
+      line-height: 1;
+    }
+    .plan-phase-label {
+      font-size: 8.5pt;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .plan-phase-sub {
+      font-size: 7.5pt;
+      color: rgba(255,255,255,0.5);
+      text-align: justify;
+    }
+
+    .plan-actions { padding: 0 5mm; }
+    .plan-action-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 4mm;
+      padding: 3mm 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .plan-action-row:last-child { border-bottom: none; }
+
+    .plan-week-badge {
+      flex-shrink: 0;
+      width: 14mm;
+      text-align: center;
+      background: var(--bg-section);
+      padding: 1.5mm 0;
+      font-size: 6.5pt;
+      font-weight: 700;
+      color: var(--gold-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .plan-action-body { flex: 1; }
+    .plan-action-title { font-size: 8.5pt; font-weight: 600; color: var(--ink); margin-bottom: 1mm; }
+    .plan-action-detail { font-size: 7.5pt; color: var(--muted); text-align: justify; }
+
+        .plan-action-meta {
+      display: flex;
+      gap: 4mm;
+      margin-top: 2mm;
+      align-items: center;
+    }
+    .plan-action-time {
+      font-size: 7pt;
+      color: var(--muted);
+      background: var(--bg-section);
+      padding: 1pt 5pt;
+      border-radius: 2pt;
+      white-space: nowrap;
+    }
+    .plan-action-cost {
+      font-size: 7pt;
+      font-weight: 600;
+      color: var(--gold-dark);
+      background: var(--gold-pale);
+      padding: 1pt 5pt;
+      border-radius: 2pt;
+    }
+
+    .plan-milestone {
+      background: rgba(184,150,62,0.06);
+      border-top: 2px solid var(--gold);
+      padding: 3mm 5mm;
+    }
+    .plan-milestone-label {
+      font-size: 6.5pt;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      display: block;
+      margin-bottom: 2mm;
+    }
+    .plan-milestone-text {
+      font-size: 8pt;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.55;
+      margin-bottom: 1.5mm;
+      text-align: justify;
+    }
+    .plan-milestone-indicator {
+      font-size: 7.5pt;
+      color: var(--muted);
+      font-style: italic;
+      text-align: justify;
+    }
+
+    .checkpoint-box {
+      border: 1.5px solid var(--gold);
+      background: var(--gold-pale);
+      padding: 5mm 6mm;
+      margin: 6mm 0;
+    }
+    .checkpoint-box h4 {
+      color: var(--gold-dark);
+      margin-bottom: 3mm;
+    }
+    .checkpoint-criteria {
+      font-size: 8.5pt;
+      color: var(--ink-soft);
+      line-height: 1.65;
+      margin-bottom: 3mm;
+    }
+    .checkpoint-trigger {
+      font-size: 8pt;
+      color: var(--slate);
+      border-top: 1px solid rgba(184,150,62,0.3);
+      padding-top: 3mm;
+      margin-top: 3mm;
+      text-align: justify;
+    }
+    .checkpoint-update {
+      font-size: 7.5pt;
+      font-style: italic;
+      color: var(--gold-dark);
+      margin-top: 2mm;
+      text-align: justify;
+    }
+
+    /* ─────────────────────────────────────────────
+       KEY INSIGHTS / CALLOUT BOXES
+    ───────────────────────────────────────────── */
+    .callout-row {
+      display: flex;
+      gap: 4mm;
+      margin-bottom: 6mm;
+    }
+
+    .callout-box {
+      flex: 1;
+      border: 1px solid var(--rule);
+      padding: 4mm 5mm;
+      background: var(--white);
+      position: relative;
+    }
+    .callout-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 2px;
+    }
+    .callout-box.vuln::before  { background: var(--risk-high); }
+    .callout-box.moat::before  { background: var(--risk-managed); }
+    .callout-box.action::before{ background: var(--gold); }
+    .callout-box.info::before  { background: var(--risk-low); }
+
+    .callout-box h4 { margin-bottom: 2mm; }
+    .callout-box p  { font-size: 8.5pt; margin: 0; }
+
+    /* ─────────────────────────────────────────────
+       BIBLIOGRAPHY
+    ───────────────────────────────────────────── */
+    .bib-entry {
+      padding: 3mm 0;
+      border-bottom: 1px solid var(--rule);
+      display: flex;
+      gap: 3mm;
+    }
+    .bib-entry:last-child { border-bottom: none; }
+
+    .bib-num {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 8pt;
+      color: var(--gold-dark);
+      flex-shrink: 0;
+      width: 6mm;
+      padding-top: 1pt;
+    }
+    .bib-text { flex: 1; font-size: 8pt; color: var(--slate); line-height: 1.55; text-align: justify; }
+    .bib-text strong { color: var(--ink); }
+    .bib-text em { font-style: italic; }
+
+    /* ─────────────────────────────────────────────
+       METHODOLOGY NOTE
+    ───────────────────────────────────────────── */
+    .methodology-box {
+      border: 1px solid var(--rule);
+      background: var(--bg-section);
+      padding: 5mm 6mm;
+      margin-bottom: 6mm;
+    }
+    .methodology-box h3 { margin-bottom: 3mm; font-size: 10pt; }
+    .methodology-box p  { font-size: 8.5pt; margin-bottom: 3mm; text-align: left; }
+    .methodology-box ul {
+      padding-left: 4mm;
+      margin-bottom: 0;
+    }
+    .methodology-box li {
+      font-size: 8.5pt;
+      color: var(--slate);
+      margin-bottom: 1.5mm;
+      line-height: 1.55;
+      text-align: left;
+    }
+
+    /* ─────────────────────────────────────────────
+       UTILITY / SPACING
+    ───────────────────────────────────────────── */
+    .mt-4  { margin-top: 4mm; }
+    .mt-6  { margin-top: 6mm; }
+    .mb-4  { margin-bottom: 4mm; }
+    .mb-6  { margin-bottom: 6mm; }
+    .text-muted { color: var(--muted); }
+    .text-gold  { color: var(--gold-dark); }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--rule);
+      margin: 6mm 0;
+    }
+
+    /* Section label (top of every interior page) */
+    .page-section-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 3mm;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 7mm;
+    }
+    .psl-left {
+      font-size: 7pt;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+    }
+    .psl-right {
+      font-size: 7pt;
+      color: var(--muted);
+    }
+    .psl-client {
+      font-family: 'Playfair Display', serif;
+      font-size: 8pt;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+
+    /* ─────────────────────────────────────────────
+       DYNAMIC SCORE TIER COLOURS
+    ───────────────────────────────────────────── */
+    /* DRI — higher score = more risk */
+    .score-value.tier-critical  { color: var(--risk-critical); }
+    .score-value.tier-high      { color: var(--risk-high); }
+    .score-value.tier-moderate  { color: var(--risk-moderate); }
+    .score-value.tier-managed   { color: var(--risk-managed); }
+    /* PRS — higher score = more readiness */
+    /* Score value tier colours — used on cover (dark bg) */
+    .score-value.tier-strong    { color: #2ecc71; }   /* bright green — readable on dark */
+    .score-value.tier-good      { color: var(--gold-light); }  /* light gold — readable on dark */
+    .score-value.tier-limited   { color: var(--risk-moderate); }
+    .score-value.tier-weak      { color: #e74c3c; }   /* bright red — readable on dark */
+    /* DRI on cover uses same tier classes */
+    .score-value.tier-critical  { color: #e74c3c; }
+    .score-value.tier-high      { color: var(--risk-high); }
+    .score-value.tier-moderate  { color: var(--risk-moderate); }
+    .score-value.tier-managed   { color: #2ecc71; }
+
+    /* Score card top border — DRI */
+    .score-card.dri.tier-critical::before { background: var(--risk-critical); }
+    .score-card.dri.tier-high::before     { background: var(--risk-high); }
+    .score-card.dri.tier-moderate::before { background: var(--risk-moderate); }
+    .score-card.dri.tier-managed::before  { background: var(--risk-managed); }
+    /* Score card number — DRI */
+    .score-card.dri.tier-critical .score-card-number,
+    .score-card.dri.tier-critical .score-card-verdict { color: var(--risk-critical); }
+    .score-card.dri.tier-high .score-card-number,
+    .score-card.dri.tier-high .score-card-verdict     { color: var(--risk-high); }
+    .score-card.dri.tier-moderate .score-card-number,
+    .score-card.dri.tier-moderate .score-card-verdict { color: var(--risk-moderate); }
+    .score-card.dri.tier-managed .score-card-number,
+    .score-card.dri.tier-managed .score-card-verdict  { color: var(--risk-managed); }
+    /* Score card top border — PRS */
+    .score-card.prs.tier-strong::before  { background: var(--risk-managed); }
+    .score-card.prs.tier-good::before    { background: var(--gold); }
+    .score-card.prs.tier-limited::before { background: var(--risk-moderate); }
+    .score-card.prs.tier-weak::before    { background: var(--risk-critical); }
+    /* Score card number — PRS */
+    .score-card.prs.tier-strong .score-card-number,
+    .score-card.prs.tier-strong .score-card-verdict  { color: var(--risk-managed); }
+    .score-card.prs.tier-good .score-card-number,
+    .score-card.prs.tier-good .score-card-verdict    { color: var(--gold-dark); }
+    .score-card.prs.tier-limited .score-card-number,
+    .score-card.prs.tier-limited .score-card-verdict { color: var(--risk-moderate); }
+    .score-card.prs.tier-weak .score-card-number,
+    .score-card.prs.tier-weak .score-card-verdict    { color: var(--risk-critical); }
+
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     RUNNING FOOTER (all non-cover pages)
+     ════════════════════════════════════════════ -->
+<div id="page-footer">
+  <span class="footer-brand">Future<em>Proof</em> Executive Audit · Confidential</span>
+  <span>{{REPORT_ID}}</span>
+  <span class="footer-right">{{CLIENT_FULL_NAME}} · {{CLIENT_TITLE}}</span>
+</div>
+
+<!-- ════════════════════════════════════════════
+     PAGE 1 — COVER
+     ════════════════════════════════════════════ -->
+<div class="cover page-break">
+  <div class="cover-header">
+    <span class="cover-wordmark">Future<em>Proof</em></span>
+    <span class="cover-badge">Executive Audit</span>
+  </div>
+
+  <div class="cover-body">
+    <span class="cover-kicker">Career Risk Intelligence</span>
+
+    <h1 class="cover-title">
+      Your Career Risk<br>
+      <em>Decoded.</em>
+    </h1>
+    <p class="cover-subtitle">A data-backed assessment of your exposure to AI displacement — and what to do next.</p>
+
+    <div class="cover-rule"></div>
+
+    <div class="cover-client-block">
+      <div class="cover-client-name">{{CLIENT_FULL_NAME}}</div>
+      <div class="cover-client-meta">
+        {{CLIENT_TITLE}} &nbsp;·&nbsp; {{CLIENT_INDUSTRY}} &nbsp;·&nbsp; {{CLIENT_EXPERIENCE}} years experience &nbsp;·&nbsp; {{CLIENT_SENIORITY}} level
+      </div>
+    </div>
+
+    <div class="cover-scores">
+      <div class="cover-score-pill">
+        <span class="score-label">Displacement Risk Index™</span>
+        <span class="score-value {{DRI_TIER_CLASS}}">{{DRI_SCORE}}</span>
+        <span class="score-sub">/ 100</span>
+      </div>
+      <div class="cover-score-pill">
+        <span class="score-label">Pivot Readiness Score™</span>
+        <span class="score-value {{PRS_TIER_CLASS}}">{{PRS_SCORE}}</span>
+        <span class="score-sub">/ 100</span>
+      </div>
+      <div class="cover-score-pill">
+        <span class="score-label">Risk Horizon</span>
+        <span class="score-value" style="color:#d4ae5e; font-size:18pt; margin-top:4pt; display:block;">{{RISK_HORIZON}}</span>
+        <span class="score-sub">months</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-footer">
+    <div class="cover-footer-left">
+      <span class="cover-confidential">Confidential</span>
+      Prepared exclusively for {{CLIENT_FULL_NAME}}<br>
+      Delivered: {{DELIVERY_DATE}} &nbsp;·&nbsp; Report ID: {{REPORT_ID}}
+    </div>
+    <div class="cover-footer-right">
+      <span class="cover-confidential">futureproof.report</span>
+      Not for distribution or reproduction<br>
+      © FutureProof {{YEAR}}
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     PAGE 2 — TABLE OF CONTENTS
+     ════════════════════════════════════════════ -->
+<div class="toc-page page-break">
+  <div class="page-section-label">
+    <span class="psl-left">Contents</span>
+    <span class="psl-client">{{CLIENT_FULL_NAME}}</span>
+  </div>
+
+  <span class="section-kicker">FutureProof Executive Audit</span>
+  <h1 class="page-title">Table of <em>Contents</em></h1>
+
+  <table class="toc-table">
+    <tbody>
+      <tr>
+        <td class="toc-num">01</td>
+        <td class="toc-title">Executive Summary
+          <span class="toc-sub">Your key findings and single most important action</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="toc-num">02</td>
+        <td class="toc-title">The Macro Landscape
+          <span class="toc-sub">What AI is actually doing in {{CLIENT_INDUSTRY}} — tools, data, and disruption stage</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="toc-num">03</td>
+        <td class="toc-title">Displacement Risk Index™ — {{DRI_SCORE}}/100
+          <span class="toc-sub">Task-by-task vulnerability breakdown and transformation pressure</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="toc-num">04</td>
+        <td class="toc-title">Your Strategic Position
+          <span class="toc-sub">Career capital assessed against identified risks — strengths, gaps, and pivot assets</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="toc-num">05</td>
+        <td class="toc-title">Pivot Readiness Score™ — {{PRS_SCORE}}/100
+          <span class="toc-sub">Binding constraints, structural advantages, and net strategic picture</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="toc-num">06</td>
+        <td class="toc-title">Three Pivot Pathways
+          <span class="toc-sub">Role transitions ranked by financial viability and entry requirements</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="toc-num">07</td>
+        <td class="toc-title">Your 12-Month Pivot Roadmap
+          <span class="toc-sub">Phase-by-phase transition plan with 6-month checkpoint</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="toc-num">A</td>
+        <td class="toc-title">Methodology &amp; Scoring Framework
+          <span class="toc-sub">How the DRI and PRS are constructed</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="toc-num">B</td>
+        <td class="toc-title">Bibliography &amp; Research Sources
+          <span class="toc-sub">Data sources, research citations, and frameworks used</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="analyst-note mt-6">
+    <span class="analyst-note-label">How to read this report</span>
+    <p>Begin with the Executive Summary. If you have limited time, read that section and the first pivot pathway — those two sections contain the most actionable material. The full report rewards careful reading; every section builds on the last. The bibliography exists so you can verify every data claim independently.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     PAGE 3 — SECTION 01: EXECUTIVE SUMMARY
+     ════════════════════════════════════════════ -->
+<div class="break-before">
+  <div class="page-section-label">
+    <span class="psl-left">Section 01 — Executive Summary</span>
+    <span class="psl-client">{{CLIENT_FULL_NAME}}</span>
+  </div>
+
+  <div class="section-header">
+    <span class="section-kicker">Section 01</span>
+    <h2 class="section-title">Executive <em>Summary</em></h2>
+  </div>
+
+  <!-- Score dashboard -->
+  <div class="score-dashboard">
+    <div class="score-card dri {{DRI_TIER_CLASS}} avoid-break">
+      <span class="score-card-label">Displacement Risk Index™</span>
+      <span class="score-card-number">{{DRI_SCORE}}</span>
+      <span class="score-card-verdict">{{DRI_VERDICT}}</span>
+      <div class="score-bar-track">
+        <div class="score-bar-fill dri" style="width: {{DRI_SCORE}}%;"></div>
+      </div>
+      <p class="score-card-note">{{DRI_SUMMARY_NOTE}}</p>
+      <div class="score-stats">
+        <div class="score-stat">
+          <span class="score-stat-val">{{RISK_HORIZON}}mo</span>
+          <span class="score-stat-lbl">Risk Horizon</span>
+        </div>
+        <div class="score-stat">
+          <span class="score-stat-val">{{TASKS_AT_RISK}}</span>
+          <span class="score-stat-lbl">Tasks at Risk</span>
+        </div>
+        <div class="score-stat">
+          <span class="score-stat-val">{{PCT_TIME_EXPOSED}}%</span>
+          <span class="score-stat-lbl">Time Exposed</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="score-card prs {{PRS_TIER_CLASS}} avoid-break">
+      <span class="score-card-label">Pivot Readiness Score™</span>
+      <span class="score-card-number">{{PRS_SCORE}}</span>
+      <span class="score-card-verdict">{{PRS_VERDICT}}</span>
+      <div class="score-bar-track">
+        <div class="score-bar-fill prs" style="width: {{PRS_SCORE}}%;"></div>
+      </div>
+      <p class="score-card-note">{{PRS_SUMMARY_NOTE}}</p>
+      <div class="score-stats">
+        <div class="score-stat">
+          <span class="score-stat-val">{{PIVOT_PATHS}}</span>
+          <span class="score-stat-lbl">Pivot Paths</span>
+        </div>
+        <div class="score-stat">
+          <span class="score-stat-val">${{TOP_PIVOT_SALARY}}K</span>
+          <span class="score-stat-lbl">Top Pivot</span>
+        </div>
+        <div class="score-stat">
+          <span class="score-stat-val">{{TRANSITION_MONTHS}}mo</span>
+          <span class="score-stat-lbl">Transition</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="analyst-note">
+    <span class="analyst-note-label">Analyst Note</span>
+    <p>{{EXECUTIVE_ANALYST_NOTE}}</p>
+  </div>
+
+  <p>{{EXECUTIVE_SUMMARY_PARA_1}}</p>
+  <p>{{EXECUTIVE_SUMMARY_PARA_2}}</p>
+
+  <div class="callout-row avoid-break">
+    <div class="callout-box action">
+      <h4>Your Single Most Important Action</h4>
+      <p>{{TOP_ACTION}}</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     SECTION 02: MACRO LANDSCAPE
+     ════════════════════════════════════════════ -->
+<div class="break-before">
+  <div class="page-section-label">
+    <span class="psl-left">Section 02 — The Macro Landscape</span>
+    <span class="psl-client">{{CLIENT_FULL_NAME}}</span>
+  </div>
+
+  <div class="section-header">
+    <span class="section-kicker">Section 02</span>
+    <h2 class="section-title">The Macro <em>Landscape</em></h2>
+  </div>
+
+  <p class="section-intro">{{MACRO_INTRO}}</p>
+
+  <p>{{MACRO_PARA_1}}</p>
+  <p>{{MACRO_PARA_2}}</p>
+
+  <!-- Disruption timeline table -->
+  <div class="avoid-break mt-4">
+    <h4>Disruption Horizon — {{CLIENT_INDUSTRY}}, 2026–2030</h4>
+    <div class="timeline">
+      <div class="timeline-header">
+        <div style="width:48mm; flex-shrink:0;"></div>
+        <div class="timeline-header-label">2026</div>
+        <div class="timeline-header-label">2027</div>
+        <div class="timeline-header-label">2028</div>
+        <div class="timeline-header-label">2029–30</div>
+      </div>
+
+      <div class="timeline-row">
+        <div class="timeline-label">
+          <div class="timeline-label-title">{{TL_ROW1_TASK}}</div>
+          <div class="timeline-label-sub">{{TL_ROW1_SUB}}</div>
+        </div>
+        <div class="timeline-cells">
+          <div class="timeline-cell {{TL_R1_C2_CLASS}}">{{TL_R1_C2_LABEL}}</div>
+          <div class="timeline-cell {{TL_R1_C3_CLASS}}">{{TL_R1_C3_LABEL}}</div>
+          <div class="timeline-cell {{TL_R1_C4_CLASS}}">{{TL_R1_C4_LABEL}}</div>
+          <div class="timeline-cell {{TL_R1_C5_CLASS}}">{{TL_R1_C5_LABEL}}</div>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-label">
+          <div class="timeline-label-title">{{TL_ROW2_TASK}}</div>
+          <div class="timeline-label-sub">{{TL_ROW2_SUB}}</div>
+        </div>
+        <div class="timeline-cells">
+          <div class="timeline-cell {{TL_R2_C2_CLASS}}">{{TL_R2_C2_LABEL}}</div>
+          <div class="timeline-cell {{TL_R2_C3_CLASS}}">{{TL_R2_C3_LABEL}}</div>
+          <div class="timeline-cell {{TL_R2_C4_CLASS}}">{{TL_R2_C4_LABEL}}</div>
+          <div class="timeline-cell {{TL_R2_C5_CLASS}}">{{TL_R2_C5_LABEL}}</div>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-label">
+          <div class="timeline-label-title">{{TL_ROW3_TASK}}</div>
+          <div class="timeline-label-sub">{{TL_ROW3_SUB}}</div>
+        </div>
+        <div class="timeline-cells">
+          <div class="timeline-cell {{TL_R3_C2_CLASS}}">{{TL_R3_C2_LABEL}}</div>
+          <div class="timeline-cell {{TL_R3_C3_CLASS}}">{{TL_R3_C3_LABEL}}</div>
+          <div class="timeline-cell {{TL_R3_C4_CLASS}}">{{TL_R3_C4_LABEL}}</div>
+          <div class="timeline-cell {{TL_R3_C5_CLASS}}">{{TL_R3_C5_LABEL}}</div>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-label">
+          <div class="timeline-label-title">{{TL_ROW4_TASK}}</div>
+          <div class="timeline-label-sub">{{TL_ROW4_SUB}}</div>
+        </div>
+        <div class="timeline-cells">
+          <div class="timeline-cell {{TL_R4_C2_CLASS}}">{{TL_R4_C2_LABEL}}</div>
+          <div class="timeline-cell {{TL_R4_C3_CLASS}}">{{TL_R4_C3_LABEL}}</div>
+          <div class="timeline-cell {{TL_R4_C4_CLASS}}">{{TL_R4_C4_LABEL}}</div>
+          <div class="timeline-cell {{TL_R4_C5_CLASS}}">{{TL_R4_C5_LABEL}}</div>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-label">
+          <div class="timeline-label-title">{{TL_ROW5_TASK}}</div>
+          <div class="timeline-label-sub">{{TL_ROW5_SUB}}</div>
+        </div>
+        <div class="timeline-cells">
+          <div class="timeline-cell {{TL_R5_C2_CLASS}}">{{TL_R5_C2_LABEL}}</div>
+          <div class="timeline-cell {{TL_R5_C3_CLASS}}">{{TL_R5_C3_LABEL}}</div>
+          <div class="timeline-cell {{TL_R5_C4_CLASS}}">{{TL_R5_C4_LABEL}}</div>
+          <div class="timeline-cell {{TL_R5_C5_CLASS}}">{{TL_R5_C5_LABEL}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="analyst-note avoid-break">
+    <span class="analyst-note-label">Disruption Stage Verdict</span>
+    <p>{{DISRUPTION_STAGE_VERDICT}}</p>
+  </div>
+
+  <p>{{LANDSCAPE_PARA_3}}</p>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     SECTION 03: DRI SCORE BREAKDOWN
+     ════════════════════════════════════════════ -->
+<div class="break-before">
+  <div class="page-section-label">
+    <span class="psl-left">Section 03 — Displacement Risk Index™</span>
+    <span class="psl-client">{{CLIENT_FULL_NAME}}</span>
+  </div>
+
+  <div class="section-header">
+    <span class="section-kicker">Section 03</span>
+    <h2 class="section-title">Displacement Risk Index™ — <em>{{DRI_SCORE}}/100</em></h2>
+  </div>
+
+  <p class="section-intro">{{DRI_INTRO}}</p>
+
+  <!-- Task vulnerability table -->
+  <table class="task-table">
+    <thead>
+      <tr>
+        <th style="width:50%;">Task</th>
+        <th style="width:16%;">Risk Level</th>
+        <th style="width:34%;">Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Row 1 -->
+      <tr class="task-main-row">
+        <td>
+          <span class="task-name">{{TASK1_NAME}}</span>
+          <span class="task-time">{{TASK1_TIME_PCT}}% of weekly time</span>
+        </td>
+        <td><span class="risk-badge {{TASK1_RISK_CLASS}}">{{TASK1_RISK_LABEL}}</span></td>
+        <td>
+          <span class="task-score-num" style="color: var(--risk-{{TASK1_RISK_CLASS}});">{{TASK1_SCORE}}</span>
+          <div class="mini-bar-track">
+            <div class="mini-bar-fill {{TASK1_RISK_CLASS}}" style="width:{{TASK1_SCORE}}%;"></div>
+          </div>
+        </td>
+      </tr>
+      <tr class="task-note-row">
+        <td colspan="3" class="task-note-cell">{{TASK1_NOTE}}</td>
+      </tr>
+      <!-- Row 2 -->
+      <tr class="task-main-row">
+        <td>
+          <span class="task-name">{{TASK2_NAME}}</span>
+          <span class="task-time">{{TASK2_TIME_PCT}}% of weekly time</span>
+        </td>
+        <td><span class="risk-badge {{TASK2_RISK_CLASS}}">{{TASK2_RISK_LABEL}}</span></td>
+        <td>
+          <span class="task-score-num">{{TASK2_SCORE}}</span>
+          <div class="mini-bar-track">
+            <div class="mini-bar-fill {{TASK2_RISK_CLASS}}" style="width:{{TASK2_SCORE}}%;"></div>
+          </div>
+        </td>
+      </tr>
+      <tr class="task-note-row">
+        <td colspan="3" class="task-note-cell">{{TASK2_NOTE}}</td>
+      </tr>
+      <!-- Row 3 -->
+      <tr class="task-main-row">
+        <td>
+          <span class="task-name">{{TASK3_NAME}}</span>
+          <span class="task-time">{{TASK3_TIME_PCT}}% of weekly time</span>
+        </td>
+        <td><span class="risk-badge {{TASK3_RISK_CLASS}}">{{TASK3_RISK_LABEL}}</span></td>
+        <td>
+          <span class="task-score-num">{{TASK3_SCORE}}</span>
+          <div class="mini-bar-track">
+            <div class="mini-bar-fill {{TASK3_RISK_CLASS}}" style="width:{{TASK3_SCORE}}%;"></div>
+          </div>
+        </td>
+      </tr>
+      <tr class="task-note-row">
+        <td colspan="3" class="task-note-cell">{{TASK3_NOTE}}</td>
+      </tr>
+      <!-- Row 4 -->
+      <tr class="task-main-row">
+        <td>
+          <span class="task-name">{{TASK4_NAME}}</span>
+          <span class="task-time">{{TASK4_TIME_PCT}}% of weekly time</span>
+        </td>
+        <td><span class="risk-badge {{TASK4_RISK_CLASS}}">{{TASK4_RISK_LABEL}}</span></td>
+        <td>
+          <span class="task-score-num">{{TASK4_SCORE}}</span>
+          <div class="mini-bar-track">
+            <div class="mini-bar-fill {{TASK4_RISK_CLASS}}" style="width:{{TASK4_SCORE}}%;"></div>
+          </div>
+        </td>
+      </tr>
+      <tr class="task-note-row">
+        <td colspan="3" class="task-note-cell">{{TASK4_NOTE}}</td>
+      </tr>
+      <!-- Row 5 -->
+      <tr class="task-main-row">
+        <td>
+          <span class="task-name">{{TASK5_NAME}}</span>
+          <span class="task-time">{{TASK5_TIME_PCT}}% of weekly time</span>
+        </td>
+        <td><span class="risk-badge {{TASK5_RISK_CLASS}}">{{TASK5_RISK_LABEL}}</span></td>
+        <td>
+          <span class="task-score-num">{{TASK5_SCORE}}</span>
+          <div class="mini-bar-track">
+            <div class="mini-bar-fill {{TASK5_RISK_CLASS}}" style="width:{{TASK5_SCORE}}%;"></div>
+          </div>
+        </td>
+      </tr>
+      <tr class="task-note-row">
+        <td colspan="3" class="task-note-cell">{{TASK5_NOTE}}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-row avoid-break">
+    <div class="callout-box vuln">
+      <h4>Key Vulnerability</h4>
+      <p>{{DRI_KEY_VULN}}</p>
+    </div>
+    <div class="callout-box moat">
+      <h4>Key Protection</h4>
+      <p>{{DRI_KEY_MOAT}}</p>
+    </div>
+  </div>
+
+  <p>{{DRI_PARA_1}}</p>
+  <p>{{DRI_PARA_2}}</p>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     SECTION 04: STRATEGIC POSITION
+     ════════════════════════════════════════════ -->
+<div class="break-before">
+  <div class="page-section-label">
+    <span class="psl-left">Section 04 — Strategic Position</span>
+    <span class="psl-client">{{CLIENT_FULL_NAME}}</span>
+  </div>
+
+  <div class="section-header">
+    <span class="section-kicker">Section 04</span>
+    <h2 class="section-title">Your Strategic <em>Position</em></h2>
+  </div>
+
+  <p class="section-intro">{{STRATEGIC_INTRO}}</p>
+
+  <div class="callout-row avoid-break">
+    <div class="callout-box moat">
+      <h4>Resilience Assets</h4>
+      <p>{{STRATEGIC_STRENGTHS_NOTE}}</p>
+    </div>
+    <div class="callout-box vuln">
+      <h4>Exposure Gaps</h4>
+      <p>{{STRATEGIC_GAPS_NOTE}}</p>
+    </div>
+  </div>
+
+  <p>{{STRATEGIC_PARA_1}}</p>
+  <p>{{STRATEGIC_PARA_2}}</p>
+
+  <div class="analyst-note avoid-break">
+    <span class="analyst-note-label">Strategic Verdict</span>
+    <p>{{STRATEGIC_VERDICT_PARA}}</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     SECTION 05: PRS / AUGMENTATION PRESSURE
+     ════════════════════════════════════════════ -->
+<div class="break-before">
+  <div class="page-section-label">
+    <span class="psl-left">Section 05 — Pivot Readiness Score™</span>
+    <span class="psl-client">{{CLIENT_FULL_NAME}}</span>
+  </div>
+
+  <div class="section-header">
+    <span class="section-kicker">Section 05</span>
+    <h2 class="section-title">Pivot Readiness Score™ — <em>{{PRS_SCORE}}/100</em></h2>
+  </div>
+
+  <p class="section-intro">{{PRS_INTRO}}</p>
+  <p>{{PRS_PARA_1}}</p>
+  <p>{{PRS_PARA_2}}</p>
+
+  <div class="analyst-note avoid-break">
+    <span class="analyst-note-label">Augmentation Pressure</span>
+    <p>{{AUGMENTATION_NOTE}}</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     SECTION 06: THREE PIVOT PATHWAYS
+     ════════════════════════════════════════════ -->
+<div class="break-before">
+  <div class="page-section-label">
+    <span class="psl-left">Section 06 — Pivot Pathways</span>
+    <span class="psl-client">{{CLIENT_FULL_NAME}}</span>
+  </div>
+
+  <div class="section-header">
+    <span class="section-kicker">Section 06</span>
+    <h2 class="section-title">Three Pivot <em>Pathways</em></h2>
+  </div>
+
+  <p class="section-intro">{{PIVOTS_INTRO}}</p>
+
+  <div class="analyst-note avoid-break">
+    <span class="analyst-note-label">Recommended Path</span>
+    <p>{{PIVOT_RECOMMENDATION_NOTE}}</p>
+  </div>
+
+  <!-- PIVOT 1 -->
+  <div class="pivot-card" style="page-break-before: always; break-before: page;">
+    <div class="pivot-card-header">
+      <div class="pivot-rank">1</div>
+      <div class="pivot-title-block">
+        <span class="pivot-type-label">Top Recommended Pivot</span>
+        <div class="pivot-role-title">{{PIVOT1_ROLE}}</div>
+        <div class="pivot-meta-row">
+          <span class="pivot-meta-item"><strong>{{PIVOT1_TYPE}}</strong></span>
+          <span class="pivot-meta-item">{{PIVOT1_TIMELINE}}</span>
+          <span class="pivot-meta-item"><strong>{{PIVOT1_SALARY}}</strong> base</span>
+          <span class="pivot-meta-item">BLS growth <strong>{{PIVOT1_GROWTH}}</strong></span>
+        </div>
+      </div>
+      <div class="pivot-score-block">
+        <div class="pivot-score-item">
+          <span class="pivot-score-label">AI Resistance</span>
+          <span class="pivot-score-val">{{PIVOT1_RESISTANCE}}</span>
+        </div>
+        <div class="pivot-score-item">
+          <span class="pivot-score-label">Feasibility</span>
+          <span class="pivot-score-val">{{PIVOT1_FEASIBILITY}}</span>
+        </div>
+      </div>
+    </div>
+    <div class="pivot-card-body">
+      <p class="pivot-rationale">{{PIVOT1_RATIONALE}}</p>
+      <div class="pivot-skills-row">
+        <div class="pivot-skills-col">
+          <h4>Skills You Already Have</h4>
+          {{PIVOT1_EXISTING_SKILLS_HTML}}
+        </div>
+        <div class="pivot-skills-col">
+          <h4>Skills to Build ({{PIVOT1_BUILD_TIMELINE}})</h4>
+          {{PIVOT1_BUILD_SKILLS_HTML}}
+        </div>
+      </div>
+      <div class="pivot-first-step">
+        <h4>Your First Step — Week 1</h4>
+        <p>{{PIVOT1_FIRST_STEP}}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIVOT 2 -->
+  <div class="pivot-card" style="page-break-before: always; break-before: page;">
+    <div class="pivot-card-header">
+      <div class="pivot-rank">2</div>
+      <div class="pivot-title-block">
+        <span class="pivot-type-label">Alternative Pathway</span>
+        <div class="pivot-role-title">{{PIVOT2_ROLE}}</div>
+        <div class="pivot-meta-row">
+          <span class="pivot-meta-item"><strong>{{PIVOT2_TYPE}}</strong></span>
+          <span class="pivot-meta-item">{{PIVOT2_TIMELINE}}</span>
+          <span class="pivot-meta-item"><strong>{{PIVOT2_SALARY}}</strong> base</span>
+          <span class="pivot-meta-item">BLS growth <strong>{{PIVOT2_GROWTH}}</strong></span>
+        </div>
+      </div>
+      <div class="pivot-score-block">
+        <div class="pivot-score-item">
+          <span class="pivot-score-label">AI Resistance</span>
+          <span class="pivot-score-val">{{PIVOT2_RESISTANCE}}</span>
+        </div>
+        <div class="pivot-score-item">
+          <span class="pivot-score-label">Feasibility</span>
+          <span class="pivot-score-val">{{PIVOT2_FEASIBILITY}}</span>
+        </div>
+      </div>
+    </div>
+    <div class="pivot-card-body">
+      <p class="pivot-rationale">{{PIVOT2_RATIONALE}}</p>
+      <div class="pivot-skills-row">
+        <div class="pivot-skills-col">
+          <h4>Skills You Already Have</h4>
+          {{PIVOT2_EXISTING_SKILLS_HTML}}
+        </div>
+        <div class="pivot-skills-col">
+          <h4>Skills to Build</h4>
+          {{PIVOT2_BUILD_SKILLS_HTML}}
+        </div>
+      </div>
+      <div class="pivot-first-step">
+        <h4>Your First Step — Week 1</h4>
+        <p>{{PIVOT2_FIRST_STEP}}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIVOT 3 -->
+  <div class="pivot-card" style="page-break-before: always; break-before: page;">
+    <div class="pivot-card-header">
+      <div class="pivot-rank">3</div>
+      <div class="pivot-title-block">
+        <span class="pivot-type-label">High-Upside Pathway</span>
+        <div class="pivot-role-title">{{PIVOT3_ROLE}}</div>
+        <div class="pivot-meta-row">
+          <span class="pivot-meta-item"><strong>{{PIVOT3_TYPE}}</strong></span>
+          <span class="pivot-meta-item">{{PIVOT3_TIMELINE}}</span>
+          <span class="pivot-meta-item"><strong>{{PIVOT3_SALARY}}</strong> base</span>
+          <span class="pivot-meta-item">BLS growth <strong>{{PIVOT3_GROWTH}}</strong></span>
+        </div>
+      </div>
+      <div class="pivot-score-block">
+        <div class="pivot-score-item">
+          <span class="pivot-score-label">AI Resistance</span>
+          <span class="pivot-score-val">{{PIVOT3_RESISTANCE}}</span>
+        </div>
+        <div class="pivot-score-item">
+          <span class="pivot-score-label">Feasibility</span>
+          <span class="pivot-score-val">{{PIVOT3_FEASIBILITY}}</span>
+        </div>
+      </div>
+    </div>
+    <div class="pivot-card-body">
+      <p class="pivot-rationale">{{PIVOT3_RATIONALE}}</p>
+      <div class="pivot-skills-row">
+        <div class="pivot-skills-col">
+          <h4>Skills You Already Have</h4>
+          {{PIVOT3_EXISTING_SKILLS_HTML}}
+        </div>
+        <div class="pivot-skills-col">
+          <h4>Skills to Build</h4>
+          {{PIVOT3_BUILD_SKILLS_HTML}}
+        </div>
+      </div>
+      <div class="pivot-first-step">
+        <h4>Your First Step — Week 1</h4>
+        <p>{{PIVOT3_FIRST_STEP}}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     SECTION 07: 12-MONTH PIVOT ROADMAP
+     ════════════════════════════════════════════ -->
+<div class="break-before">
+  <div class="page-section-label">
+    <span class="psl-left">Section 07 — 12-Month Pivot Roadmap</span>
+    <span class="psl-client">{{CLIENT_FULL_NAME}}</span>
+  </div>
+
+  <div class="section-header">
+    <span class="section-kicker">Section 07</span>
+    <h2 class="section-title">Your 12-Month Pivot <em>Roadmap</em></h2>
+  </div>
+
+  <p class="section-intro">{{PLAN_INTRO}}</p>
+
+  <!-- Phase 1: Foundation — Months 1–3 -->
+  <div class="plan-phase">
+    <div class="plan-phase-header">
+      <span class="plan-phase-num">1</span>
+      <div>
+        <div class="plan-phase-label">Months 1–3 — {{PHASE1_THEME}}</div>
+        <div class="plan-phase-sub">{{PHASE1_OBJECTIVE}}</div>
+      </div>
+    </div>
+    <div class="plan-actions">
+      <div class="plan-action-row">
+        <div class="plan-week-badge">Wk 1–2</div>
+        <div class="plan-action-body" style="flex:1;">
+          <div class="plan-action-title">{{P1_W12_ACTION}}</div>
+          <div class="plan-action-detail">{{P1_W12_DETAIL}}</div>
+          <div class="plan-action-meta">
+            <span class="plan-action-time">{{P1_W12_TIME}}</span>
+            <span class="plan-action-cost">{{P1_W12_COST}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="plan-action-row">
+        <div class="plan-week-badge">Wk 3–4</div>
+        <div class="plan-action-body" style="flex:1;">
+          <div class="plan-action-title">{{P1_W34_ACTION}}</div>
+          <div class="plan-action-detail">{{P1_W34_DETAIL}}</div>
+          <div class="plan-action-meta">
+            <span class="plan-action-time">{{P1_W34_TIME}}</span>
+            <span class="plan-action-cost">{{P1_W34_COST}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="plan-action-row">
+        <div class="plan-week-badge">Mo 2–3</div>
+        <div class="plan-action-body" style="flex:1;">
+          <div class="plan-action-title">{{P1_M23_ACTION}}</div>
+          <div class="plan-action-detail">{{P1_M23_DETAIL}}</div>
+          <div class="plan-action-meta">
+            <span class="plan-action-time">{{P1_M23_TIME}}</span>
+            <span class="plan-action-cost">{{P1_M23_COST}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="plan-milestone">
+      <span class="plan-milestone-label">Month 3 Milestone</span>
+      <div class="plan-milestone-text">{{MILESTONE_M3}}</div>
+      <div class="plan-milestone-indicator">Signal: {{MILESTONE_M3_INDICATOR}}</div>
+    </div>
+  </div>
+
+  <!-- Phase 2: Build — Months 4–8 -->
+  <div class="plan-phase" style="page-break-before: always; break-before: page;">
+    <div class="plan-phase-header">
+      <span class="plan-phase-num">2</span>
+      <div>
+        <div class="plan-phase-label">Months 4–8 — {{PHASE2_THEME}}</div>
+        <div class="plan-phase-sub">{{PHASE2_OBJECTIVE}}</div>
+      </div>
+    </div>
+    <div class="plan-actions">
+      <div class="plan-action-row">
+        <div class="plan-week-badge">Mo 4–5</div>
+        <div class="plan-action-body" style="flex:1;">
+          <div class="plan-action-title">{{P2_M45_ACTION}}</div>
+          <div class="plan-action-detail">{{P2_M45_DETAIL}}</div>
+          <div class="plan-action-meta">
+            <span class="plan-action-time">{{P2_M45_TIME}}</span>
+            <span class="plan-action-cost">{{P2_M45_COST}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="plan-action-row">
+        <div class="plan-week-badge">Mo 6–7</div>
+        <div class="plan-action-body" style="flex:1;">
+          <div class="plan-action-title">{{P2_M67_ACTION}}</div>
+          <div class="plan-action-detail">{{P2_M67_DETAIL}}</div>
+          <div class="plan-action-meta">
+            <span class="plan-action-time">{{P2_M67_TIME}}</span>
+            <span class="plan-action-cost">{{P2_M67_COST}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="plan-action-row">
+        <div class="plan-week-badge">Mo 8</div>
+        <div class="plan-action-body" style="flex:1;">
+          <div class="plan-action-title">{{P2_M8_ACTION}}</div>
+          <div class="plan-action-detail">{{P2_M8_DETAIL}}</div>
+          <div class="plan-action-meta">
+            <span class="plan-action-time">{{P2_M8_TIME}}</span>
+            <span class="plan-action-cost">{{P2_M8_COST}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="plan-milestone">
+      <span class="plan-milestone-label">Month 8 Milestone</span>
+      <div class="plan-milestone-text">{{MILESTONE_M8}}</div>
+      <div class="plan-milestone-indicator">Signal: {{MILESTONE_M8_INDICATOR}}</div>
+    </div>
+  </div>
+
+  <!-- 6-Month Checkpoint -->
+  <div class="checkpoint-box avoid-break" style="page-break-before: always; break-before: page;">
+    <h4>6-Month Strategic Checkpoint</h4>
+    <p class="checkpoint-criteria">{{CHECKPOINT_CRITERIA}}</p>
+    <div class="checkpoint-trigger">
+      <strong>Pivot adjustment triggers:</strong> {{CHECKPOINT_TRIGGERS}}
+    </div>
+    <div class="checkpoint-update">FutureProof Update Report available at this checkpoint — recalibrates your DRI, PRS, and months 7–12 against current market conditions.</div>
+  </div>
+
+  <!-- Phase 3: Activate — Months 9–12 -->
+  <div class="plan-phase" style="page-break-before: always; break-before: page;">
+    <div class="plan-phase-header">
+      <span class="plan-phase-num">3</span>
+      <div>
+        <div class="plan-phase-label">Months 9–12 — {{PHASE3_THEME}}</div>
+        <div class="plan-phase-sub">{{PHASE3_OBJECTIVE}}</div>
+      </div>
+    </div>
+    <div class="plan-actions">
+      <div class="plan-action-row">
+        <div class="plan-week-badge">Mo 9–10</div>
+        <div class="plan-action-body" style="flex:1;">
+          <div class="plan-action-title">{{P3_M910_ACTION}}</div>
+          <div class="plan-action-detail">{{P3_M910_DETAIL}}</div>
+          <div class="plan-action-meta">
+            <span class="plan-action-time">{{P3_M910_TIME}}</span>
+            <span class="plan-action-cost">{{P3_M910_COST}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="plan-action-row">
+        <div class="plan-week-badge">Mo 11–12</div>
+        <div class="plan-action-body" style="flex:1;">
+          <div class="plan-action-title">{{P3_M1112_ACTION}}</div>
+          <div class="plan-action-detail">{{P3_M1112_DETAIL}}</div>
+          <div class="plan-action-meta">
+            <span class="plan-action-time">{{P3_M1112_TIME}}</span>
+            <span class="plan-action-cost">{{P3_M1112_COST}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="plan-milestone">
+      <span class="plan-milestone-label">Month 12 Milestone</span>
+      <div class="plan-milestone-text">{{MILESTONE_M12}}</div>
+      <div class="plan-milestone-indicator">Signal: {{MILESTONE_M12_INDICATOR}}</div>
+    </div>
+  </div>
+
+  <div class="analyst-note avoid-break mt-6" style="page-break-before: always; break-before: page;">
+    <span class="analyst-note-label">Closing Intelligence Note</span>
+    <p>{{CLOSING_NOTE}}</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     APPENDIX A — METHODOLOGY
+     ════════════════════════════════════════════ -->
+<div class="break-before">
+  <div class="page-section-label">
+    <span class="psl-left">Appendix A — Methodology</span>
+    <span class="psl-client">{{CLIENT_FULL_NAME}}</span>
+  </div>
+
+  <div class="section-header">
+    <span class="section-kicker">Appendix A</span>
+    <h2 class="section-title">Methodology &amp; Scoring <em>Framework</em></h2>
+  </div>
+
+  <div class="methodology-box avoid-break">
+    <h3>Displacement Risk Index™ (DRI) — Construction</h3>
+    <p>The DRI is a 0–100 composite score built from six weighted dimensions applied to the client's specific task inventory, extracted from their résumé and intake questionnaire responses.</p>
+    <ul>
+      <li><strong>Task repetitiveness &amp; rules-based execution</strong> — proportion of daily output that follows deterministic or semi-deterministic patterns</li>
+      <li><strong>Current AI capability maturity</strong> — verified against sector-specific deployment data from McKinsey, Gartner, and industry reports</li>
+      <li><strong>Enterprise AI adoption pace</strong> — sector-level adoption curves derived from WEF Future of Jobs and Cedefop data</li>
+      <li><strong>LLM output replicability</strong> — assessed against current foundation model benchmarks relevant to the task type</li>
+      <li><strong>Seniority and oversight ratio</strong> — senior roles with higher strategic oversight proportion receive score adjustments</li>
+      <li><strong>Regulatory and compliance moats</strong> — licensed professions and regulated environments receive downward adjustments</li>
+    </ul>
+  </div>
+
+  <div class="methodology-box avoid-break">
+    <h3>Pivot Readiness Score™ (PRS) — Construction</h3>
+    <p>The PRS measures the transferability of existing career capital into AI-resistant or AI-growth roles. It does not measure the client's willingness to pivot — only their structural readiness to do so.</p>
+    <ul>
+      <li><strong>Domain expertise transferability</strong> — how directly current knowledge maps to AI strategy, governance, or specialist roles</li>
+      <li><strong>Analytical baseline</strong> — problem-solving capabilities that function as a floor for transition roles</li>
+      <li><strong>Experience depth</strong> — years of experience as a judgment anchor, weighted by seniority</li>
+      <li><strong>Niche and stakeholder positioning</strong> — high-level relationship and influence skills that resist automation</li>
+      <li><strong>Human-centric skills inventory</strong> — complex negotiation, ethics, alignment, and leadership presence</li>
+      <li><strong>Proximity to high-growth sectors</strong> — adjacency to AI, healthcare, energy transition, and infrastructure</li>
+    </ul>
+  </div>
+
+  <div class="methodology-box avoid-break">
+    <h3>Research Framework</h3>
+    <p>All sector data, automation timelines, and salary figures referenced in this report are drawn from peer-reviewed research and primary data sources. No proprietary data is used without citation. Automation probability estimates follow the Frey-Osborne task-based methodology adapted for current foundation model capabilities.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     APPENDIX B — BIBLIOGRAPHY
+     ════════════════════════════════════════════ -->
+<div class="break-before">
+  <div class="page-section-label">
+    <span class="psl-left">Appendix B — Bibliography</span>
+    <span class="psl-client">{{CLIENT_FULL_NAME}}</span>
+  </div>
+
+  <div class="section-header">
+    <span class="section-kicker">Appendix B</span>
+    <h2 class="section-title">Bibliography &amp; Research <em>Sources</em></h2>
+  </div>
+
+  <p class="section-intro">Sources referenced in the construction of this report. All data citations are verifiable through the links and references below.</p>
+
+  <!-- STATIC CORE SOURCES — always present -->
+  <div class="bib-entry">
+    <span class="bib-num">[1]</span>
+    <span class="bib-text"><strong>McKinsey Global Institute.</strong> <em>The Future of Work After COVID-19.</em> McKinsey &amp; Company, 2021. Sector displacement timelines and automation adoption curves.</span>
+  </div>
+  <div class="bib-entry">
+    <span class="bib-num">[2]</span>
+    <span class="bib-text"><strong>World Economic Forum.</strong> <em>The Future of Jobs Report 2025.</em> WEF, 2025. Skills obsolescence projections and emerging role categories.</span>
+  </div>
+  <div class="bib-entry">
+    <span class="bib-num">[3]</span>
+    <span class="bib-text"><strong>Frey, C.B. &amp; Osborne, M.A.</strong> <em>The Future of Employment: How Susceptible Are Jobs to Computerisation?</em> Oxford Martin School, 2013. Task-based automation probability framework.</span>
+  </div>
+  <div class="bib-entry">
+    <span class="bib-num">[4]</span>
+    <span class="bib-text"><strong>International Monetary Fund.</strong> <em>Gen-AI: Artificial Intelligence and the Future of Work.</em> IMF Staff Discussion Note SDN2024/001. Advanced economy exposure data.</span>
+  </div>
+  <div class="bib-entry">
+    <span class="bib-num">[5]</span>
+    <span class="bib-text"><strong>Cedefop.</strong> <em>Skills intelligence: occupational change and automation risk in EU labour markets.</em> European Centre for the Development of Vocational Training, 2023.</span>
+  </div>
+  <div class="bib-entry">
+    <span class="bib-num">[6]</span>
+    <span class="bib-text"><strong>U.S. Bureau of Labor Statistics.</strong> <em>Occupational Outlook Handbook.</em> BLS, 2025 edition. Salary data, job growth projections, and employment statistics referenced throughout this report.</span>
+  </div>
+  <div class="bib-entry">
+    <span class="bib-num">[7]</span>
+    <span class="bib-text"><strong>Acemoglu, D. &amp; Restrepo, P.</strong> <em>Automation and New Tasks: How Technology Displaces and Reinstates Labor.</em> Journal of Economic Perspectives, 2019. Task displacement vs. task creation framework.</span>
+  </div>
+
+  <!-- DYNAMIC SOURCES — injected from Stage 5 AI output -->
+  {{DYNAMIC_BIBLIOGRAPHY_HTML}}
+
+  <hr class="divider">
+
+  <p style="font-size:7.5pt; color: var(--muted); line-height: 1.6; margin-top: 4mm; page-break-before: always; break-before: page;">
+    <strong>Disclosure.</strong> This report was produced using AI-assisted analysis (Anthropic Claude) applied to primary research data from the sources cited above. All scoring outputs were reviewed by a human analyst prior to delivery. FutureProof does not guarantee employment outcomes. This report constitutes career intelligence, not financial or legal advice. Salary data reflects US market medians and may vary by geography and firm size.
+  </p>
+
+  <div style="margin-top: 8mm; text-align: center; padding: 5mm; border: 1px solid var(--rule);">
+    <div style="font-family: 'Playfair Display', serif; font-size: 14pt; font-weight: 700; color: var(--ink);">
+      Future<em style="font-style:italic; color: var(--gold-dark);">Proof</em>
+    </div>
+    <div style="font-size: 7.5pt; color: var(--muted); margin-top: 2mm;">
+      futureproof.report &nbsp;·&nbsp; hello@futureproof.report
+    </div>
+    <div style="font-size: 6.5pt; color: var(--muted); margin-top: 1mm; letter-spacing: 0.08em; text-transform: uppercase;">
+      Report ID: {{REPORT_ID}}  ·  DELIVERED: {{DELIVERY_DATE}}  ·  CONFIDENTIAL
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
+
+</script>
+
+<script>
+// ── READ TEMPLATE FROM DOM (no JSON encoding needed) ─────────────────────────
+function getTemplate() {
+  return document.getElementById('report-template').textContent;
+}
+
+// ── EMBEDDED TEMPLATE (JSON-encoded for safe embedding) ───────────────────
+
+// ── EXPECTED KEYS ────────────────────────────────────────────────────────────
+var EXPECTED_KEYS = [
+  "CLIENT_FULL_NAME","CLIENT_TITLE","CLIENT_INDUSTRY","CLIENT_EXPERIENCE",
+  "CLIENT_SENIORITY","DRI_SCORE","PRS_SCORE","RISK_HORIZON","DELIVERY_DATE",
+  "REPORT_ID","YEAR","DRI_VERDICT","DRI_SUMMARY_NOTE","TASKS_AT_RISK",
+  "PCT_TIME_EXPOSED","PRS_VERDICT","PRS_SUMMARY_NOTE","PIVOT_PATHS",
+  "TOP_PIVOT_SALARY","TRANSITION_MONTHS","EXECUTIVE_ANALYST_NOTE",
+  "EXECUTIVE_SUMMARY_PARA_1","EXECUTIVE_SUMMARY_PARA_2","TOP_ACTION",
+  "MACRO_INTRO","MACRO_PARA_1","MACRO_PARA_2","DISRUPTION_STAGE_VERDICT",
+  "TL_ROW1_TASK","TL_ROW1_SUB","TL_ROW2_TASK","TL_ROW2_SUB",
+  "TL_ROW3_TASK","TL_ROW3_SUB","TL_ROW4_TASK","TL_ROW4_SUB",
+  "TL_R1_C2_CLASS","TL_R1_C2_LABEL",
+  "TL_R1_C3_CLASS","TL_R1_C3_LABEL","TL_R1_C4_CLASS","TL_R1_C4_LABEL",
+  "TL_R1_C5_CLASS","TL_R1_C5_LABEL",
+  "TL_R2_C2_CLASS","TL_R2_C2_LABEL","TL_R2_C3_CLASS","TL_R2_C3_LABEL",
+  "TL_R2_C4_CLASS","TL_R2_C4_LABEL","TL_R2_C5_CLASS","TL_R2_C5_LABEL",
+  "TL_R3_C2_CLASS","TL_R3_C2_LABEL",
+  "TL_R3_C3_CLASS","TL_R3_C3_LABEL","TL_R3_C4_CLASS","TL_R3_C4_LABEL",
+  "TL_R3_C5_CLASS","TL_R3_C5_LABEL",
+  "TL_R4_C2_CLASS","TL_R4_C2_LABEL","TL_R4_C3_CLASS","TL_R4_C3_LABEL",
+  "TL_R4_C4_CLASS","TL_R4_C4_LABEL","TL_R4_C5_CLASS","TL_R4_C5_LABEL",
+  "TL_ROW5_TASK","TL_ROW5_SUB","TL_R5_C2_CLASS","TL_R5_C2_LABEL","TL_R5_C3_CLASS","TL_R5_C3_LABEL","TL_R5_C4_CLASS","TL_R5_C4_LABEL","TL_R5_C5_CLASS","TL_R5_C5_LABEL",
+  "LANDSCAPE_PARA_3","DRI_INTRO",
+  "TASK1_NAME","TASK1_TIME_PCT","TASK1_RISK_CLASS","TASK1_RISK_LABEL","TASK1_SCORE","TASK1_NOTE",
+  "TASK2_NAME","TASK2_TIME_PCT","TASK2_RISK_CLASS","TASK2_RISK_LABEL","TASK2_SCORE","TASK2_NOTE",
+  "TASK3_NAME","TASK3_TIME_PCT","TASK3_RISK_CLASS","TASK3_RISK_LABEL","TASK3_SCORE","TASK3_NOTE",
+  "TASK4_NAME","TASK4_TIME_PCT","TASK4_RISK_CLASS","TASK4_RISK_LABEL","TASK4_SCORE","TASK4_NOTE",
+  "TASK5_NAME","TASK5_TIME_PCT","TASK5_RISK_CLASS","TASK5_RISK_LABEL","TASK5_SCORE","TASK5_NOTE",
+  "DRI_KEY_VULN","DRI_KEY_MOAT","DRI_PARA_1","DRI_PARA_2",
+  "STRATEGIC_INTRO","STRATEGIC_STRENGTHS_NOTE","STRATEGIC_GAPS_NOTE",
+  "STRATEGIC_PARA_1","STRATEGIC_PARA_2","STRATEGIC_VERDICT_PARA",
+  "PRS_INTRO","PRS_PARA_1","PRS_PARA_2","AUGMENTATION_NOTE",
+  "PIVOTS_INTRO","PIVOT_RECOMMENDATION_NOTE",
+  "PIVOT1_ROLE","PIVOT1_TYPE","PIVOT1_TIMELINE","PIVOT1_SALARY","PIVOT1_GROWTH",
+  "PIVOT1_RESISTANCE","PIVOT1_FEASIBILITY","PIVOT1_RATIONALE",
+  "PIVOT1_EXISTING_SKILLS_HTML","PIVOT1_BUILD_SKILLS_HTML","PIVOT1_BUILD_TIMELINE","PIVOT1_FIRST_STEP",
+  "PIVOT2_ROLE","PIVOT2_TYPE","PIVOT2_TIMELINE","PIVOT2_SALARY","PIVOT2_GROWTH",
+  "PIVOT2_RESISTANCE","PIVOT2_FEASIBILITY","PIVOT2_RATIONALE",
+  "PIVOT2_EXISTING_SKILLS_HTML","PIVOT2_BUILD_SKILLS_HTML","PIVOT2_FIRST_STEP",
+  "PIVOT3_ROLE","PIVOT3_TYPE","PIVOT3_TIMELINE","PIVOT3_SALARY","PIVOT3_GROWTH",
+  "PIVOT3_RESISTANCE","PIVOT3_FEASIBILITY","PIVOT3_RATIONALE",
+  "PIVOT3_EXISTING_SKILLS_HTML","PIVOT3_BUILD_SKILLS_HTML","PIVOT3_FIRST_STEP",
+  "PLAN_INTRO","PHASE1_THEME","PHASE1_OBJECTIVE",
+  "P1_W12_ACTION","P1_W12_DETAIL","P1_W12_TIME","P1_W12_COST",
+  "P1_W34_ACTION","P1_W34_DETAIL","P1_W34_TIME","P1_W34_COST",
+  "P1_M23_ACTION","P1_M23_DETAIL","P1_M23_TIME","P1_M23_COST",
+  "MILESTONE_M3","MILESTONE_M3_INDICATOR",
+  "PHASE2_THEME","PHASE2_OBJECTIVE",
+  "P2_M45_ACTION","P2_M45_DETAIL","P2_M45_TIME","P2_M45_COST",
+  "P2_M67_ACTION","P2_M67_DETAIL","P2_M67_TIME","P2_M67_COST",
+  "P2_M8_ACTION","P2_M8_DETAIL","P2_M8_TIME","P2_M8_COST",
+  "MILESTONE_M8","MILESTONE_M8_INDICATOR",
+  "CHECKPOINT_CRITERIA","CHECKPOINT_TRIGGERS",
+  "PHASE3_THEME","PHASE3_OBJECTIVE",
+  "P3_M910_ACTION","P3_M910_DETAIL","P3_M910_TIME","P3_M910_COST",
+  "P3_M1112_ACTION","P3_M1112_DETAIL","P3_M1112_TIME","P3_M1112_COST",
+  "MILESTONE_M12","MILESTONE_M12_INDICATOR",
+  "CLOSING_NOTE","DRI_TIER_CLASS","PRS_TIER_CLASS",
+  "DYNAMIC_BIBLIOGRAPHY_HTML"
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var generatedHTML = null;
+var generatedFilename = null;
+
+// ── CORE ──────────────────────────────────────────────────────────────────────
+function generateReport() {
+  const btn    = document.getElementById('btn-generate');
+  const status = document.getElementById('status');
+
+  status.className = 'status-info';
+  status.textContent = 'Parsing...';
+  btn.disabled = true;
+
+  setTimeout(function() {
+    try {
+      _doGenerate();
+    } catch(e) {
+      document.getElementById('status').className = 'status-error';
+      document.getElementById('status').textContent = 'Error: ' + e.message;
+      document.getElementById('btn-generate').disabled = false;
+    }
+  }, 10);
+}
+
+function _doGenerate() {
+  const status = document.getElementById('status');
+  const btn    = document.getElementById('btn-generate');
+
+  var raw = document.getElementById('json-input').value.trim();
+  if (!raw) {
+    status.className = 'status-error';
+    status.textContent = 'No JSON provided.';
+    btn.disabled = false;
+    return;
+  }
+
+  var data;
+  try {
+    data = JSON.parse(raw);
+  } catch(e) {
+    status.className = 'status-error';
+    status.textContent = 'JSON parse error: ' + e.message;
+    btn.disabled = false;
+    return;
+  }
+
+  // Replace placeholders
+  var html = getTemplate();
+  var filled = 0;
+  var missing = [];
+
+  for (var i = 0; i < EXPECTED_KEYS.length; i++) {
+    var key = EXPECTED_KEYS[i];
+    var token = '{{' + key + '}}';
+    var val = data[key];
+    if (val !== undefined && val !== null && val !== '') {
+      // Replace all occurrences using split/join (no regex needed)
+      html = html.split(token).join(String(val));
+      filled++;
+    } else {
+      missing.push(key);
+    }
+  }
+
+  // Also handle any extra keys not in EXPECTED_KEYS
+  var keys = Object.keys(data);
+  for (var j = 0; j < keys.length; j++) {
+    var k = keys[j];
+    if (EXPECTED_KEYS.indexOf(k) === -1) {
+      html = html.split('{{' + k + '}}').join(String(data[k]));
+    }
+  }
+
+  // Store for download
+  var lastName = String(data.CLIENT_FULL_NAME || 'Unknown').split(' ').pop().replace(/[^a-zA-Z]/g,'');
+  var now = new Date();
+  var dateStr = now.getFullYear()
+    + String(now.getMonth()+1).padStart(2,'0')
+    + String(now.getDate()).padStart(2,'0');
+  generatedFilename = 'FutureProof-Report-' + lastName + '-' + dateStr + '.html';
+  generatedHTML = html;
+
+  // Show in iframe using srcdoc (works from file:// without blob URL)
+  var frame = document.getElementById('preview-frame');
+  var placeholder = document.getElementById('preview-placeholder');
+
+  frame.srcdoc = html;
+  frame.style.display = 'block';
+  placeholder.style.display = 'none';
+
+  // Enable download button
+  document.getElementById('btn-download').disabled = false;
+
+  // Show summary
+  showSummary(data, filled, missing);
+
+  if (missing.length === 0) {
+    status.className = 'status-ok';
+    status.textContent = '\u2713 ' + filled + ' fields filled.';
+  } else {
+    status.className = 'status-error';
+    status.textContent = '\u26A0 ' + missing.length + ' missing field' + (missing.length > 1 ? 's' : '') + '.';
+  }
+
+  btn.disabled = false;
+}
+
+function downloadReport() {
+  if (!generatedHTML) return;
+  var blob = new Blob([generatedHTML], {type: 'text/html;charset=utf-8'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = generatedFilename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function showSummary(data, filled, missing) {
+  var box  = document.getElementById('summary-box');
+  var rows = document.getElementById('summary-rows');
+  var missingEl = document.getElementById('missing-list');
+  box.style.display = 'block';
+
+  var items = [
+    {label: 'Client',         value: data.CLIENT_FULL_NAME || '\u2014'},
+    {label: 'Role',           value: data.CLIENT_TITLE || '\u2014'},
+    {label: 'DRI / PRS',      value: (data.DRI_SCORE||'?') + ' / ' + (data.PRS_SCORE||'?')},
+    {label: 'Risk Tier',      value: data.DRI_VERDICT || '\u2014'},
+    {label: 'Report ID',      value: data.REPORT_ID || '\u2014'},
+    {label: 'Fields filled',  value: filled + ' / ' + EXPECTED_KEYS.length,
+     cls: filled === EXPECTED_KEYS.length ? 'ok' : 'warn'},
+  ];
+
+  rows.innerHTML = items.map(function(r) {
+    return '<div class="summary-row"><span class="summary-label">' + r.label +
+           '</span><span class="summary-value ' + (r.cls||'') + '">' + r.value + '</span></div>';
+  }).join('');
+
+  if (missing.length > 0) {
+    missingEl.style.display = 'block';
+    missingEl.textContent = 'Missing: ' + missing.join(', ');
+  } else {
+    missingEl.style.display = 'none';
+  }
+}
+
+function clearAll() {
+  document.getElementById('json-input').value = '';
+  document.getElementById('status').textContent = '';
+  document.getElementById('status').className = 'status-info';
+  document.getElementById('summary-box').style.display = 'none';
+  document.getElementById('preview-frame').style.display = 'none';
+  document.getElementById('preview-frame').src = '';
+  document.getElementById('preview-placeholder').style.display = 'flex';
+  document.getElementById('btn-download').disabled = true;
+  generatedHTML = null;
+  generatedFilename = null;
+}
+</script>
+
+</body>
+</html>
