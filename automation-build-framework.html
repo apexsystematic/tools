@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Automation Build Framework — Apex Systematic</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-dim: rgba(201,168,76,0.15);
+    --gold-border: rgba(201,168,76,0.3);
+    --bg: #0E1117;
+    --bg2: #141720;
+    --bg3: #1A1F2E;
+    --bg4: #1F2535;
+    --text: #E8E6DF;
+    --text-dim: #8A8880;
+    --text-muted: #555;
+    --border: rgba(255,255,255,0.07);
+    --green: #4CAF7D;
+    --green-dim: rgba(76,175,125,0.12);
+    --red: #E05C5C;
+    --red-dim: rgba(224,92,92,0.12);
+    --blue: #5B8FD4;
+    --blue-dim: rgba(91,143,212,0.12);
+    --amber: #D4875B;
+    --amber-dim: rgba(212,135,91,0.12);
+    --radius: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ─── LAYOUT ─── */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+
+  /* ─── MOBILE TOGGLE ─── */
+  .menu-toggle {
+    display: none;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 200;
+    width: 38px;
+    height: 38px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 5px;
+    padding: 0;
+  }
+
+  .menu-toggle span {
+    display: block;
+    width: 18px;
+    height: 1.5px;
+    background: var(--text-dim);
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .menu-toggle.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .menu-toggle.open span:nth-child(2) { opacity: 0; }
+  .menu-toggle.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 99;
+    backdrop-filter: blur(2px);
+  }
+
+  .sidebar-overlay.visible { display: block; }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    z-index: 100;
+    transition: transform 0.25s ease;
+  }
+
+  .sidebar-header {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  @media (max-width: 680px) {
+    .menu-toggle { display: flex; }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      transform: translateX(-100%);
+    }
+
+    .sidebar.open { transform: translateX(0); }
+
+    .main { width: 100%; }
+
+    .page { padding: 56px 20px 32px; }
+
+    .scenario-grid { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+
+    .page-nav { flex-direction: column; gap: 12px; align-items: stretch; }
+    .page-nav .btn { text-align: center; }
+    .page-nav > div { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+    .step-counter { text-align: center; }
+
+    .decision-table { font-size: 12px; }
+    .decision-table th, .decision-table td { padding: 8px; }
+
+    .ref-tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+    .ref-tab { white-space: nowrap; }
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .logo-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .nav-section {
+    padding: 16px 12px 8px;
+  }
+
+  .nav-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 8px;
+    margin-bottom: 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 400;
+    position: relative;
+    user-select: none;
+  }
+
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+
+  .nav-item.active {
+    background: var(--gold-dim);
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: var(--gold);
+    border-radius: 0 2px 2px 0;
+  }
+
+  .nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+
+  .phase-badge {
+    margin-left: auto;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 99px;
+    background: var(--bg4);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .nav-item.active .phase-badge {
+    background: var(--gold-dim);
+    color: var(--gold);
+  }
+
+  .progress-bar {
+    margin: 0 20px 20px;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .progress-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-track {
+    height: 3px;
+    background: var(--bg4);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  /* ─── MAIN CONTENT ─── */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg);
+  }
+
+  .page { display: none; padding: 40px 48px; max-width: 860px; }
+  .page.active { display: block; }
+
+  /* ─── PAGE HEADER ─── */
+  .page-header { margin-bottom: 36px; }
+
+  .phase-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .phase-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gold-border);
+    max-width: 80px;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .page-desc {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 600px;
+  }
+
+  /* ─── CHECKLIST ─── */
+  .section { margin-bottom: 32px; }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: background 0.12s;
+    border: 1px solid transparent;
+  }
+
+  .check-item:hover { background: var(--bg2); }
+  .check-item.checked { background: var(--green-dim); border-color: rgba(76,175,125,0.2); }
+
+  .checkbox {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--text-muted);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-size: 10px;
+  }
+
+  .check-item.checked .checkbox {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+
+  .check-content { flex: 1; }
+
+  .check-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+    transition: color 0.12s;
+  }
+
+  .check-item.checked .check-title {
+    color: var(--text-dim);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-muted);
+  }
+
+  .check-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ─── CALLOUTS ─── */
+  .callout {
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    line-height: 1.6;
+    border-left: 3px solid;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  .callout.make {
+    background: var(--blue-dim);
+    border-color: var(--blue);
+    color: #A8C4E8;
+  }
+
+  .callout.warning {
+    background: var(--amber-dim);
+    border-color: var(--amber);
+    color: #E8C4A8;
+  }
+
+  .callout.danger {
+    background: var(--red-dim);
+    border-color: var(--red);
+    color: #E8A8A8;
+  }
+
+  .callout.tip {
+    background: var(--green-dim);
+    border-color: var(--green);
+    color: #A8E0C4;
+  }
+
+  .callout strong { font-weight: 600; }
+
+  /* ─── CODE BLOCKS ─── */
+  .code-block {
+    background: #0A0C12;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: #A8C4E8;
+    margin: 12px 0;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+
+  .code-block .comment { color: var(--text-muted); }
+  .code-block .key { color: var(--gold); }
+  .code-block .val { color: var(--green); }
+  .code-block .str { color: #C9A84C88; }
+
+  /* ─── DECISION TABLE ─── */
+  .decision-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+
+  .decision-table th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--bg3);
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .decision-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  .decision-table tr:last-child td { border-bottom: none; }
+  .decision-table tr:hover td { background: var(--bg2); }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .tag-green { background: var(--green-dim); color: var(--green); }
+  .tag-red { background: var(--red-dim); color: var(--red); }
+  .tag-amber { background: var(--amber-dim); color: var(--amber); }
+  .tag-blue { background: var(--blue-dim); color: var(--blue); }
+  .tag-gold { background: var(--gold-dim); color: var(--gold); }
+
+  /* ─── EXPANDABLE ─── */
+  .expandable {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
+  .expandable-header {
+    padding: 13px 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg2);
+    transition: background 0.12s;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .expandable-header:hover { background: var(--bg3); }
+
+  .expandable-arrow {
+    transition: transform 0.2s;
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+
+  .expandable.open .expandable-arrow { transform: rotate(180deg); }
+
+  .expandable-body {
+    display: none;
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-dim);
+  }
+
+  .expandable.open .expandable-body { display: block; }
+
+  /* ─── REFERENCE TABS ─── */
+  .ref-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+
+  .ref-tab {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-dim);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+  }
+
+  .ref-tab:hover { color: var(--text); }
+  .ref-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  .ref-panel { display: none; }
+  .ref-panel.active { display: block; }
+
+  /* ─── SCENARIO BUILDER ─── */
+  .scenario-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .scenario-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .scenario-card:hover { border-color: var(--gold-border); }
+  .scenario-card.selected { border-color: var(--gold); background: var(--gold-dim); }
+
+  .scenario-card-title {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .scenario-card-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ─── NAV FOOTER ─── */
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover { background: var(--bg2); color: var(--text); }
+
+  .btn-primary {
+    background: var(--gold);
+    color: #0E1117;
+    font-weight: 600;
+  }
+
+  .btn-primary:hover { background: #D4B060; }
+
+  .step-counter {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* ─── MAKE BADGE ─── */
+  .make-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--blue-dim);
+    color: var(--blue);
+    font-family: 'DM Mono', monospace;
+    border: 1px solid rgba(91,143,212,0.2);
+  }
+
+  ul.styled { padding-left: 0; list-style: none; }
+  ul.styled li {
+    padding: 5px 0 5px 18px;
+    position: relative;
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  ul.styled li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--text-muted);
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .info-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+
+  .info-card-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()" aria-label="Toggle menu">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="app">
+
+  <!-- ─── SIDEBAR ─── -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">Apex Systematic</div>
+      <div class="logo-sub">Automation Build Framework</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Phases</div>
+      <div class="nav-item active" onclick="showPage('p1')">
+        <span class="nav-icon">◈</span> Pre-Build Scoping
+        <span class="phase-badge">01</span>
+      </div>
+      <div class="nav-item" onclick="showPage('p2')">
+        <span class="nav-icon">◎</span> Architecture Design
+        <span class="phase-badge">02</span>
+      </div>
+      <div class="nav-item" onclick="showPage('p3')">
+        <span class="nav-icon">⬡</span> Build Sequence
+        <span class="phase-badge">03</span>
+      </div>
+      <div class="nav-item" onclick="showPage('p4')">
+        <span class="nav-icon">⚠</span> Error Handling
+        <span class="phase-badge">04</span>
+      </div>
+      <div class="nav-item" onclick="showPage('p5')">
+        <span class="nav-icon">◉</span> Security & Privacy
+        <span class="phase-badge">05</span>
+      </div>
+      <div class="nav-item" onclick="showPage('p6')">
+        <span class="nav-icon">✦</span> Testing & QA
+        <span class="phase-badge">06</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Reference</div>
+      <div class="nav-item" onclick="showPage('ref')">
+        <span class="nav-icon">⊞</span> Quick Reference
+      </div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-label">
+        <span>Build Progress</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── MAIN ─── -->
+  <main class="main">
+
+    <!-- ══════════════════════════════════════
+         PAGE 1: PRE-BUILD SCOPING
+    ══════════════════════════════════════ -->
+    <div class="page active" id="p1">
+      <div class="page-header">
+        <div class="phase-label">Phase 01</div>
+        <div class="page-title">Pre-Build Scoping</div>
+        <div class="page-desc">Before writing a single module, you need a locked definition of what you're building, for whom, and what success looks like. Ambiguity here costs you rebuild time later.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Requirements Capture</div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Define the trigger event precisely</div>
+            <div class="check-desc">What event starts this automation? Form submission, email received, new Airtable row, webhook, scheduled time? Define the exact condition — not "when a client fills in a form" but "when a Tally form with ID X submits to webhook Y."</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Define the end state</div>
+            <div class="check-desc">What has the world looked like when this automation completes successfully? A row written to Airtable, an email sent, a Slack message posted. Measurable, not vague.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Map every data input and output</div>
+            <div class="check-desc">List every field that enters the scenario (from the trigger) and every field that must be written or sent by the end. Mismatched field assumptions are the #1 cause of mid-build rework.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Identify all external systems involved</div>
+            <div class="check-desc">List every app, API, or service the automation will touch. For each: confirm you have access, check API limits, and confirm auth method (OAuth, API key, webhook secret).</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Establish volume expectations</div>
+            <div class="check-desc">How many times per day/week will this trigger? High-volume scenarios have different design constraints (operations limits, rate limits, module costs on Make.com).</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Scope Constraints</div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Define what is explicitly out of scope</div>
+            <div class="check-desc">Write down what this automation does NOT do. Prevents scope creep and provides a reference for client conversations when new requests arrive mid-build.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Identify edge cases upfront</div>
+            <div class="check-desc">What happens if a required field is empty? What if the upstream API is down? What if a duplicate is submitted? List likely edge cases now — you don't have to handle them all, but you need to consciously decide which ones to cover.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Confirm deliverable format</div>
+            <div class="check-desc">Are you handing over a Make.com Blueprint JSON? A scenario they can duplicate? A shared team account? Confirm this before you start — it affects how you structure the build.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout make">
+        <span class="callout-icon">⚙</span>
+        <div><strong>Make.com:</strong> Check the client's plan tier before starting. Free plan = no JS execution module. Core plan = limited operations/month. This changes your design options. Never assume they're on Growth.</div>
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-icon">△</span>
+        <div><strong>DRI Check:</strong> If you haven't identified who owns each connected system (and can provide API keys/OAuth), do not start building. Missing access mid-build is a major time sink.</div>
+      </div>
+
+      <div class="page-nav">
+        <div></div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-counter">1 / 6</span>
+          <button class="btn btn-primary" onclick="showPage('p2')">Next: Architecture →</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         PAGE 2: ARCHITECTURE
+    ══════════════════════════════════════ -->
+    <div class="page" id="p2">
+      <div class="page-header">
+        <div class="phase-label">Phase 02</div>
+        <div class="page-title">Architecture & Design Decisions</div>
+        <div class="page-desc">Design decisions made before building are cheap. Made during the build, they're expensive. Made after the build, they're painful.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Scenario Structure</div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Choose single scenario vs. multi-scenario architecture</div>
+            <div class="check-desc">One long scenario or several chained ones? Single scenarios are simpler to debug but harder to maintain when complex. Split by logical domain (trigger → process → notify) when a scenario exceeds ~15 modules or contains multiple independent branches.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Decide on routing logic upfront</div>
+            <div class="check-desc">Will you need conditional paths (Router module)? Map the branches before building. A Router with 4+ branches should prompt you to consider whether two separate scenarios would be cleaner.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Plan your data structure before any module is added</div>
+            <div class="check-desc">Sketch the payload on paper or in a doc: what fields come in, how they transform, what goes out. Know your variable names before you touch the canvas. Naming inconsistencies compound fast.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Choose AI model intentionally</div>
+            <div class="check-desc">Not every AI step needs Sonnet. Match model to task: Haiku for high-frequency structured extraction, Sonnet for judgment/synthesis, Opus only when output quality directly drives revenue (proposals, client-facing copy).</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Design Principles</div>
+
+        <div class="expandable" onclick="toggleExpand(this)">
+          <div class="expandable-header">
+            Idempotency — build to handle duplicate triggers safely
+            <span class="expandable-arrow">▼</span>
+          </div>
+          <div class="expandable-body">
+            Your automation should produce the same result whether it runs once or three times with the same input. Practically: before creating a record, check if it already exists. Before sending an email, check a "notified" flag. Use a unique ID from the trigger payload as your deduplication key.
+            <div class="callout make" style="margin-top:12px">
+              <span class="callout-icon">⚙</span>
+              <div><strong>Make.com:</strong> Use a Search Records module before any Create module. If a match is found, route to Update instead. Add a <code>processed_at</code> timestamp field to Airtable records as a simple idempotency marker.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="expandable" onclick="toggleExpand(this)">
+          <div class="expandable-header">
+            Statelessness — don't rely on previous execution state
+            <span class="expandable-arrow">▼</span>
+          </div>
+          <div class="expandable-body">
+            Each scenario execution should be self-contained. Don't assume a previous run left data somewhere accessible. If you need to carry state between runs, store it explicitly (Airtable row, Data Store, Google Sheet cell). Make.com's Data Store is useful here for lightweight persistence.
+          </div>
+        </div>
+
+        <div class="expandable" onclick="toggleExpand(this)">
+          <div class="expandable-header">
+            Least privilege — only touch what you need
+            <span class="expandable-arrow">▼</span>
+          </div>
+          <div class="expandable-body">
+            When setting up OAuth connections or API keys, request only the permissions the scenario actually needs. Don't connect a Gmail integration with full account access if you only need to send emails. This limits blast radius if credentials are compromised.
+            <div class="callout warning" style="margin-top:12px">
+              <span class="callout-icon">△</span>
+              <div>This applies especially to Airtable: connect only the base/table the scenario needs, not your entire workspace.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="expandable" onclick="toggleExpand(this)">
+          <div class="expandable-header">
+            Observable — make the automation self-documenting in its outputs
+            <span class="expandable-arrow">▼</span>
+          </div>
+          <div class="expandable-body">
+            Every execution should leave a trace. Write a <code>last_run</code> timestamp, a <code>status</code> field, and an <code>error_log</code> field to whatever data store you're using. This is how you debug production issues without needing to watch execution logs live.
+          </div>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">✦</span>
+        <div><strong>Design rule:</strong> If you can't explain what the scenario does in two sentences, it's trying to do too much. Split it.</div>
+      </div>
+
+      <div class="page-nav">
+        <button class="btn btn-ghost" onclick="showPage('p1')">← Back</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-counter">2 / 6</span>
+          <button class="btn btn-primary" onclick="showPage('p3')">Next: Build Sequence →</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         PAGE 3: BUILD SEQUENCE
+    ══════════════════════════════════════ -->
+    <div class="page" id="p3">
+      <div class="page-header">
+        <div class="phase-label">Phase 03</div>
+        <div class="page-title">Build Sequence & Methodology</div>
+        <div class="page-desc">How you build matters as much as what you build. A disciplined sequence catches problems early when they're cheap to fix.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">The Happy Path First Rule</div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Build the trigger + first module only, then test</div>
+            <div class="check-desc">Don't build the whole scenario before testing. Add the trigger, confirm it fires and returns the expected payload structure, then proceed. A bad assumption about field names at this stage will corrupt every downstream module.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Build the full happy path end-to-end before adding any error handling</div>
+            <div class="check-desc">Get the core flow working with clean, valid input first. Don't add error branches, fallbacks, or edge case handling until the primary path is validated. Mixing the two makes debugging exponentially harder.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Design and test AI prompts before wiring them in</div>
+            <div class="check-desc">Never write a prompt directly in a Make.com Claude module without testing it first. Test in the Anthropic Workbench or a standalone tool with real sample data. Only wire it in once output is consistently correct.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Run a full end-to-end test with real data before adding error handling</div>
+            <div class="check-desc">Trigger the scenario with the most realistic test input you have. Verify every output — check the Airtable row was actually written, the email actually landed, the webhook actually received. Don't assume.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Build Hygiene</div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Name every module descriptively</div>
+            <div class="check-desc">Default names like "HTTP 3" or "Router 1" are useless. Name them: "Check for existing contact in Airtable" or "Send intake confirmation email via Gmail." Takes 10 seconds, saves 10 minutes of debugging later.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Use consistent variable naming conventions</div>
+            <div class="check-desc">Decide on a naming convention before you start: snake_case, camelCase, or prefixed (client_name, client_email). Stick to it. Mixed conventions in mapped fields create confusion during handoff and debugging.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Add scenario notes for non-obvious logic</div>
+            <div class="check-desc">If a module does something that won't be obvious to someone reading the scenario cold, add a note. Especially: why a particular filter condition was chosen, or why a specific field is being transformed a certain way.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Version control: export Blueprint JSON after each major milestone</div>
+            <div class="check-desc">Make.com doesn't have Git. Export a Blueprint JSON snapshot after: (1) happy path working, (2) error handling added, (3) final QA passed. Keep these in a project folder. If something breaks, you can roll back.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout make">
+        <span class="callout-icon">⚙</span>
+        <div><strong>Make.com — Free plan workaround:</strong> No JavaScript module means no inline array manipulation. Handle array data from webhook payloads via direct field mapping (e.g. <code>{{1.results[].score}}</code>) or route into an iterator. Plan this before building, not after.</div>
+      </div>
+
+      <div class="page-nav">
+        <button class="btn btn-ghost" onclick="showPage('p2')">← Back</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-counter">3 / 6</span>
+          <button class="btn btn-primary" onclick="showPage('p4')">Next: Error Handling →</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         PAGE 4: ERROR HANDLING
+    ══════════════════════════════════════ -->
+    <div class="page" id="p4">
+      <div class="page-header">
+        <div class="phase-label">Phase 04</div>
+        <div class="page-title">Error Handling Patterns</div>
+        <div class="page-desc">Errors are not exceptional — they are expected. Design your automation to degrade gracefully, alert appropriately, and never silently fail.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Error Classification</div>
+
+        <table class="decision-table">
+          <thead>
+            <tr>
+              <th>Error Type</th>
+              <th>Example</th>
+              <th>Correct Response</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag tag-red">Hard Fail</span></td>
+              <td>Missing required field, auth rejected</td>
+              <td>Stop execution, alert, log</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-amber">Soft Fail</span></td>
+              <td>API timeout, rate limit hit</td>
+              <td>Retry with backoff, then alert if persistent</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-blue">Recoverable</span></td>
+              <td>Duplicate detected, record not found</td>
+              <td>Route to alternate path (Router), log, continue</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-gold">Warning</span></td>
+              <td>Optional field empty, partial data</td>
+              <td>Continue, log warning, notify if threshold exceeded</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Implementation Checklist</div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Add error handlers to every API/HTTP module</div>
+            <div class="check-desc">Right-click any module in Make.com → Add error handler. At minimum, add a Rollback or Resume directive. For critical modules (payment, write operations), always use Break + alert.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Never let the scenario silently complete with missing data</div>
+            <div class="check-desc">Use a Filter module after any data lookup to assert required fields are present before proceeding. If the filter fails, the execution stops — better than corrupted downstream records.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Log every error to a dedicated Airtable error table</div>
+            <div class="check-desc">Create an "Error Log" table: scenario name, timestamp, error type, payload snapshot, module name. This is how you debug production issues without being present when they occur.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Set up an alert for hard failures</div>
+            <div class="check-desc">On error routes: send a Gmail notification to yourself (and optionally the client) with: scenario name, time, error detail, and what data was being processed. You need to know when production breaks before the client does.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Configure retry logic on transient failures</div>
+            <div class="check-desc">For HTTP requests, API calls, and AI module calls: enable retries in Make.com module settings. Set max retries to 3 with increasing intervals. Don't retry indefinitely — set a maximum and route to the error handler after.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Handle incomplete executions</div>
+            <div class="check-desc">In Make.com scenario settings → enable "Allow storing incomplete executions." This lets you manually resolve and resume failed runs from the Incomplete Executions tab rather than losing the data entirely.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout make">
+        <span class="callout-icon">⚙</span>
+        <div><strong>Make.com Error Handler pattern:</strong> On any critical module, add a route from the error handler that: (1) writes to your Airtable Error Log, (2) sends a Gmail alert to yourself, (3) uses the <strong>Break</strong> directive to stop the execution cleanly. Never use <strong>Ignore</strong> in production scenarios.</div>
+      </div>
+
+      <div class="callout danger">
+        <span class="callout-icon">✕</span>
+        <div><strong>Never use "Ignore" error directive in production.</strong> It silently swallows the error and marks the execution as successful. You will not know data was lost until the client tells you.</div>
+      </div>
+
+      <div class="page-nav">
+        <button class="btn btn-ghost" onclick="showPage('p3')">← Back</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-counter">4 / 6</span>
+          <button class="btn btn-primary" onclick="showPage('p5')">Next: Security →</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         PAGE 5: SECURITY & PRIVACY
+    ══════════════════════════════════════ -->
+    <div class="page" id="p5">
+      <div class="page-header">
+        <div class="phase-label">Phase 05</div>
+        <div class="page-title">Security, Auth & Data Privacy</div>
+        <div class="page-desc">Your clients are lawyers and financial advisors. Their data is regulated. Getting this wrong isn't a product problem — it's a legal one. Build defensively from the start.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Authentication</div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Use OAuth over API keys wherever available</div>
+            <div class="check-desc">OAuth tokens are scoped, revocable, and don't require you to handle raw credentials. If a service offers both, always choose OAuth. Reserve API keys for services that provide no alternative.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">All credentials belong to the client — not you</div>
+            <div class="check-desc">Every OAuth connection and API key must be created on the client's own accounts. You configure it, but they own it. If you hold their credentials and your account is compromised, their data is exposed. This is also your commercial position: client owns everything.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Store API keys in Make.com's encrypted connections only</div>
+            <div class="check-desc">Never hardcode API keys into module fields, notes, or webhook URLs. Always store them in a named Make.com connection where they are encrypted at rest. If you see a key in a text field, it's wrong.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Validate webhook signatures where supported</div>
+            <div class="check-desc">If your trigger is an inbound webhook, verify it's coming from the expected source. Most platforms (Stripe, Tally, etc.) sign their webhooks. Add a validation step at the top of your scenario before processing any payload.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Data Handling & Privacy</div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Identify all PII in the data flow</div>
+            <div class="check-desc">Before building, list every field that could be considered personally identifiable: name, email, phone, DOB, NI number, company name, case reference. Know exactly where each field is written, stored, and sent.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Don't pass PII to AI models unnecessarily</div>
+            <div class="check-desc">If you're using Claude for document classification or summarisation, strip or pseudonymise PII before sending to the API where possible. Pass reference IDs, not personal details. Only include what the model actually needs to perform the task.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Confirm data residency requirements</div>
+            <div class="check-desc">For UK/EU clients, confirm whether data can transit through US-based services. Make.com is US-based. Anthropic's API is US-based. Some regulated industries (law, financial services) have restrictions on where client data can be processed.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Minimise data retention</div>
+            <div class="check-desc">Only store what is required for the automation to function. Don't accumulate client data in your own Make.com Data Stores or Airtable bases by default. If storing is necessary, define a retention period and communicate it.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Document what data transits through Make.com</div>
+            <div class="check-desc">For each scenario, create a simple data flow note: what enters, what's processed, what's stored, what's sent externally. This becomes part of the client handoff documentation and covers you if questions arise later.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout warning">
+        <span class="callout-icon">△</span>
+        <div><strong>Notion integration:</strong> The most common setup failure is forgetting to share the Notion database explicitly with the Make.com integration inside Notion. The connection will authenticate fine but reads/writes will silently fail. Always test with a real operation, not just a connection check.</div>
+      </div>
+
+      <div class="callout danger">
+        <span class="callout-icon">✕</span>
+        <div><strong>For law firm and IFA clients:</strong> Before handling any client matter data through your automation, confirm in writing what data will transit through which services. Do not assume they've considered this. Flag it proactively — it protects both of you.</div>
+      </div>
+
+      <div class="page-nav">
+        <button class="btn btn-ghost" onclick="showPage('p4')">← Back</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-counter">5 / 6</span>
+          <button class="btn btn-primary" onclick="showPage('p6')">Next: Testing & QA →</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         PAGE 6: TESTING & QA
+    ══════════════════════════════════════ -->
+    <div class="page" id="p6">
+      <div class="page-header">
+        <div class="phase-label">Phase 06</div>
+        <div class="page-title">Testing & QA</div>
+        <div class="page-desc">Testing is not checking if it works once. It's proving it works correctly across all expected inputs, and fails safely on unexpected ones.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Test Matrix — Run All Before Sign-Off</div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Happy path: clean, complete input data</div>
+            <div class="check-desc">Trigger with a complete, valid payload — every field populated, all values in expected format. Verify every output exactly: correct data in the right fields, emails sent to the right address, records created not updated.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Missing optional fields</div>
+            <div class="check-desc">Remove optional fields from the trigger payload one at a time. Does the scenario handle their absence gracefully, or does it error? Fix any crashes caused by missing optional data.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Missing required fields</div>
+            <div class="check-desc">Remove a required field. The scenario should fail fast and cleanly — hitting the error handler, logging, and alerting — not silently proceed with null data being written downstream.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Duplicate trigger</div>
+            <div class="check-desc">Submit the exact same input twice. Does the second execution create a duplicate record, or does your idempotency logic catch it and route to an update/skip path?</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Edge case inputs</div>
+            <div class="check-desc">Test with: very long strings, special characters (apostrophes, ampersands), international characters, empty strings vs. null vs. whitespace-only. These are where integrations break silently.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Simulated API failure</div>
+            <div class="check-desc">Temporarily break a downstream connection (wrong API key, invalid endpoint) and trigger the scenario. Confirm the error handler fires, the error is logged, and the alert email is sent. This is the only way to verify your error handling actually works.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">High-volume / rapid succession</div>
+            <div class="check-desc">For scenarios that may receive bursts of triggers: fire 5–10 in quick succession. Check for race conditions, duplicate processing, or rate limit errors. Review execution logs for any that silently failed.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Sign-Off Criteria</div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">All test cases in the matrix passed</div>
+            <div class="check-desc">Every scenario in the test matrix has been run and verified. No untested paths remain.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Blueprint JSON exported and archived</div>
+            <div class="check-desc">Final scenario exported as Blueprint JSON, named with version and date (e.g. <code>law-intake-v1.2-2026-04.json</code>), stored in project folder in Google Drive.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Error log table is empty</div>
+            <div class="check-desc">After all test runs, review the Airtable Error Log. It should be empty (or contain only intentional test errors you've cleared). Any unresolved errors = not ready for handoff.</div>
+          </div>
+        </div>
+
+        <div class="check-item" onclick="toggle(this)">
+          <div class="checkbox">✓</div>
+          <div class="check-content">
+            <div class="check-title">Scenario is off / inactive before handoff</div>
+            <div class="check-desc">Turn the scenario off before handing over. The client should be the one to activate it on their account for the first time. This prevents test executions from contaminating their live environment during the import process.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">✦</span>
+        <div><strong>30-day check-in:</strong> Book a 30-minute call at handoff, 30 days out. Position it as part of the delivery, not optional support. This is your best upsell window — by then they know what else they want automated.</div>
+      </div>
+
+      <div class="page-nav">
+        <button class="btn btn-ghost" onclick="showPage('p5')">← Back</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="step-counter">6 / 6</span>
+          <button class="btn btn-primary" onclick="showPage('ref')">View Quick Reference →</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         REFERENCE PAGE
+    ══════════════════════════════════════ -->
+    <div class="page" id="ref">
+      <div class="page-header">
+        <div class="phase-label">Reference</div>
+        <div class="page-title">Quick Reference</div>
+        <div class="page-desc">Jump to what you need during a build. No need to go through all phases.</div>
+      </div>
+
+      <div class="ref-tabs">
+        <div class="ref-tab active" onclick="showTab(this, 'tab-models')">AI Models</div>
+        <div class="ref-tab" onclick="showTab(this, 'tab-errors')">Error Directives</div>
+        <div class="ref-tab" onclick="showTab(this, 'tab-auth')">Auth Patterns</div>
+        <div class="ref-tab" onclick="showTab(this, 'tab-pii')">PII Checklist</div>
+        <div class="ref-tab" onclick="showTab(this, 'tab-gotchas')">Known Gotchas</div>
+      </div>
+
+      <!-- TAB: AI MODELS -->
+      <div class="ref-panel active" id="tab-models">
+        <table class="decision-table">
+          <thead>
+            <tr><th>Model</th><th>Use When</th><th>Avoid When</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag tag-green">Haiku</span></td>
+              <td>High-frequency tasks: onboarding, invoice chase, data extraction, form classification. Needs to run many times per day at low cost.</td>
+              <td>Output drives a client-visible decision. Judgment calls. Anything requiring nuanced synthesis.</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-blue">Sonnet</span></td>
+              <td>Qualification scoring, lead triage, follow-up drafting, meeting prep, content generation, report summaries. Quality matters, volume is moderate.</td>
+              <td>The output is the primary revenue-driving deliverable (proposals, pitches). Volume is very high and latency or cost is a constraint.</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-gold">Opus</span></td>
+              <td>Proposal generation where output quality directly influences whether you win revenue. Use sparingly.</td>
+              <td>Anything routine. High-frequency tasks. When Sonnet produces acceptable output.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout tip" style="margin-top:16px">
+          <span class="callout-icon">✦</span>
+          <div><strong>Prompt rule:</strong> Always design and test prompts with real sample data in Workbench before wiring into Make.com. Prompts written directly in a module are never tested adequately.</div>
+        </div>
+      </div>
+
+      <!-- TAB: ERROR DIRECTIVES -->
+      <div class="ref-panel" id="tab-errors">
+        <table class="decision-table">
+          <thead>
+            <tr><th>Directive</th><th>Behaviour</th><th>Use When</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag tag-red">Break</span></td>
+              <td>Stops the execution. Marks it as Incomplete (can be resumed manually).</td>
+              <td>Critical failure — data must not be lost. Allows manual intervention and retry.</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-amber">Rollback</span></td>
+              <td>Undoes all operations in the current execution bundle.</td>
+              <td>When partial writes are worse than no write. Use when atomicity matters.</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-blue">Resume</span></td>
+              <td>Continues execution despite the error, using a defined fallback value.</td>
+              <td>When the step is non-critical and a safe fallback value is acceptable.</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-green">Retry</span></td>
+              <td>Re-attempts the failed module up to N times.</td>
+              <td>Transient failures: timeouts, rate limits, temporary API unavailability.</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-red" style="background:rgba(224,92,92,0.05);color:#a04040;">Ignore ✕</span></td>
+              <td>Silently ignores the error. Marks execution as successful.</td>
+              <td><strong>Never in production.</strong> Acceptable only in controlled test scenarios.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TAB: AUTH PATTERNS -->
+      <div class="ref-panel" id="tab-auth">
+        <div class="two-col">
+          <div class="info-card">
+            <div class="info-card-title">Prefer: OAuth 2.0</div>
+            <ul class="styled">
+              <li>Scoped permissions — only what's needed</li>
+              <li>Revocable without changing passwords</li>
+              <li>No raw credentials stored</li>
+              <li>Auto-refresh handled by Make.com</li>
+              <li>Available: Gmail, Google Drive, Airtable, Notion, Slack</li>
+            </ul>
+          </div>
+          <div class="info-card">
+            <div class="info-card-title">Fallback: API Key</div>
+            <ul class="styled">
+              <li>Store only in Make.com encrypted connection</li>
+              <li>Never in text fields, notes, or URLs</li>
+              <li>Use environment-specific keys (test vs prod)</li>
+              <li>Client rotates keys; you update the connection</li>
+              <li>Available: Anthropic, Brevo, Stripe, custom APIs</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout warning" style="margin-top: 4px">
+          <span class="callout-icon">△</span>
+          <div><strong>Always:</strong> Connections are set up on the client's account. You configure, they own. Disconnect your own test connections before handoff.</div>
+        </div>
+
+        <div class="info-card" style="margin-top: 12px">
+          <div class="info-card-title">Webhook Security</div>
+          <ul class="styled">
+            <li>Always add a custom webhook header secret where the sending service supports it</li>
+            <li>Validate the secret in the first module of your scenario</li>
+            <li>Use HTTPS endpoints only — Make.com webhooks are always HTTPS</li>
+            <li>Rotate secrets at handoff so only the client's environment has them</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TAB: PII -->
+      <div class="ref-panel" id="tab-pii">
+        <div class="section-title" style="margin-bottom:12px">Common PII Fields — Flag These in Every Build</div>
+
+        <div class="two-col">
+          <div>
+            <div class="info-card">
+              <div class="info-card-title">Always PII</div>
+              <ul class="styled">
+                <li>Full name, first/last name</li>
+                <li>Email address</li>
+                <li>Phone number</li>
+                <li>Home / postal address</li>
+                <li>Date of birth</li>
+                <li>National Insurance / SSN</li>
+                <li>Passport / ID number</li>
+                <li>IP address</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="info-card">
+              <div class="info-card-title">Context-Dependent PII</div>
+              <ul class="styled">
+                <li>Company name (if sole trader)</li>
+                <li>Job title</li>
+                <li>Case or matter reference</li>
+                <li>Financial account numbers</li>
+                <li>Portfolio values / assets</li>
+                <li>Legal matter details</li>
+                <li>Health/medical information</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout danger" style="margin-top:16px">
+          <span class="callout-icon">✕</span>
+          <div><strong>Rule:</strong> Before sending any field to the Anthropic API, ask: does the model actually need this to complete the task? If not, strip it. Pass reference IDs, not personal details. Log what you send.</div>
+        </div>
+
+        <div class="callout warning" style="margin-top:8px">
+          <span class="callout-icon">△</span>
+          <div><strong>US clients (lawyers, IFAs):</strong> Check state-level data privacy obligations. California (CCPA), state bar rules for legal data, SEC/FINRA requirements for financial data. These affect what can transit through non-US services. Flag this proactively to the client — don't assume they've thought about it.</div>
+        </div>
+      </div>
+
+      <!-- TAB: GOTCHAS -->
+      <div class="ref-panel" id="tab-gotchas">
+        <div class="expandable open" onclick="toggleExpand(this)">
+          <div class="expandable-header">
+            Make.com free plan: no JavaScript execution module
+            <span class="expandable-arrow">▼</span>
+          </div>
+          <div class="expandable-body">
+            Array manipulation from webhook payloads must use direct field mapping or an Iterator module. You cannot use Set Multiple Variables with JS expressions. Design around this before you start — retrofitting is painful.
+          </div>
+        </div>
+
+        <div class="expandable" onclick="toggleExpand(this)">
+          <div class="expandable-header">
+            Notion: database must be explicitly shared with Make integration
+            <span class="expandable-arrow">▼</span>
+          </div>
+          <div class="expandable-body">
+            The OAuth connection will succeed, but reads and writes will silently fail unless you open the Notion database → Share → explicitly add the Make.com integration. This is the #1 setup failure. Always test with a real write operation, not just a connection check.
+          </div>
+        </div>
+
+        <div class="expandable" onclick="toggleExpand(this)">
+          <div class="expandable-header">
+            TikTok Content Posting API requires pre-approved developer access
+            <span class="expandable-arrow">▼</span>
+          </div>
+          <div class="expandable-body">
+            You cannot post to TikTok programmatically without applying for and receiving approval from TikTok's developer program. Always flag this as a conditional deliverable in proposals and never commit to a delivery date until approval is confirmed.
+          </div>
+        </div>
+
+        <div class="expandable" onclick="toggleExpand(this)">
+          <div class="expandable-header">
+            Make.com: "Ignore" error directive masks failures
+            <span class="expandable-arrow">▼</span>
+          </div>
+          <div class="expandable-body">
+            If you add an error handler with "Ignore," the execution shows as successful in logs even if a module failed. You will not know data was lost or not processed. Never use Ignore in production. Use Break + log + alert instead.
+          </div>
+        </div>
+
+        <div class="expandable" onclick="toggleExpand(this)">
+          <div class="expandable-header">
+            Airtable: API rate limit is 5 requests/second per base
+            <span class="expandable-arrow">▼</span>
+          </div>
+          <div class="expandable-body">
+            For high-volume scenarios with multiple Airtable operations per execution, you can hit the rate limit quickly. Add a Sleep module between writes, or batch operations where possible. Use the Airtable API directly via HTTP module for bulk operations — the native Make.com module doesn't support batch writes.
+          </div>
+        </div>
+
+        <div class="expandable" onclick="toggleExpand(this)">
+          <div class="expandable-header">
+            Anthropic API: long prompts + large context = slow + expensive
+            <span class="expandable-arrow">▼</span>
+          </div>
+          <div class="expandable-body">
+            Don't pass entire documents to Claude unless necessary. Extract only the relevant sections before sending. Set a reasonable max_tokens limit — open-ended token limits on high-volume scenarios will burn budget fast. For structured extraction tasks, use a strict JSON output format instruction to keep responses short.
+          </div>
+        </div>
+
+        <div class="expandable" onclick="toggleExpand(this)">
+          <div class="expandable-header">
+            Webhook payload: field names are case-sensitive
+            <span class="expandable-arrow">▼</span>
+          </div>
+          <div class="expandable-body">
+            If your form sends <code>clientName</code> and you map <code>ClientName</code>, the field will be empty and downstream modules will fail silently. Always inspect the raw webhook payload in Make.com's execution history before mapping fields. Never map from memory.
+          </div>
+        </div>
+      </div>
+
+      <div class="page-nav" style="margin-top: 32px">
+        <button class="btn btn-ghost" onclick="showPage('p6')">← Back to Testing</button>
+        <button class="btn btn-primary" onclick="showPage('p1')">↺ Start New Build</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggle = document.getElementById('menuToggle');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('visible');
+    toggle.classList.toggle('open');
+  }
+
+  function closeSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggle = document.getElementById('menuToggle');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('visible');
+    toggle.classList.remove('open');
+  }
+
+  const pages = ['p1','p2','p3','p4','p5','p6','ref'];
+  const navItems = document.querySelectorAll('.nav-item');
+
+  function showPage(id) {
+    pages.forEach(p => {
+      document.getElementById(p).classList.remove('active');
+    });
+    document.getElementById(id).classList.add('active');
+
+    navItems.forEach(item => {
+      item.classList.remove('active');
+      if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(id)) {
+        item.classList.add('active');
+      }
+    });
+
+    updateProgress();
+    document.querySelector('.main').scrollTo(0, 0);
+    closeSidebar();
+  }
+
+  function toggle(el) {
+    el.classList.toggle('checked');
+    updateProgress();
+  }
+
+  function toggleExpand(el) {
+    el.classList.toggle('open');
+  }
+
+  function updateProgress() {
+    const all = document.querySelectorAll('.check-item');
+    const done = document.querySelectorAll('.check-item.checked');
+    const pct = all.length > 0 ? Math.round((done.length / all.length) * 100) : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent = pct + '%';
+  }
+
+  function showTab(tabEl, panelId) {
+    document.querySelectorAll('.ref-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.ref-panel').forEach(p => p.classList.remove('active'));
+    tabEl.classList.add('active');
+    document.getElementById(panelId).classList.add('active');
+  }
+</script>
+
+</body>
+</html>
