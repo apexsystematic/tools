@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Make Scenario Builder — Apex Systematic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C;
+    --gold-dim: rgba(201,168,76,0.45);
+    --gold-faint: rgba(201,168,76,0.07);
+    --dark: #0E1117;
+    --text: #E8E4DC;
+    --text-dim: rgba(232,228,220,0.5);
+    --text-faint: rgba(232,228,220,0.22);
+    --border: rgba(232,228,220,0.09);
+    --green: #4ade80;
+    --red: #e05c5c;
+  }
+  html, body { background: var(--dark); }
+  body { color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  header {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 32px;
+    background: rgba(14,17,23,0.96);
+    border-bottom: 1px solid rgba(201,168,76,0.14);
+    backdrop-filter: blur(12px);
+  }
+  .logo {
+    width: 30px; height: 30px;
+    border: 1.5px solid var(--gold);
+    display: grid; place-items: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; color: var(--gold); flex-shrink: 0;
+  }
+  .header-title { font-family: 'Playfair Display', serif; font-size: 15px; }
+  .header-badge {
+    margin-left: auto; font-size: 10px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold-dim); font-weight: 600;
+  }
+
+  main { max-width: 800px; margin: 0 auto; padding: 44px 32px 80px; }
+
+  /* TABS */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .tab {
+    background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    padding: 10px 22px; font-family: 'DM Sans', sans-serif; font-size: 11px;
+    letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+    color: var(--text-faint); cursor: pointer; transition: all .2s;
+  }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .tab:hover:not(.active) { color: var(--text-dim); }
+
+  .panel { display: none; } .panel.active { display: block; }
+
+  /* FIELDS */
+  .field { margin-bottom: 20px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  label {
+    display: block; font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 7px; font-weight: 600;
+  }
+  input, textarea, select {
+    width: 100%; background: rgba(232,228,220,0.03); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px;
+    padding: 11px 14px; outline: none; transition: border-color .2s;
+    border-radius: 0; appearance: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--gold-dim); }
+  textarea { resize: vertical; min-height: 110px; line-height: 1.65; }
+  select { cursor: pointer; }
+  select option { background: #1a1f2b; }
+  .hint { font-size: 11px; color: var(--text-faint); margin-top: 5px; line-height: 1.5; }
+  .opt { font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 22px; font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.05em;
+    cursor: pointer; border: none; outline: none; transition: all .2s; white-space: nowrap;
+  }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+  .btn-primary { background: var(--gold); color: var(--dark); }
+  .btn-primary:hover:not(:disabled) { background: #d4b05e; }
+  .btn-ghost { background: transparent; color: var(--gold); border: 1px solid var(--gold-dim); }
+  .btn-ghost:hover:not(:disabled) { background: var(--gold-faint); border-color: var(--gold); }
+  .btn-sm { padding: 7px 13px; font-size: 11px; }
+  .action-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+
+  /* STATUS */
+  .status { padding: 14px 18px; border-left: 2px solid; margin-top: 20px; font-size: 13px; line-height: 1.65; display: none; }
+  .status.show { display: block; }
+  .status.loading { border-color: var(--gold); background: rgba(201,168,76,0.04); color: var(--text-dim); }
+  .status.success { border-color: var(--green); background: rgba(74,222,128,0.04); }
+  .status.error   { border-color: var(--red);   background: rgba(224,92,92,0.04); }
+  .status a { color: var(--gold); text-decoration: none; }
+  .status a:hover { text-decoration: underline; }
+
+  /* BLUEPRINT */
+  .bp-wrap { margin-top: 28px; display: none; }
+  .bp-wrap.show { display: block; }
+  .bp-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(201,168,76,0.16); }
+  .bp-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; border-bottom: 1px solid rgba(201,168,76,0.1);
+  }
+  .bp-label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+  .bp-btns { display: flex; gap: 8px; }
+  pre.bp-code {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: rgba(232,228,220,0.5); white-space: pre-wrap; word-break: break-word;
+    max-height: 300px; overflow-y: auto; padding: 18px 16px; line-height: 1.7;
+  }
+  pre.bp-code::-webkit-scrollbar { width: 3px; }
+  pre.bp-code::-webkit-scrollbar-thumb { background: var(--gold-dim); }
+
+  /* SPINNER */
+  .spinner {
+    display: inline-block; width: 11px; height: 11px;
+    border: 1.5px solid rgba(201,168,76,0.2); border-top-color: var(--gold);
+    border-radius: 50%; animation: spin .75s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* BADGE */
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 10px; padding: 7px 14px;
+    background: rgba(201,168,76,0.07); border: 1px solid rgba(201,168,76,0.2);
+    font-family: 'DM Mono', monospace; font-size: 12px; color: var(--gold);
+  }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--gold); color: var(--dark);
+    padding: 9px 18px; font-size: 12px; font-weight: 600; letter-spacing: 0.05em;
+    opacity: 0; transform: translateY(6px); transition: all .22s; pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">A</div>
+  <span class="header-title">Make Scenario Builder</span>
+  <span class="header-badge">Apex Systematic</span>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab active" data-tab="scratch">From Description</button>
+    <button class="tab" data-tab="clone">Clone Existing</button>
+  </div>
+
+  <!-- FROM SCRATCH -->
+  <div class="panel active" id="panel-scratch">
+    <div class="field">
+      <label>Scenario Description</label>
+      <textarea id="description" placeholder="Describe what this scenario should do. E.g. 'When a Tally form is submitted, parse the payload, create a record in Airtable, and send a confirmation email via Gmail.'"></textarea>
+      <div class="hint">Be specific about the trigger, any transformations, and destination apps.</div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Scheduling</label>
+        <select id="sched-scratch">
+          <option value="ondemand">On-demand (manual / API trigger)</option>
+          <option value="indefinitely">Scheduled (every 15 min)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Folder ID <span class="opt">(optional)</span></label>
+        <input type="text" id="folder-scratch" placeholder="Leave blank for root" />
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btn-generate">Generate Blueprint</button>
+  </div>
+
+  <!-- CLONE -->
+  <div class="panel" id="panel-clone">
+    <div class="grid2">
+      <div class="field">
+        <label>Source Scenario ID</label>
+        <input type="text" id="clone-id" placeholder="e.g. 925" />
+        <div class="hint">Open scenario in Make → ID is in the URL</div>
+      </div>
+      <div class="field">
+        <label>New Name <span class="opt">(optional)</span></label>
+        <input type="text" id="clone-name" placeholder="Defaults to original name" />
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Scheduling</label>
+        <select id="sched-clone">
+          <option value="ondemand">On-demand</option>
+          <option value="indefinitely">Scheduled (every 15 min)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Folder ID <span class="opt">(optional)</span></label>
+        <input type="text" id="folder-clone" placeholder="Leave blank for root" />
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btn-fetch">Fetch Blueprint</button>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status" id="status"></div>
+
+  <!-- BLUEPRINT PREVIEW -->
+  <div class="bp-wrap" id="bp-wrap">
+    <div class="bp-box">
+      <div class="bp-head">
+        <span class="bp-label">Blueprint Preview</span>
+        <div class="bp-btns">
+          <button class="btn btn-ghost btn-sm" id="btn-copy">Copy JSON</button>
+          <button class="btn btn-ghost btn-sm" id="btn-download">Download .json</button>
+        </div>
+      </div>
+      <pre class="bp-code" id="bp-code"></pre>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-primary" id="btn-deploy">Deploy to Make</button>
+      <button class="btn btn-ghost" id="btn-reset">Start Over</button>
+    </div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ── CONFIG — replace with your worker URL after deploying ─────────────────────
+const WORKER_URL = "https://make-scenario-builder.apexsystematic.workers.dev";
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── state ─────────────────────────────────────────────────────────────────────
+let blueprint = null;
+let activeTab  = "scratch";
+
+// ── tabs ──────────────────────────────────────────────────────────────────────
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    activeTab = tab.dataset.tab;
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("panel-" + activeTab).classList.add("active");
+    reset();
+  });
+});
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+function setStatus(type, html) {
+  const el = document.getElementById("status");
+  el.className = "status show " + type;
+  el.innerHTML = html;
+}
+function clearStatus() {
+  const el = document.getElementById("status");
+  el.className = "status";
+  el.innerHTML = "";
+}
+function showBlueprint(json) {
+  blueprint = json;
+  document.getElementById("bp-code").textContent = json;
+  document.getElementById("bp-wrap").classList.add("show");
+}
+function reset() {
+  blueprint = null;
+  clearStatus();
+  document.getElementById("bp-wrap").classList.remove("show");
+  document.getElementById("bp-code").textContent = "";
+}
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 2000);
+}
+
+// ── Claude: generate blueprint via worker ─────────────────────────────────────
+async function generateBlueprint(description) {
+  const res = await fetch(WORKER_URL + "/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ description }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error || "Worker error " + res.status);
+  if (!data.blueprint) throw new Error("No blueprint returned");
+  return data.blueprint;
+}
+
+// ── Make proxy calls ──────────────────────────────────────────────────────────
+async function makeProxy(method, path, body) {
+  const res = await fetch(WORKER_URL + "/proxy" + path, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {})
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.message || data?.detail || data?.error || "HTTP " + res.status);
+  return data;
+}
+
+// ── generate ──────────────────────────────────────────────────────────────────
+document.getElementById("btn-generate").addEventListener("click", async () => {
+  const desc = document.getElementById("description").value.trim();
+  if (!desc) return;
+  reset();
+  setStatus("loading", '<span class="spinner"></span>&nbsp; Generating blueprint…');
+  const btn = document.getElementById("btn-generate");
+  btn.disabled = true;
+  try {
+    const raw = await generateBlueprint(desc);
+    JSON.parse(raw); // throws if invalid
+    clearStatus();
+    showBlueprint(raw);
+  } catch (e) {
+    setStatus("error", "⚠ " + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ── clone ─────────────────────────────────────────────────────────────────────
+document.getElementById("btn-fetch").addEventListener("click", async () => {
+  const id = document.getElementById("clone-id").value.trim();
+  if (!id) return;
+  reset();
+  setStatus("loading", '<span class="spinner"></span>&nbsp; Fetching blueprint from Make…');
+  const btn = document.getElementById("btn-fetch");
+  btn.disabled = true;
+  try {
+    const data = await makeProxy("GET", "/scenarios/" + id + "/blueprint");
+    let bp = data.response?.blueprint || data.blueprint;
+    if (!bp) throw new Error("No blueprint in response");
+    const parsed = typeof bp === "string" ? JSON.parse(bp) : bp;
+    const newName = document.getElementById("clone-name").value.trim();
+    if (newName) parsed.name = newName;
+    clearStatus();
+    showBlueprint(JSON.stringify(parsed, null, 2));
+  } catch (e) {
+    setStatus("error", "⚠ " + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ── deploy ────────────────────────────────────────────────────────────────────
+document.getElementById("btn-deploy").addEventListener("click", async () => {
+  if (!blueprint) return;
+  const sched = document.getElementById("sched-" + activeTab).value;
+  const folder = document.getElementById("folder-" + activeTab).value.trim();
+  setStatus("loading", '<span class="spinner"></span>&nbsp; Creating scenario in Make…');
+  const btn = document.getElementById("btn-deploy");
+  btn.disabled = true;
+  try {
+    const scheduling = sched === "ondemand"
+      ? JSON.stringify({ type: "ondemand" })
+      : JSON.stringify({ type: "indefinitely", interval: 900 });
+    const body = { blueprint, scheduling };
+    if (folder) body.folderId = parseInt(folder, 10);
+    const data = await makeProxy("POST", "/scenarios", body);
+    const s = data.scenario;
+    document.getElementById("bp-wrap").classList.remove("show");
+    setStatus("success",
+      `✓ Scenario created.<br>
+       <div class="badge">#${s.id} — ${s.name}</div><br>
+       <a href="https://eu1.make.com/scenario/${s.id}/edit" target="_blank" rel="noreferrer">Open in Make →</a>
+       <span style="margin-left:16px;font-size:12px;color:var(--text-faint)">· Connect your accounts in Make before activating</span>`
+    );
+  } catch (e) {
+    setStatus("error", "⚠ Deploy failed: " + e.message);
+    btn.disabled = false;
+  }
+});
+
+// ── copy ──────────────────────────────────────────────────────────────────────
+document.getElementById("btn-copy").addEventListener("click", () => {
+  if (!blueprint) return;
+  navigator.clipboard.writeText(blueprint).then(() => toast("Copied to clipboard"));
+});
+
+// ── download ──────────────────────────────────────────────────────────────────
+document.getElementById("btn-download").addEventListener("click", () => {
+  if (!blueprint) return;
+  let name = "blueprint";
+  try { name = JSON.parse(blueprint).name || "blueprint"; } catch (_) {}
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const blob = new Blob([blueprint], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = slug + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Downloaded");
+});
+
+// ── reset ─────────────────────────────────────────────────────────────────────
+document.getElementById("btn-reset").addEventListener("click", reset);
+</script>
+</body>
+</html>
