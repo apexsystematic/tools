@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Review Analyser — Apex Systematic</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E2C47A;
+      --gold-dim: rgba(201,168,76,0.15);
+      --bg: #0E1117;
+      --bg-card: #151B24;
+      --bg-card-2: #1A2230;
+      --border: rgba(201,168,76,0.2);
+      --border-subtle: rgba(255,255,255,0.07);
+      --text: #F0EDE8;
+      --text-muted: #8A8F9C;
+      --text-dim: #5A5F6C;
+      --red: #E05555;
+      --green: #4CAF7D;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 20px 80px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(201,168,76,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 80% 80%, rgba(201,168,76,0.04) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Grain overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 180px;
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      max-width: 680px;
+      padding: 48px 0 0;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .wordmark {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 36px;
+      opacity: 0.85;
+    }
+
+    .wordmark span { opacity: 0.5; margin: 0 6px; }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 2.75rem);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 440px;
+      font-weight: 300;
+      margin-bottom: 48px;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      width: 40px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.4;
+      margin: 0 auto 48px;
+    }
+
+    /* ── Card ── */
+    .card {
+      width: 100%;
+      max-width: 580px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 36px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, rgba(201,168,76,0.15) 0%, transparent 50%) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    /* ── Steps ── */
+    .steps {
+      display: flex;
+      gap: 0;
+      margin-bottom: 32px;
+    }
+
+    .step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+    }
+
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: calc(50% + 14px);
+      right: calc(-50% + 14px);
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    .step.active:not(:last-child)::after,
+    .step.done:not(:last-child)::after {
+      background: var(--border);
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-dim);
+      background: var(--bg);
+      transition: all 0.3s;
+    }
+
+    .step.active .step-num {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: var(--gold-dim);
+    }
+
+    .step.done .step-num {
+      border-color: var(--gold);
+      background: var(--gold);
+      color: var(--bg);
+    }
+
+    .step-label {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    .step.active .step-label { color: var(--text-muted); }
+    .step.done .step-label { color: var(--gold); opacity: 0.7; }
+
+    /* ── Form sections ── */
+    .form-section {
+      display: none;
+      animation: fadeUp 0.35s ease;
+    }
+
+    .form-section.visible { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .search-wrapper {
+      position: relative;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 13px 14px 13px 42px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="email"] { padding-left: 14px; }
+
+    input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
+    }
+
+    input::placeholder { color: var(--text-dim); }
+
+    /* Autocomplete dropdown */
+    .pac-container {
+      background: var(--bg-card-2) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius-sm) !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+      font-family: 'DM Sans', sans-serif !important;
+      margin-top: 4px !important;
+      overflow: hidden;
+    }
+
+    .pac-item {
+      padding: 10px 14px !important;
+      border-top: 1px solid var(--border-subtle) !important;
+      cursor: pointer !important;
+      font-size: 13px !important;
+      color: var(--text-muted) !important;
+      transition: background 0.15s !important;
+    }
+
+    .pac-item:first-child { border-top: none !important; }
+    .pac-item:hover { background: var(--bg-card) !important; }
+    .pac-item-query { color: var(--text) !important; font-size: 13px !important; }
+    .pac-icon { display: none !important; }
+    .pac-matched { color: var(--gold) !important; font-weight: 500 !important; }
+
+    /* ── Confirmation card ── */
+    #confirm-card {
+      background: var(--bg-card-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      margin-top: 16px;
+      display: none;
+      animation: fadeUp 0.3s ease;
+    }
+
+    #confirm-card.visible { display: flex; gap: 16px; align-items: flex-start; }
+
+    .business-photo {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--bg);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .business-photo-placeholder {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-dim);
+    }
+
+    .business-info { flex: 1; min-width: 0; }
+
+    .business-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .business-address {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .business-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .rating-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gold);
+    }
+
+    .rating-badge svg { width: 12px; height: 12px; fill: var(--gold); }
+
+    .review-count {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .btn-confirm {
+      flex: 1;
+      padding: 10px;
+      background: var(--gold-dim);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius-sm);
+      color: var(--gold);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-confirm:hover { background: rgba(201,168,76,0.25); }
+
+    .btn-retry {
+      padding: 10px 16px;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-retry:hover { border-color: var(--text-dim); color: var(--text); }
+
+    /* ── Email section ── */
+    .email-intro {
+      margin-bottom: 20px;
+    }
+
+    .email-intro p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .selected-business-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--gold-dim);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 99px;
+      padding: 4px 12px 4px 6px;
+      font-size: 11px;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      flex-shrink: 0;
+    }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      width: 100%;
+      margin-top: 20px;
+      padding: 15px;
+      background: var(--gold);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--bg);
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-submit::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-submit:hover { background: var(--gold-light); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(201,168,76,0.3); }
+    .btn-submit:hover::before { opacity: 1; }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .btn-submit .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(14,17,23,0.3);
+      border-top-color: var(--bg);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    .btn-submit.loading .btn-text { display: none; }
+    .btn-submit.loading .spinner { display: block; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    .error-msg {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: rgba(224,85,85,0.1);
+      border: 1px solid rgba(224,85,85,0.3);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      color: var(--red);
+    }
+
+    .error-msg.visible { display: block; }
+
+    /* ── Success state ── */
+    #success-screen {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+      animation: fadeUp 0.4s ease;
+    }
+
+    #success-screen.visible { display: block; }
+
+    .success-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(76,175,125,0.1);
+      border: 1px solid rgba(76,175,125,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .success-icon svg { color: var(--green); }
+
+    .success-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .success-body {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .success-body strong { color: var(--gold); font-weight: 500; }
+
+    .success-note {
+      margin-top: 24px;
+      padding: 14px;
+      background: var(--bg-card-2);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+      position: relative;
+      z-index: 1;
+    }
+
+    footer a { color: var(--gold); text-decoration: none; opacity: 0.7; }
+    footer a:hover { opacity: 1; }
+
+    /* ── Responsive ── */
+    @media (max-width: 500px) {
+      .card { padding: 24px 20px; }
+      #confirm-card.visible { flex-direction: column; }
+      .business-photo, .business-photo-placeholder { width: 100%; height: 140px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="wordmark">Apex Systematic <span>·</span> Review Intelligence</div>
+    <h1>Understand what your<br>customers <em>really</em> think.</h1>
+    <p class="subtitle">Enter your business below. We'll analyse your Google reviews and deliver a clear, actionable report straight to your inbox.</p>
+    <div class="divider"></div>
+  </header>
+
+  <div class="card">
+
+    <!-- Step indicators -->
+    <div class="steps">
+      <div class="step active" id="step-1">
+        <div class="step-num">1</div>
+        <div class="step-label">Find</div>
+      </div>
+      <div class="step" id="step-2">
+        <div class="step-num">2</div>
+        <div class="step-label">Confirm</div>
+      </div>
+      <div class="step" id="step-3">
+        <div class="step-num">3</div>
+        <div class="step-label">Report</div>
+      </div>
+    </div>
+
+    <!-- Success screen -->
+    <div id="success-screen">
+      <div class="success-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <div class="success-title">Analysis underway.</div>
+      <p class="success-body">Your report for <strong id="success-business-name"></strong> is being generated.<br>We'll email it to <strong id="success-email"></strong> within a few minutes.</p>
+      <div class="success-note">Reports typically take 2–4 minutes. Check your spam folder if it doesn't arrive.</div>
+    </div>
+
+    <!-- Step 1: Search -->
+    <div class="form-section visible" id="section-search">
+      <label class="field-label" for="place-search">Business name or address</label>
+      <div class="search-wrapper">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="place-search" placeholder="e.g. The Blue Door, Manchester" autocomplete="off" />
+      </div>
+
+      <!-- Confirmation card (shown inline after selection) -->
+      <div id="confirm-card">
+        <div id="biz-photo-wrap"></div>
+        <div class="business-info">
+          <div class="business-name" id="biz-name"></div>
+          <div class="business-address" id="biz-address"></div>
+          <div class="business-meta">
+            <div class="rating-badge" id="biz-rating" style="display:none">
+              <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <span id="biz-rating-val"></span>
+            </div>
+            <div class="review-count" id="biz-reviews"></div>
+          </div>
+          <div class="confirm-actions">
+            <button class="btn-confirm" id="btn-yes">✓ This is my business</button>
+            <button class="btn-retry" id="btn-no">Search again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Email -->
+    <div class="form-section" id="section-email">
+      <div class="email-intro">
+        <div class="selected-business-pill">
+          <div class="pill-dot"></div>
+          <span id="pill-name"></span>
+        </div>
+        <p>Where should we send your report?</p>
+      </div>
+      <label class="field-label" for="email-input">Email address</label>
+      <input type="email" id="email-input" placeholder="you@yourbusiness.com" />
+      <div class="error-msg" id="error-msg">Please enter a valid email address.</div>
+      <button class="btn-submit" id="btn-submit">
+        <span class="btn-text">Generate My Report</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>Powered by <a href="https://apexsystematic.com" target="_blank">Apex Systematic</a> &nbsp;·&nbsp; Your data is used solely to generate your report.</p>
+  </footer>
+
+  <!-- Google Maps / Places API -->
+  <script>
+    const MAKE_WEBHOOK_URL = 'YOUR_MAKE_WEBHOOK_URL';
+    const GOOGLE_API_KEY   = 'YOUR_GOOGLE_PLACES_API_KEY';
+
+    // ── State ──────────────────────────────────────────
+    let selectedPlace = null;
+
+    // ── Load Google Maps script ────────────────────────
+    (function loadMaps() {
+      const s = document.createElement('script');
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initAutocomplete`;
+      s.async = true; s.defer = true;
+      document.head.appendChild(s);
+    })();
+
+    // ── Autocomplete init ──────────────────────────────
+    window.initAutocomplete = function() {
+      const input = document.getElementById('place-search');
+      const ac = new google.maps.places.Autocomplete(input, {
+        types: ['establishment'],
+        fields: ['place_id','name','formatted_address','rating','user_ratings_total','photos','geometry']
+      });
+
+      ac.addListener('place_changed', function() {
+        const place = ac.getPlace();
+        if (!place.place_id) return;
+        showConfirmCard(place);
+      });
+    };
+
+    // ── Show confirmation card ─────────────────────────
+    function showConfirmCard(place) {
+      selectedPlace = place;
+
+      document.getElementById('biz-name').textContent    = place.name || '—';
+      document.getElementById('biz-address').textContent = place.formatted_address || '';
+
+      // Rating
+      const ratingWrap = document.getElementById('biz-rating');
+      if (place.rating) {
+        ratingWrap.style.display = 'flex';
+        document.getElementById('biz-rating-val').textContent = place.rating.toFixed(1);
+      } else {
+        ratingWrap.style.display = 'none';
+      }
+
+      // Review count
+      const reviewsEl = document.getElementById('biz-reviews');
+      reviewsEl.textContent = place.user_ratings_total
+        ? `${place.user_ratings_total.toLocaleString()} reviews`
+        : '';
+
+      // Photo
+      const photoWrap = document.getElementById('biz-photo-wrap');
+      photoWrap.innerHTML = '';
+      if (place.photos && place.photos.length > 0) {
+        const img = document.createElement('img');
+        img.className = 'business-photo';
+        img.src = place.photos[0].getUrl({ maxWidth: 128, maxHeight: 128 });
+        img.alt = place.name;
+        photoWrap.appendChild(img);
+      } else {
+        photoWrap.innerHTML = `
+          <div class="business-photo-placeholder">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>`;
+      }
+
+      // Show card
+      const card = document.getElementById('confirm-card');
+      card.classList.add('visible');
+      setStep(2);
+    }
+
+    // ── Step helpers ───────────────────────────────────
+    function setStep(n) {
+      for (let i = 1; i <= 3; i++) {
+        const el = document.getElementById(`step-${i}`);
+        el.classList.remove('active','done');
+        if (i < n) el.classList.add('done');
+        if (i === n) el.classList.add('active');
+      }
+    }
+
+    // ── Confirm button ─────────────────────────────────
+    document.getElementById('btn-yes').addEventListener('click', function() {
+      if (!selectedPlace) return;
+
+      // Transition to email step
+      document.getElementById('pill-name').textContent = selectedPlace.name;
+      document.getElementById('section-search').classList.remove('visible');
+      document.getElementById('section-email').classList.add('visible');
+      setStep(3);
+      document.getElementById('email-input').focus();
+    });
+
+    // ── Retry button ───────────────────────────────────
+    document.getElementById('btn-no').addEventListener('click', function() {
+      selectedPlace = null;
+      document.getElementById('place-search').value = '';
+      document.getElementById('confirm-card').classList.remove('visible');
+      document.getElementById('biz-photo-wrap').innerHTML = '';
+      setStep(1);
+      document.getElementById('place-search').focus();
+    });
+
+    // ── Submit ─────────────────────────────────────────
+    document.getElementById('btn-submit').addEventListener('click', async function() {
+      const email = document.getElementById('email-input').value.trim();
+      const errorEl = document.getElementById('error-msg');
+
+      // Validate email
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorEl.classList.add('visible');
+        return;
+      }
+      errorEl.classList.remove('visible');
+
+      if (!selectedPlace) return;
+
+      const btn = this;
+      btn.classList.add('loading');
+      btn.disabled = true;
+
+      const payload = {
+        place_id:         selectedPlace.place_id,
+        business_name:    selectedPlace.name,
+        business_address: selectedPlace.formatted_address,
+        rating:           selectedPlace.rating || null,
+        review_count:     selectedPlace.user_ratings_total || null,
+        user_email:       email,
+        submitted_at:     new Date().toISOString()
+      };
+
+      try {
+        await fetch(MAKE_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        // Show success
+        document.getElementById('success-business-name').textContent = selectedPlace.name;
+        document.getElementById('success-email').textContent = email;
+        document.getElementById('section-email').classList.remove('visible');
+        document.getElementById('section-search').classList.remove('visible');
+        document.querySelector('.steps').style.display = 'none';
+        document.getElementById('success-screen').classList.add('visible');
+
+      } catch (err) {
+        errorEl.textContent = 'Something went wrong. Please try again in a moment.';
+        errorEl.classList.add('visible');
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    });
+
+    // ── Hide error on input ────────────────────────────
+    document.getElementById('email-input').addEventListener('input', function() {
+      document.getElementById('error-msg').classList.remove('visible');
+    });
+  </script>
+
+</body>
+</html>
