@@ -310,7 +310,11 @@ async function makeProxy(method, path, body) {
     ...(body !== undefined ? { body: JSON.stringify(body) } : {})
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.message || data?.detail || data?.error || "HTTP " + res.status);
+  if (!res.ok) {
+    const detail = data?.detail || data?.message || data?.error
+      || (data?.errors?.[0]?.message) || JSON.stringify(data);
+    throw new Error(detail);
+  }
   return data;
 }
 
