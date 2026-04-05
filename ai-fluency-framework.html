@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Fluency Framework — Apex Systematic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0E1117;--bg2:#161B24;--bg3:#1C2330;
+  --gold:#C9A84C;--gold2:#E8C97A;--gold-dim:rgba(201,168,76,0.12);--gold-border:rgba(201,168,76,0.28);
+  --text:#F0EDE6;--text2:#9A9590;--text3:#565250;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --green:#4CAF50;--green-dim:rgba(76,175,80,0.1);--green-border:rgba(76,175,80,0.28);
+  --red:#E05555;--red-dim:rgba(224,85,85,0.09);
+  --amber:#E8A230;--amber-dim:rgba(232,162,48,0.09);
+  --blue:#4A90D9;
+  --r:8px;--rl:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans','Helvetica Neue',sans-serif;font-size:15px;line-height:1.6;min-height:100vh;}
+.app{display:flex;height:100vh;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:256px;min-width:256px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.sb-header{padding:22px 18px 14px;border-bottom:1px solid var(--border);}
+.sb-logo{font-family:'Playfair Display',Georgia,serif;font-size:12px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;}
+.sb-sub{font-size:11px;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;}
+.sb-prog{padding:14px 18px;border-bottom:1px solid var(--border);}
+.sb-prog-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;display:flex;justify-content:space-between;}
+.prog-track{height:2px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .4s ease;}
+.phase-nav{padding:6px 0;flex:1;}
+.phase-lbl{padding:10px 18px 4px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);display:flex;align-items:center;gap:8px;}
+.ph-num{width:17px;height:17px;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text3);flex-shrink:0;transition:all .2s;}
+.ph-num.done{background:var(--green);border-color:var(--green);color:#fff;}
+.ph-num.active{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold);}
+.step-item{padding:6px 18px 6px 44px;font-size:13px;color:var(--text2);cursor:pointer;border-left:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:8px;}
+.step-item:hover{color:var(--text);background:rgba(255,255,255,0.02);}
+.step-item.active{color:var(--gold2);border-left-color:var(--gold);background:var(--gold-dim);}
+.step-item.done{color:var(--green);}
+.s-dot{width:13px;height:13px;border-radius:50%;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;transition:all .2s;}
+.s-dot.done{background:var(--green);border-color:var(--green);color:#fff;}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.main-hdr{padding:22px 32px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.ph-badge{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-border);padding:3px 10px;border-radius:20px;margin-bottom:7px;display:inline-block;}
+.step-title{font-family:'Playfair Display',Georgia,serif;font-size:21px;font-weight:400;color:var(--text);margin-bottom:5px;}
+.step-sub{font-size:13px;color:var(--text2);max-width:540px;}
+.nav-btns{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.btn{padding:7px 15px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;}
+.btn:hover{background:var(--bg3);color:var(--text);}
+.btn:disabled{opacity:.3;cursor:default;}
+.btn-gold{background:var(--gold);border-color:var(--gold);color:#0E1117;font-weight:500;}
+.btn-gold:hover{background:var(--gold2);border-color:var(--gold2);}
+.content{padding:26px 32px 52px;max-width:780px;}
+
+/* SECTION */
+.sec{margin-bottom:28px;}
+.sec-hdr{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:11px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+
+/* CHECKLIST */
+.chk-list{display:flex;flex-direction:column;gap:7px;}
+.chk{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s;background:var(--bg2);}
+.chk:hover{border-color:var(--border2);background:var(--bg3);}
+.chk.checked{border-color:var(--green-border);background:var(--green-dim);}
+.chk.flagged{border-color:rgba(232,162,48,.3);background:var(--amber-dim);}
+.chk-box{width:19px;height:19px;border-radius:4px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .15s;font-size:10px;color:transparent;}
+.chk.checked .chk-box{background:var(--green);border-color:var(--green);color:#fff;}
+.chk.flagged .chk-box{background:var(--amber);border-color:var(--amber);color:#fff;}
+.chk-lbl{font-size:14px;color:var(--text);line-height:1.4;margin-bottom:2px;}
+.chk.checked .chk-lbl{color:var(--text2);text-decoration:line-through;}
+.chk-hint{font-size:12px;color:var(--text3);line-height:1.4;}
+
+/* TIPS */
+.tip{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--r);padding:13px 15px;margin-bottom:8px;}
+.tip-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);margin-bottom:5px;}
+.tip-txt{font-size:13px;color:var(--text2);line-height:1.6;}
+.tip-txt code{background:var(--bg3);border:1px solid var(--border2);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--gold2);font-family:monospace;}
+.warn{background:var(--red-dim);border:1px solid rgba(224,85,85,.18);border-left:3px solid var(--red);border-radius:var(--r);padding:13px 15px;margin-bottom:8px;}
+.warn-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--red);margin-bottom:5px;}
+.warn-txt{font-size:13px;color:var(--text2);line-height:1.6;}
+
+/* FIELDS */
+.fgrp{margin-bottom:14px;}
+.flbl{font-size:12px;color:var(--text2);margin-bottom:5px;display:block;}
+.finput,.fsel,.ftxt{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:9px 11px;color:var(--text);font-size:14px;font-family:inherit;transition:border-color .15s;outline:none;}
+.finput:focus,.fsel:focus,.ftxt:focus{border-color:var(--gold-border);box-shadow:0 0 0 3px rgba(201,168,76,.07);}
+.ftxt{resize:vertical;min-height:76px;line-height:1.5;}
+.fsel option{background:var(--bg2);}
+
+/* PILLS */
+.pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:11px;}
+.pill{padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s;background:var(--bg2);}
+.pill:hover{border-color:var(--gold-border);color:var(--text);}
+.pill.sel{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold2);}
+
+/* DECISION CARDS */
+.dec-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.dec-card{padding:13px;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s;background:var(--bg2);}
+.dec-card:hover{border-color:var(--border2);}
+.dec-card.sel-yes{border-color:var(--green-border);background:var(--green-dim);}
+.dec-card.sel-no{border-color:rgba(224,85,85,.28);background:var(--red-dim);}
+.dec-ttl{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.dec-dsc{font-size:12px;color:var(--text3);}
+
+/* SCORE */
+.score-row{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:7px;}
+.score-lbl{font-size:13px;color:var(--text2);}
+.pill-g{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);}
+.pill-a{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--amber-dim);color:var(--amber);border:1px solid rgba(232,162,48,.28);}
+.pill-r{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--red-dim);color:var(--red);border:1px solid rgba(224,85,85,.2);}
+.pill-n{font-size:11px;padding:3px 10px;border-radius:20px;color:var(--text3);border:1px solid var(--border);}
+
+/* EXPORT */
+.exp-panel{background:var(--bg2);border:1px solid var(--gold-border);border-radius:var(--rl);padding:22px;margin-top:22px;}
+.exp-ttl{font-family:'Playfair Display',Georgia,serif;font-size:16px;color:var(--gold);margin-bottom:5px;}
+.exp-dsc{font-size:13px;color:var(--text2);margin-bottom:18px;}
+.exp-pre{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;font-size:11px;color:var(--text2);line-height:1.8;max-height:260px;overflow-y:auto;white-space:pre-wrap;font-family:monospace;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+.divider{border:none;border-top:1px solid var(--border);margin:22px 0;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo">Apex Systematic</div>
+      <div class="sb-sub">AI Fluency Framework</div>
+    </div>
+    <div class="sb-prog">
+      <div class="sb-prog-lbl"><span>Progress</span><span id="pct">0%</span></div>
+      <div class="prog-track"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+    </div>
+    <div class="phase-nav" id="phase-nav"></div>
+  </div>
+  <div class="main">
+    <div class="main-hdr">
+      <div>
+        <div class="ph-badge" id="hdr-phase">Phase 1</div>
+        <div class="step-title" id="hdr-title">Project intake</div>
+        <div class="step-sub" id="hdr-sub">Capture the core project context before anything else.</div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn" id="btn-prev" onclick="nav(-1)">&#8592; Prev</button>
+        <button class="btn btn-gold" id="btn-next" onclick="nav(1)">Next &#8594;</button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+<script>
+const PHASES=[
+  {id:'scoping',label:'Phase 1 — Scoping',steps:[
+    {id:'intake',title:'Project intake',sub:'Capture core project context before anything else.',fn:'rIntake'},
+    {id:'audit',title:'Process audit',sub:'Map the existing process and identify automation-suitable touchpoints.',fn:'rAudit'},
+    {id:'aifit',title:'AI task fit assessment',sub:'Decide whether and where AI belongs in this automation.',fn:'rAIFit'}
+  ]},
+  {id:'design',label:'Phase 2 — Design',steps:[
+    {id:'data',title:'Data & input readiness',sub:'Assess quality and structure of data the AI will work with.',fn:'rData'},
+    {id:'prompt',title:'Prompt architecture',sub:'Design the prompts, model selection, and output format.',fn:'rPrompt'},
+    {id:'risk',title:'Risk & guardrails',sub:'Identify failure modes and define human-in-the-loop requirements.',fn:'rRisk'}
+  ]},
+  {id:'build',label:'Phase 3 — Build',steps:[
+    {id:'setup',title:'Scenario setup',sub:'Configure the automation scenario and module structure.',fn:'rSetup'},
+    {id:'aimod',title:'AI module integration',sub:'Wire AI steps into the scenario and validate outputs.',fn:'rAIMod'},
+    {id:'test',title:'Testing & validation',sub:'Systematically test edge cases, errors, and AI output quality.',fn:'rTest'}
+  ]},
+  {id:'delivery',label:'Phase 4 — Delivery',steps:[
+    {id:'handover',title:'Client handover',sub:'Prepare the system and docs for ownership transfer.',fn:'rHandover'},
+    {id:'export',title:'Summary export',sub:'Generate the client-facing project summary document.',fn:'rExport'}
+  ]}
+];
+
+const S={cur:0,checks:{},flags:{},inputs:{},pills:{},decs:{}};
+
+function flat(){const a=[];PHASES.forEach((p,pi)=>p.steps.forEach((s,si)=>a.push({p,pi,s,si})));return a;}
+function gI(k,d){return S.inputs[k]!==undefined?S.inputs[k]:(d||'');}
+function sI(k,v){S.inputs[k]=v;}
+function isC(sid,id){return S.checks[sid]&&S.checks[sid].has(id);}
+function isF(sid,id){return S.flags[sid]&&S.flags[sid].has(id);}
+function tog(sid,id,flag){
+  if(!S.checks[sid])S.checks[sid]=new Set();
+  if(!S.flags[sid])S.flags[sid]=new Set();
+  if(flag){if(S.flags[sid].has(id)){S.flags[sid].delete(id);}else{S.flags[sid].add(id);S.checks[sid].delete(id);}}
+  else{if(S.checks[sid].has(id)){S.checks[sid].delete(id);}else{S.checks[sid].add(id);S.flags[sid].delete(id);}}
+  renderAll();
+}
+function togP(g,v,single){
+  if(!S.pills[g])S.pills[g]=new Set();
+  if(single){S.pills[g]=new Set([v]);}
+  else{if(S.pills[g].has(v))S.pills[g].delete(v);else S.pills[g].add(v);}
+  renderAll();
+}
+function isP(g,v){return S.pills[g]&&S.pills[g].has(v);}
+function setD(g,v){S.decs[g]=v;renderAll();}
+function getD(g){return S.decs[g]||'';}
+function getPillArr(g){return S.pills[g]?[...S.pills[g]]:[];}
+
+function nav(d){
+  const t=flat().length;
+  S.cur=Math.max(0,Math.min(t-1,S.cur+d));
+  renderAll();
+  document.querySelector('.main').scrollTop=0;
+}
+function goTo(i){S.cur=i;renderAll();document.querySelector('.main').scrollTop=0;}
+
+function renderAll(){
+  const fl=flat();const {p,s}=fl[S.cur];
+  document.getElementById('hdr-phase').textContent=p.label;
+  document.getElementById('hdr-title').textContent=s.title;
+  document.getElementById('hdr-sub').textContent=s.sub;
+  document.getElementById('btn-prev').disabled=S.cur===0;
+  document.getElementById('btn-next').textContent=S.cur===fl.length-1?'Export ↗':'Next →';
+  window[s.fn](document.getElementById('content'));
+  renderSidebar();renderProg();
+}
+
+function renderSidebar(){
+  const fl=flat();let h='';
+  PHASES.forEach((p,pi)=>{
+    const phActive=p.steps.some(s=>fl.findIndex(f=>f.s.id===s.id)===S.cur);
+    const phDone=p.steps.every(s=>S.checks[s.id]&&S.checks[s.id].size>0);
+    h+=`<div class="phase-lbl"><span class="ph-num ${phDone?'done':phActive?'active':''}">${phDone?'✓':pi+1}</span>${p.label}</div>`;
+    p.steps.forEach(s=>{
+      const fi=fl.findIndex(f=>f.s.id===s.id);
+      const done=S.checks[s.id]&&S.checks[s.id].size>0;
+      const active=fi===S.cur;
+      h+=`<div class="step-item ${active?'active':done?'done':''}" onclick="goTo(${fi})"><span class="s-dot ${done?'done':''}">✓</span>${s.title}</div>`;
+    });
+  });
+  document.getElementById('phase-nav').innerHTML=h;
+}
+
+function renderProg(){
+  const fl=flat();const done=fl.filter(f=>S.checks[f.s.id]&&S.checks[f.s.id].size>0).length;
+  const pct=Math.round(done/fl.length*100);
+  document.getElementById('prog').style.width=pct+'%';
+  document.getElementById('pct').textContent=pct+'%';
+}
+
+// ---- UI COMPONENTS ----
+function C(sid,id,lbl,hint,flag){
+  const c=isC(sid,id),f=isF(sid,id);
+  const sym=flag?'!':'✓';
+  return `<div class="chk ${c?'checked':f?'flagged':''}" onclick="tog('${sid}','${id}',false)" oncontextmenu="event.preventDefault();tog('${sid}','${id}',true)">
+    <div class="chk-box">${c?'✓':f?'!':''}</div>
+    <div><div class="chk-lbl">${lbl}</div>${hint?`<div class="chk-hint">${hint}</div>`:''}</div>
+  </div>`;
+}
+function F(lbl,key,type,ph,opts){
+  const v=gI(key,'');
+  if(type==='sel')return `<div class="fgrp"><label class="flbl">${lbl}</label><select class="fsel" onchange="sI('${key}',this.value)">${(opts||[]).map(o=>`<option value="${o.v}"${v===o.v?' selected':''}>${o.l}</option>`).join('')}</select></div>`;
+  if(type==='ta')return `<div class="fgrp"><label class="flbl">${lbl}</label><textarea class="ftxt" placeholder="${ph||''}" oninput="sI('${key}',this.value)">${v}</textarea></div>`;
+  return `<div class="fgrp"><label class="flbl">${lbl}</label><input class="finput" type="text" placeholder="${ph||''}" value="${v}" oninput="sI('${key}',this.value)"></div>`;
+}
+function P(g,opts,single){return `<div class="pill-row">${opts.map(o=>`<div class="pill ${isP(g,o.v)?'sel':''}" onclick="togP('${g}','${o.v}',${single?'true':'false'})">${o.l}</div>`).join('')}</div>`;}
+function DC(g,v,t,d){const s=getD(g)===v;return `<div class="dec-card ${s?'sel-yes':''}" onclick="setD('${g}','${v}')"><div class="dec-ttl">${t}</div><div class="dec-dsc">${d}</div></div>`;}
+function SR(lbl,val){
+  const cls=(!val||val==='—')?'pill-n':(val==='Ready'||val==='Yes')?'pill-g':val==='Partial'?'pill-a':'pill-r';
+  return `<div class="score-row"><span class="score-lbl">${lbl}</span><span class="${cls}">${val||'—'}</span></div>`;
+}
+function TIP(t,body){return `<div class="tip"><div class="tip-lbl">${t}</div><div class="tip-txt">${body}</div></div>`;}
+function WARN(t,body){return `<div class="warn"><div class="warn-lbl">${t}</div><div class="warn-txt">${body}</div></div>`;}
+function FQ(g,lbl,opts){return `<div style="margin-bottom:12px"><div style="font-size:13px;color:var(--text2);margin-bottom:6px">${lbl}</div>${P(g,opts,true)}</div>`;}
+function fitLbl(g){const v=getPillArr(g)[0];return v==='yes'?'Ready':v==='partial'?'Partial':v==='no'?'Not ready':'—';}
+
+// ---- STEP RENDERERS ----
+function rIntake(el){el.innerHTML=`
+<div class="sec"><div class="sec-hdr">Project context</div>
+${F('Client / project name','i_client','txt','e.g. Hargreaves & Co Law')}
+${F('Vertical','i_vert','sel','',[ {v:'',l:'Select vertical'},{v:'law',l:'Law firm'},{v:'ifa',l:'IFA / financial advisor'},{v:'consult',l:'Consultant / professional services'},{v:'other',l:'Other'} ])}
+${F('One-line description of what this automation does','i_desc','txt','e.g. Intake form → conflict check → engagement letter draft')}
+${F('Trigger — what starts the automation?','i_trigger','txt','e.g. Tally form submission, email received, manual button')}
+${F('Primary output — what is delivered or actioned?','i_output','txt','e.g. Draft letter in Google Drive + Slack notification')}
+</div>
+<div class="sec"><div class="sec-hdr">Scope & constraints</div>
+${F('Agreed fixed price (£)','i_price','txt','e.g. 1800')}
+${F('Agreed delivery timeline','i_time','txt','e.g. 5 working days from credential receipt')}
+${F('Known third-party API / access dependencies','i_apis','ta','e.g. Clio, SharePoint, client Gmail — note if access not yet confirmed')}
+${F('Explicitly out of scope','i_oos','ta','e.g. CRM sync, historical data migration, user training')}
+</div>
+<div class="sec"><div class="sec-hdr">Intake checklist</div>
+<div class="chk-list">
+${C('intake','c1','Client confirmed access to all required third-party systems','Chase before building — auth failures mid-build are the most common blocker')}
+${C('intake','c2','Scope agreed in writing (email or signed proposal)','Prevents scope creep disputes')}
+${C('intake','c3','Fixed price and payment terms confirmed','')}
+${C('intake','c4','Client will use their own Make.com / Airtable / API accounts','Core delivery model — never host on Apex accounts')}
+${C('intake','c5','Data sensitivity / GDPR implications identified','Law firms especially — client PII in AI prompts needs explicit client sign-off')}
+</div></div>
+${TIP('Scope protection','Add explicit contingency language for any unconfirmed third-party access. Example: "Delivery timeline begins once client provides verified credentials for X."')}
+`;}
+
+function rAudit(el){el.innerHTML=`
+<div class="sec"><div class="sec-hdr">Process map</div>
+${F('Current manual process — step by step','a_steps','ta','e.g. 1. Client fills paper form  2. Fee earner emails to check conflicts  3. PA drafts engagement letter...')}
+${F('Who performs each step today? (roles, not names)','a_roles','ta','e.g. Receptionist captures intake, fee earner reviews, PA drafts docs')}
+${F('Approx. time spent on this process per week (hours)','a_time','txt','e.g. 6 hours across 3 staff')}
+</div>
+<div class="sec"><div class="sec-hdr">Pain point identification</div>
+<div class="fgrp"><label class="flbl">Where does the process break down most? (select all that apply)</label>
+${P('a_pain',[
+  {v:'handoff',l:'Manual handoffs'},{v:'delay',l:'Approval delays'},{v:'rework',l:'Errors / rework'},
+  {v:'entry',l:'Repetitive data entry'},{v:'format',l:'Document formatting'},{v:'comms',l:'Client comms delays'},
+  {v:'tracking',l:'No status visibility'},{v:'inconsistency',l:'Process inconsistency'}
+],false)}</div>
+${F('Specific error types or edge cases the client mentioned','a_errors','ta','e.g. Conflicts occasionally missed, wrong template used, wrong fee earner assigned')}
+</div>
+<div class="sec"><div class="sec-hdr">Automation readiness checklist</div>
+<div class="chk-list">
+${C('audit','pa1','Clear, consistent trigger exists — not ad hoc','Variable or subjective triggers make automation fragile')}
+${C('audit','pa2','Inputs to the process are digital (or can be made digital)','Paper-only inputs need a digitisation step added to scope')}
+${C('audit','pa3','Process is repetitive — same steps run each time','High variation = low automation value')}
+${C('audit','pa4','Volume justifies cost (≥ 5–10 instances/week or significant time saving)','Below this threshold, ROI is marginal')}
+${C('audit','pa5','Decision logic can be defined as rules','If decisions require deep judgment, AI-assist is appropriate — not full automation')}
+${C('audit','pa6','Downstream systems have usable APIs or integration paths','Verify in intake step before committing to scope')}
+</div></div>
+${WARN('Scope flag','If PA4 or PA5 fail, flag this to the client before building. Scope as AI-assisted (human reviews every output) rather than fully automated.')}
+`;}
+
+function rAIFit(el){el.innerHTML=`
+<div class="sec"><div class="sec-hdr">AI task identification</div>
+<div class="fgrp"><label class="flbl">Which task types does AI perform? (select all that apply)</label>
+${P('ai_tasks',[
+  {v:'classify',l:'Classify / categorise'},{v:'extract',l:'Extract structured data'},{v:'draft',l:'Draft text / documents'},
+  {v:'summarise',l:'Summarise content'},{v:'route',l:'Routing / priority decision'},{v:'score',l:'Score / rank items'},
+  {v:'transform',l:'Transform format / style'},{v:'qa',l:'QA / review output'}
+],false)}</div>
+${F('What specifically does the AI step do — in plain English','af_desc','ta','e.g. Reads the intake form and drafts a client engagement letter in the firm\'s standard tone')}
+</div>
+<div class="sec"><div class="sec-hdr">AI fit scoring</div>
+${FQ('fit_struct','Output is well-defined and structured',[{v:'yes',l:'Yes — clear format, testable'},{v:'partial',l:'Mostly — some variation OK'},{v:'no',l:'No — highly open-ended'}])}
+${FQ('fit_input','Input data is consistent in structure',[{v:'yes',l:'Yes — same shape every time'},{v:'partial',l:'Mostly — occasional variation'},{v:'no',l:'No — wildly variable'}])}
+${FQ('fit_error','Errors are recoverable (low stakes or human-reviewed)',[{v:'yes',l:'Yes — human reviews or low stakes'},{v:'partial',l:'Medium stakes — costly but fixable'},{v:'no',l:'No — high-stakes / irreversible'}])}
+${FQ('fit_valid','Good examples exist to validate output quality',[{v:'yes',l:'Yes — existing docs to compare against'},{v:'partial',l:'Some examples available'},{v:'no',l:'No baseline — quality is subjective'}])}
+</div>
+<div class="sec"><div class="sec-hdr">Fit summary</div>
+${SR('Output structure',fitLbl('fit_struct'))}
+${SR('Input consistency',fitLbl('fit_input'))}
+${SR('Error recoverability',fitLbl('fit_error'))}
+${SR('Validation baseline',fitLbl('fit_valid'))}
+</div>
+<div class="sec"><div class="sec-hdr">Integration model decision</div>
+<p style="font-size:13px;color:var(--text2);margin-bottom:11px">Based on the above, what is the correct AI integration model?</p>
+<div class="dec-grid">
+${DC('int_model','full','Fully automated','AI runs — output used directly, no human review')}
+${DC('int_model','loop','Human in the loop','AI drafts — human approves before any action')}
+${DC('int_model','assist','AI-assisted','AI surfaces recommendation — human decides and acts')}
+${DC('int_model','none','No AI needed','Rule-based automation is sufficient for this step')}
+</div></div>
+${TIP('Model selection guidance','<strong>Drafting / summarisation:</strong> Claude Sonnet is the right default. <strong>High-frequency classification / extraction (100+ runs/day):</strong> Claude Haiku to control cost. Reserve Opus for cases where output directly affects revenue — proposals, client-facing contracts.')}
+`;}
+
+function rData(el){el.innerHTML=`
+<div class="sec"><div class="sec-hdr">Input data assessment</div>
+${F('What data is passed into the AI prompt?','d_inputs','ta','e.g. Form fields: client name, matter type, fee earner; plus free text: issue description')}
+${F('Where does this data come from?','d_source','txt','e.g. Tally form → Make.com webhook payload')}
+${F('Fields that may be empty, null, or inconsistently formatted','d_gaps','ta','e.g. Issue description is free text — varies wildly in length and quality')}
+</div>
+<div class="sec"><div class="sec-hdr">Data quality checklist</div>
+<div class="chk-list">
+${C('data','dq1','All required input fields are reliably populated (no critical nulls)','Test with 5–10 real examples before building prompt logic around optional fields')}
+${C('data','dq2','Free text inputs have reasonable length bounds defined','Unbounded inputs break token budgets — add max_length constraints to forms')}
+${C('data','dq3','Input encoding is clean (no garbled UTF-8 or Word special characters)','Especially relevant for law firm docs copied from Word')}
+${C('data','dq4','Date and number formats are consistent','Inconsistency causes extraction and routing errors')}
+${C('data','dq5','Sensitive PII in prompts flagged and approved by client','Names, addresses, matter details — explicit client sign-off required')}
+${C('data','dq6','Fallback handling defined for missing or malformed inputs','Define in scope, not in production')}
+</div></div>
+<div class="sec"><div class="sec-hdr">Output format</div>
+${F('What format must the AI output be in?','d_outfmt','sel','',[ {v:'',l:'Select format'},{v:'prose',l:'Free prose (email, letter, summary)'},{v:'json',l:'Structured JSON'},{v:'list',l:'Bullet list'},{v:'single',l:'Single value (classification, score, yes/no)'},{v:'mixed',l:'Mixed — prose + structured data'} ])}
+${F('What does a good output look like? Paste an example or describe it.','d_example','ta','e.g. A 3-paragraph engagement letter opening with client name, matter description, fee structure...')}
+</div>
+${TIP('Make.com note','On the free plan there is no JavaScript execution module. If the AI returns JSON and you need to extract fields, map them directly in the next module using dot notation — do not rely on intermediate variable extraction via Set Multiple Variables, which is unreliable.')}
+`;}
+
+function rPrompt(el){el.innerHTML=`
+<div class="sec"><div class="sec-hdr">System prompt design</div>
+${F('Role / persona for the AI','p_role','txt','e.g. You are a legal document assistant for a UK law firm...')}
+${F('Core instruction — what the AI must do','p_core','ta','e.g. Draft a client engagement letter using the information below. Match the firm\'s formal but approachable tone...')}
+${F('Output format instruction — be explicit','p_fmt','ta','e.g. Return only the letter body. Do not include a subject line. Use three paragraphs...')}
+${F('Constraints and guardrails in the prompt','p_constraints','ta','e.g. Do not invent fee amounts. If fee is missing, write [FEE PLACEHOLDER]. Never include legal advice...')}
+</div>
+<div class="sec"><div class="sec-hdr">Model selection</div>
+<div class="dec-grid">
+${DC('model','haiku','Claude Haiku','Classification, extraction, routing — high volume, structured output')}
+${DC('model','sonnet','Claude Sonnet','Drafting, summarisation, judgment — default for most builds')}
+${DC('model','opus','Claude Opus','Proposals, high-stakes client output — max quality, higher cost')}
+</div></div>
+<div class="sec"><div class="sec-hdr">Prompt quality checklist</div>
+<div class="chk-list">
+${C('prompt','pq1','System prompt defines role, task, and output format explicitly','Ambiguity in any of these three causes inconsistent output')}
+${C('prompt','pq2','At least one positive example included (few-shot)','Single-shot prompts are fragile for complex outputs — always show a good example')}
+${C('prompt','pq3','Negative example or explicit constraint included (what NOT to do)','Especially for tone, format, and sensitive content guardrails')}
+${C('prompt','pq4','Prompt tested with 5+ real inputs before wiring into scenario','Never wire an untested prompt into a live automation')}
+${C('prompt','pq5','Token budget estimated — max_tokens set appropriately','Under-budgeted = truncated output; over-budgeted = unnecessary cost')}
+${C('prompt','pq6','Temperature set intentionally','0–0.3 for extraction / classification; 0.5–0.7 for drafting')}
+${C('prompt','pq7','Prompt version-controlled externally (not only inside Make.com)','Make.com prompt fields have no version history — store prompts in Google Drive or Notion')}
+</div></div>
+${TIP('Prompt structure','Effective order: (1) Role/context → (2) Task instruction → (3) Output format → (4) Constraints → (5) Input data → (6) Examples. Examples after the instruction improves adherence vs. burying them mid-prompt.')}
+`;}
+
+function rRisk(el){el.innerHTML=`
+<div class="sec"><div class="sec-hdr">Failure mode mapping</div>
+${F('The 3 most likely AI output failure modes for this build','r_failures','ta','e.g. 1. Hallucinated fee amounts  2. Wrong tone if input is very short  3. Misclassified matter type')}
+${F('Worst-case consequence of a bad AI output reaching the client','r_worst','ta','e.g. Client receives draft letter citing wrong fees — reputational risk to firm')}
+</div>
+<div class="sec"><div class="sec-hdr">Guardrail checklist</div>
+<div class="chk-list">
+${C('risk','rg1','Human review step defined for first 20 runs','All new automations should have a burn-in period with human oversight')}
+${C('risk','rg2','Error handling added to AI module (what happens if API call fails?)','At minimum: error notification to client + fallback path defined')}
+${C('risk','rg3','Output validation step included (check for required fields, length, format)','Catch blank outputs, truncated responses, or hallucinated placeholders before they reach end systems')}
+${C('risk','rg4','Client briefed — AI output does not replace professional judgment','Especially law and IFA — regulatory exposure if AI output is treated as advice')}
+${C('risk','rg5','Rate limit / cost spike protection in place','Make.com has no native spend cap — add a filter on scenario run volume if spikes are possible')}
+${C('risk','rg6','Sensitive data handling agreed (is PII sent to Anthropic API acceptable to client?)','Some regulated firms may require a Data Processing Agreement')}
+</div></div>
+<div class="sec"><div class="sec-hdr">Confirm integration model</div>
+<div class="dec-grid">
+${DC('risk_model','confirmed','Confirmed — original model still appropriate','')}
+${DC('risk_model','downgraded','Downgraded — adding human-in-loop due to risk findings','')}
+</div></div>
+${WARN('Regulatory note','Law firms (SRA) and IFAs (FCA) operate under professional regulatory frameworks. Automated client-facing output must never be positioned as legal or financial advice. Include a disclaimer in the system prompt and in client-facing comms.')}
+`;}
+
+function rSetup(el){el.innerHTML=`
+<div class="sec"><div class="sec-hdr">Scenario architecture</div>
+${F('Scenario name (in client account)','ms_name','txt','e.g. [ClientName] — Intake → Conflict Check → Engagement Letter')}
+${F('Trigger module type','ms_trigger','sel','',[ {v:'',l:'Select trigger'},{v:'webhook',l:'Webhook (Tally, Typeform, custom)'},{v:'email',l:'Email (Gmail / Outlook watch)'},{v:'schedule',l:'Schedule (polling)'},{v:'http',l:'HTTP — external API event'},{v:'manual',l:'Manual (instant run / button)'} ])}
+${F('List all modules in sequence (one per line)','ms_modules','ta','e.g.\n1. Webhooks > Custom webhook\n2. Airtable > Create record\n3. HTTP > Anthropic API\n4. Google Drive > Create file\n5. Gmail > Send email')}
+</div>
+<div class="sec"><div class="sec-hdr">Setup checklist</div>
+<div class="chk-list">
+${C('setup','ms1','Scenario built in client\'s Make.com account (not Apex account)','Client-owned accounts throughout — core delivery model')}
+${C('setup','ms2','All connections authenticated with client credentials','Verify each connection before testing — auth errors are the most common build blocker')}
+${C('setup','ms3','Error handling module added (router + error path or Set Variable to Airtable log)','At minimum: capture errors to an Airtable log table')}
+${C('setup','ms4','Test data prepared — at least 3 representative real examples','Do not test with live client data until scenario is validated')}
+${C('setup','ms5','Scenario is OFF during build (not scheduled to run)','Prevents accidental live runs during development')}
+</div></div>
+${TIP('Recommended module order','Trigger → Data normalisation (if needed) → Airtable record create → AI module → Output modules → Notification. Logging to Airtable before the AI call means you always have the raw input even if the AI step errors.')}
+`;}
+
+function rAIMod(el){el.innerHTML=`
+<div class="sec"><div class="sec-hdr">API configuration</div>
+${F('Anthropic API endpoint','ai_endpoint','txt','https://api.anthropic.com/v1/messages')}
+${F('Model string used','ai_model','txt','e.g. claude-haiku-4-5-20251001 or claude-sonnet-4-6')}
+${F('max_tokens value','ai_maxtok','txt','e.g. 1024')}
+</div>
+<div class="sec"><div class="sec-hdr">Wiring checklist</div>
+<div class="chk-list">
+${C('aimod','ai1','Anthropic API key stored as a Make.com Connection or environment variable — not hardcoded in HTTP body','Rotate key immediately if ever pasted in plaintext')}
+${C('aimod','ai2','System prompt stored externally (Google Drive / Notion / Airtable) and version-noted','Make.com prompt fields have no version history')}
+${C('aimod','ai3','Dynamic input fields mapped correctly into prompt — tested with null values','Null mapping = the string "undefined" passed to AI — causes subtle failures')}
+${C('aimod','ai4','Response parsing tested — correct path to text content extracted','In Make.com HTTP module: typically body.content[].text — verify with a live run')}
+${C('aimod','ai5','AI output saved to Airtable before passing downstream','Enables re-runs and debugging without re-calling the API')}
+${C('aimod','ai6','Manual test run completed with real inputs — output inspected before enabling automation','Never enable a scenario without at least one full manual test run')}
+</div></div>
+<div class="sec"><div class="sec-hdr">Output quality spot check</div>
+${F('Paste the first real AI output from a test run here (baseline)','ai_sample','ta','Paste output here to document baseline quality...')}
+<div class="chk-list" style="margin-top:11px">
+${C('aimod','aq1','Output matches expected format exactly — structure, length, required sections','')}
+${C('aimod','aq2','No hallucinated facts or invented data (fee amounts, names, legal references)','')}
+${C('aimod','aq3','Tone is appropriate and matches client brand voice','')}
+${C('aimod','aq4','Edge case tested: very short input produces acceptable output','Short inputs are the most common quality failure mode')}
+</div></div>
+${TIP('Response parsing (Make.com)','The Anthropic API returns <code>content[0].text</code> for text responses. In Make.com HTTP module output mapping this is accessed as <code>{{body.content[].text}}</code> — verify by running once and inspecting the output bundle before mapping downstream.')}
+`;}
+
+function rTest(el){el.innerHTML=`
+<div class="sec"><div class="sec-hdr">Test plan</div>
+${F('Number of test cases to run before sign-off','t_count','txt','Minimum recommended: 10 (5 normal, 3 edge, 2 error/failure)')}
+${F('Who will review AI output quality?','t_reviewer','txt','e.g. Fee earner at client firm, or Apex internal review before delivery')}
+</div>
+<div class="sec"><div class="sec-hdr">Test coverage checklist</div>
+<div class="chk-list">
+${C('test','t1','Happy path: standard input → expected output verified','')}
+${C('test','t2','Edge: minimal input (very short or sparse data)','Most likely quality failure mode for generative tasks')}
+${C('test','t3','Edge: maximum length input (long free text)','Ensures token budget is not exceeded')}
+${C('test','t4','Edge: input with special characters, line breaks, or unicode','')}
+${C('test','t5','Error: API call fails — verify error handler fires and does not silently fail','Simulate by temporarily using an invalid API key')}
+${C('test','t6','Error: required input field is null or empty — fallback handling works','')}
+${C('test','t7','All router branches tested (not just happy path)','')}
+${C('test','t8','End-to-end: full scenario run from trigger to all final outputs','Drive file created, email sent, Airtable record updated')}
+${C('test','t9','Client has reviewed and approved 3–5 real sample outputs','Written confirmation required before sign-off')}
+${C('test','t10','Scenario run time acceptable (flag if over 30s — may need timeout handling)','')}
+</div></div>
+<div class="sec"><div class="sec-hdr">Sign-off gate</div>
+<div class="chk-list">
+${C('test','sg1','All critical test items above are checked','No deployment until this is complete')}
+${C('test','sg2','Client has confirmed output quality in writing','')}
+${C('test','sg3','Known limitations documented and communicated to client','Especially any edge cases that produce lower quality output')}
+</div></div>
+${WARN('Do not skip','The most common post-delivery complaint is AI output quality on edge cases encountered in week 1. Covering edge cases in testing catches these before they become support requests.')}
+`;}
+
+function rHandover(el){el.innerHTML=`
+<div class="sec"><div class="sec-hdr">Handover documentation</div>
+<div class="chk-list">
+${C('handover','ho1','Scenario documented: trigger, module list, data flow in plain English','Client and any future contractor must understand the build without needing Apex')}
+${C('handover','ho2','Prompt(s) documented externally with version and date','Store in client Google Drive or Notion — not only in Make.com')}
+${C('handover','ho3','API key management explained to client (who owns it, how to rotate it, where it is stored)','')}
+${C('handover','ho4','Airtable / data store structure documented (field names, purposes, automation dependencies)','')}
+${C('handover','ho5','Known edge cases and limitations listed honestly','Specific and honest — builds trust, sets correct expectations')}
+${C('handover','ho6','Basic troubleshooting guide: top 3 failure scenarios + fix','Reduces post-delivery support requests significantly')}
+</div></div>
+<div class="sec"><div class="sec-hdr">Ownership transfer</div>
+<div class="chk-list">
+${C('handover','ow1','Client confirmed as admin/owner on all relevant accounts (Make, Airtable, etc.)','Apex should have no lingering admin access post-delivery')}
+${C('handover','ow2','Apex removed from or downgraded in all client accounts','Zero dependency on Apex accounts after handover')}
+${C('handover','ow3','Final scenario status agreed: active and running, or off and ready to activate','')}
+</div></div>
+<div class="sec"><div class="sec-hdr">Post-delivery setup</div>
+<div class="chk-list">
+${C('handover','pd1','30-day check-in call booked','The right moment to introduce a maintenance plan — not at project close')}
+${C('handover','pd2','Client knows how to reach Apex for issues during burn-in and response SLA agreed','')}
+${C('handover','pd3','Referral / testimonial request planned for 30-day check-in — not at delivery','Wait until the value has been felt')}
+</div></div>
+${TIP('Maintenance plan timing','Introduce the retainer at the 30-day check-in. By then the client has experienced the system live and understands the value of keeping it maintained. At delivery they are just relieved it is done — the timing is wrong.')}
+`;}
+
+function rExport(el){
+  const sum=genSummary();
+  el.innerHTML=`
+<div class="sec"><div class="sec-hdr">Project summary</div>
+<p style="font-size:13px;color:var(--text2);margin-bottom:14px">Review the generated summary below. Suitable to send to the client as a project completion record or save as internal project reference.</p>
+<div class="exp-pre" id="exp-pre"></div>
+<div class="btn-row">
+  <button class="btn btn-gold" onclick="copySummary()">Copy to clipboard</button>
+  <button class="btn" onclick="dlSummary()">Download .txt</button>
+</div>
+</div>
+<hr class="divider">
+<div class="sec"><div class="sec-hdr">Framework completion status</div>
+${flat().map(({p,s})=>SR(s.title, S.checks[s.id]&&S.checks[s.id].size>0?'Ready':'Incomplete')).join('')}
+</div>
+<div class="exp-panel">
+<div class="exp-ttl">Project complete</div>
+<div class="exp-dsc">All phases documented. The summary above can be shared directly with the client as a project record.</div>
+<button class="btn" style="margin-top:4px" onclick="resetAll()">Start new project</button>
+</div>`;
+  document.getElementById('exp-pre').textContent=sum;
+}
+
+function genSummary(){
+  const g=(k,d)=>gI(k,d||'(not specified)');
+  const pd=g=>getPillArr(g).join(', ')||'(not specified)';
+  const dc=g=>getD(g)||'(not specified)';
+  const now=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  return `APEX SYSTEMATIC — AI FLUENCY FRAMEWORK
+PROJECT SUMMARY
+Generated: ${now}
+${'='.repeat(58)}
+
+PROJECT OVERVIEW
+Client / Project:    ${g('i_client')}
+Vertical:            ${g('i_vert')}
+Description:         ${g('i_desc')}
+Trigger:             ${g('i_trigger')}
+Primary output:      ${g('i_output')}
+Agreed price:        ${g('i_price')?'£'+g('i_price'):'(not specified)'}
+Timeline:            ${g('i_time')}
+
+Out of scope:
+${g('i_oos')}
+
+PROCESS CONTEXT
+Pain points:         ${pd('a_pain')}
+Weekly time saved:   ${g('a_time')}
+
+AI INTEGRATION
+Task types:          ${pd('ai_tasks')}
+AI step:             ${g('af_desc')}
+Integration model:   ${dc('int_model')}
+Model selected:      ${dc('model')}
+
+DATA & PROMPTS
+Input data:          ${g('d_inputs')}
+Output format:       ${g('d_outfmt')}
+Model string:        ${g('ai_model')}
+max_tokens:          ${g('ai_maxtok')}
+
+RISK NOTES
+Failure modes:
+${g('r_failures')}
+Worst-case risk:
+${g('r_worst')}
+
+BUILD
+Scenario name:       ${g('ms_name')}
+Trigger module:      ${g('ms_trigger')}
+Modules:
+${g('ms_modules')}
+
+TEST SIGN-OFF
+Test cases run:      ${g('t_count')}
+Reviewed by:         ${g('t_reviewer')}
+
+${'='.repeat(58)}
+Apex Systematic — apexsystematic.com
+All systems client-owned. No ongoing dependency on Apex accounts.`;
+}
+
+function copySummary(){
+  navigator.clipboard.writeText(genSummary()).then(()=>{
+    const b=document.querySelector('.btn-gold');const o=b.textContent;
+    b.textContent='Copied ✓';setTimeout(()=>b.textContent=o,2000);
+  });
+}
+
+function dlSummary(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([genSummary()],{type:'text/plain'}));
+  a.download=`apex-framework-${gI('i_client','project').replace(/\s+/g,'-').toLowerCase()}.txt`;
+  a.click();
+}
+
+function resetAll(){
+  Object.assign(S,{cur:0,checks:{},flags:{},inputs:{},pills:{},decs:{}});
+  renderAll();
+}
+
+renderAll();
+</script>
+</body>
+</html>
