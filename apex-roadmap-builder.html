@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apex Systematic — Automation Roadmap Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0E1117;
+    --bg2: #151820;
+    --bg3: #1c2030;
+    --border: #2a2f40;
+    --gold: #C9A84C;
+    --gold-light: #e0bc6e;
+    --gold-dim2: rgba(201,168,76,0.08);
+    --text: #e8e6e0;
+    --text-muted: #7a7f94;
+    --effort-low: #4ade80;
+    --effort-med: #facc15;
+    --effort-high: #f87171;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── APP SHELL ── */
+  .app-bar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .app-bar-logo { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--gold); letter-spacing: 0.05em; }
+  .app-bar-logo span { color: var(--text-muted); font-size: 0.8rem; font-family: 'DM Sans', sans-serif; letter-spacing: 0; margin-left: 10px; }
+  .app-bar-actions { display: flex; gap: 10px; }
+  .btn-action {
+    border: none; padding: 9px 20px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, color 0.2s;
+  }
+  .btn-primary { background: var(--gold); color: #0E1117; }
+  .btn-primary:hover { background: var(--gold-light); }
+  .btn-secondary { background: transparent; color: var(--gold); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--gold); background: var(--gold-dim2); }
+
+  .workspace { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 57px); }
+
+  /* ── LEFT PANEL ── */
+  .editor {
+    width: 420px; min-width: 420px;
+    background: var(--bg2); border-right: 1px solid var(--border);
+    overflow-y: auto; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+  .section-label {
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .field-group { display: flex; flex-direction: column; gap: 12px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; letter-spacing: 0.03em; }
+  .field input, .field select, .field textarea {
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem;
+    outline: none; transition: border-color 0.2s; width: 100%;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--gold); }
+  .field select { cursor: pointer; }
+  .field select option { background: var(--bg3); }
+  .field textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* Use cases */
+  .use-cases-grid { display: flex; flex-direction: column; gap: 8px; }
+  .use-case-item {
+    background: var(--bg3); border: 1px solid var(--border);
+    padding: 11px 14px; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    display: flex; align-items: flex-start; gap: 11px;
+  }
+  .use-case-item:hover { border-color: rgba(201,168,76,0.4); }
+  .use-case-item.selected { border-color: var(--gold); background: var(--gold-dim2); }
+  .use-case-item.disabled { opacity: 0.4; cursor: not-allowed; }
+  .use-case-item.disabled:hover { border-color: var(--border); }
+  .uc-checkbox {
+    width: 16px; height: 16px; border: 1.5px solid var(--border);
+    background: transparent; flex-shrink: 0; margin-top: 2px;
+    display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+  }
+  .use-case-item.selected .uc-checkbox { border-color: var(--gold); background: var(--gold); }
+  .uc-check-icon { display: none; width: 10px; height: 10px; }
+  .use-case-item.selected .uc-check-icon { display: block; }
+  .uc-body { flex: 1; min-width: 0; }
+  .uc-name { font-size: 0.83rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .uc-meta { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+  .uc-tag { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 7px; border: 1px solid; }
+  .tag-effort-1 { color: var(--effort-low); border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.06); }
+  .tag-effort-2 { color: var(--effort-med); border-color: rgba(250,204,21,0.3); background: rgba(250,204,21,0.06); }
+  .tag-effort-3 { color: var(--effort-high); border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.06); }
+  .tag-impact { color: var(--gold); border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.06); }
+  .tag-time { color: var(--text-muted); border-color: var(--border); }
+  .selection-counter { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .counter-pips { display: flex; gap: 4px; }
+  .pip { width: 20px; height: 4px; background: var(--border); transition: background 0.2s; }
+  .pip.filled { background: var(--gold); }
+
+  /* ── RIGHT PANEL ── */
+  .preview { flex: 1; overflow-y: auto; background: #f4f1eb; padding: 40px; }
+  .preview::-webkit-scrollbar { width: 6px; }
+  .preview::-webkit-scrollbar-track { background: #e8e4dc; }
+  .preview::-webkit-scrollbar-thumb { background: #c0b898; }
+  .editor::-webkit-scrollbar { width: 4px; }
+  .editor::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* ── REPORT ── */
+  .report { max-width: 780px; margin: 0 auto; background: #ffffff; color: #1a1a2e; font-family: 'DM Sans', sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+
+  .report-header { background: #0E1117; padding: 48px 52px 40px; position: relative; overflow: hidden; }
+  .report-header::before { content: ''; position: absolute; top: 0; right: 0; width: 300px; height: 300px; background: radial-gradient(circle at top right, rgba(201,168,76,0.12), transparent 60%); pointer-events: none; }
+  .report-header::after { content: ''; position: absolute; bottom: 0; left: 52px; right: 52px; height: 1px; background: linear-gradient(90deg, #C9A84C, transparent); }
+  .report-logo { margin-bottom: 28px; display: flex; justify-content: center; }
+  .report-title { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 700; color: #ffffff; line-height: 1.15; }
+  .report-title em { font-style: italic; color: #C9A84C; }
+  .report-subtitle { font-size: 0.9rem; color: rgba(255,255,255,0.45); margin-top: 10px; font-weight: 300; }
+
+  /* Font scale: xs=0.8rem (labels/meta), sm=0.9rem (body/secondary), base=1rem (card names), lg+=display */
+  .report-summary { background: #0E1117; padding: 28px 52px; display: flex; align-items: stretch; }
+  .summary-stat { flex: 1; padding: 0 24px; border-right: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 4px; }
+  .summary-stat:first-child { padding-left: 0; }
+  .summary-stat:last-child { border-right: none; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: #C9A84C; line-height: 1; }
+  .stat-label { font-size: 0.8rem; color: rgba(255,255,255,0.4); font-weight: 500; }
+
+  .report-body { padding: 44px 52px; }
+  .report-intro { font-size: 0.9rem; line-height: 1.75; color: #3a3a5c; margin-bottom: 32px; padding-bottom: 28px; border-bottom: 1px solid #e8e4dc; }
+  .report-intro strong { color: #1a1a2e; }
+
+  .discovery-block { background: #faf9f6; border: 1px solid #e8e4dc; border-left: 3px solid #C9A84C; padding: 20px 24px; margin-bottom: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .discovery-key { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #C9A84C; margin-bottom: 6px; }
+  .discovery-val { font-size: 0.9rem; color: #3a3a5c; line-height: 1.6; }
+  .discovery-item.full { grid-column: 1 / -1; }
+
+  .automations-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .automations-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 600; color: #1a1a2e; }
+  .automations-note { font-size: 0.8rem; color: #9a9ab0; font-style: italic; }
+
+  .auto-card { border: 1px solid #e8e4dc; margin-bottom: 12px; overflow: hidden; background: #faf9f6; }
+  .auto-card-header { display: flex; align-items: flex-start; }
+  .auto-card-accent { width: 4px; align-self: stretch; flex-shrink: 0; }
+  .effort-1 .auto-card-accent { background: #4ade80; }
+  .effort-2 .auto-card-accent { background: #C9A84C; }
+  .effort-3 .auto-card-accent { background: #818cf8; }
+  .auto-card-content { padding: 20px 22px; flex: 1; }
+  .auto-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+  .auto-card-name { font-size: 1rem; font-weight: 700; color: #1a1a2e; }
+  .auto-card-scores { display: flex; gap: 8px; flex-shrink: 0; }
+  .score-pill { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border: 1px solid; white-space: nowrap; }
+  .score-effort-1 { color: #16a34a; border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.08); }
+  .score-effort-2 { color: #92620a; border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.08); }
+  .score-effort-3 { color: #4338ca; border-color: rgba(129,140,248,0.4); background: rgba(129,140,248,0.08); }
+  .score-impact { color: #1a1a2e; border-color: #c9a84c; background: rgba(201,168,76,0.1); }
+  .auto-card-what { font-size: 0.9rem; color: #4a4a6a; line-height: 1.65; margin-bottom: 14px; }
+  .auto-card-footer { display: flex; gap: 16px; align-items: center; padding-top: 12px; border-top: 1px solid #eee9df; flex-wrap: wrap; }
+  .footer-item { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #7a7a9a; }
+  .footer-dot { width: 5px; height: 5px; border-radius: 50%; background: #c9a84c; flex-shrink: 0; }
+  .footer-label { font-weight: 600; color: #1a1a2e; }
+
+  .report-cta { padding: 40px 52px 48px; background: #faf9f6; border-top: 1px solid #e8e4dc; }
+  .cta-eyebrow { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #C9A84C; margin-bottom: 10px; }
+  .cta-heading { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: #1a1a2e; margin-bottom: 12px; line-height: 1.3; }
+  .cta-body { font-size: 0.9rem; color: #4a4a6a; line-height: 1.7; }
+
+  .report-footer-bar { background: #0E1117; padding: 16px 52px; display: flex; justify-content: space-between; align-items: center; }
+  .footer-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .footer-url { font-size: 0.8rem; color: rgba(255,255,255,0.55); font-family: 'DM Mono', monospace; }
+  .footer-date { font-size: 0.8rem; color: rgba(255,255,255,0.35); font-family: 'DM Mono', monospace; }
+
+  .empty-state { text-align: center; padding: 60px 40px; color: #b0a898; }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+  .empty-text { font-size: 0.9rem; }
+
+  @media print {
+    body { background: white; }
+    .app-bar, .editor { display: none !important; }
+    .workspace { display: block; height: auto; }
+    .preview { padding: 0; background: white; overflow: visible; }
+    .report { max-width: 100%; box-shadow: none; }
+    .auto-card, .discovery-block { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-bar">
+  <div class="app-bar-logo">APEX SYSTEMATIC <span>Roadmap Builder</span></div>
+  <div class="app-bar-actions">
+    <button class="btn-action btn-secondary" onclick="exportHTML()">⬡ Export HTML</button>
+    <button class="btn-action btn-primary" onclick="window.print()">⬡ Export PDF</button>
+  </div>
+</div>
+
+<div class="workspace">
+  <div class="editor">
+    <div>
+      <div class="section-label">Prospect Details</div>
+      <div class="field-group">
+        <div class="row-2">
+          <div class="field"><label>Contact Name</label><input type="text" id="contactName" placeholder="Jane Smith" oninput="updateReport()"></div>
+          <div class="field"><label>Firm / Company</label><input type="text" id="firmName" placeholder="Smith & Associates" oninput="updateReport()"></div>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label>Vertical</label>
+            <select id="vertical" onchange="updateReport(); renderUseCases()">
+              <option value="law">Law Firm</option>
+              <option value="ifa">Financial Adviser</option>
+              <option value="consultant">Consultant</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Team Size</label>
+            <select id="teamSize" onchange="updateReport()">
+              <option value="1–5">1–5 people</option>
+              <option value="6–15">6–15 people</option>
+              <option value="16–50">16–50 people</option>
+              <option value="50+">50+ people</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Current Tools (comma-separated)</label><input type="text" id="currentTools" placeholder="e.g. Outlook, Clio, Excel, DocuSign" oninput="updateReport()"></div>
+        <div class="field"><label>Key Pain Points (from discovery call)</label><textarea id="painPoints" placeholder="e.g. Intake takes 2+ hours per client, follow-ups fall through the cracks, manual reporting every Friday..." oninput="updateReport()"></textarea></div>
+        <div class="field"><label>Auditor Name</label><input type="text" id="auditorName" placeholder="Jorge R." oninput="updateReport()"></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Select Automations</div>
+      <div class="selection-counter">
+        <span id="selectionCount">0 of 5 selected</span>
+        <div class="counter-pips">
+          <div class="pip" id="pip1"></div><div class="pip" id="pip2"></div>
+          <div class="pip" id="pip3"></div><div class="pip" id="pip4"></div>
+          <div class="pip" id="pip5"></div>
+        </div>
+      </div>
+      <div class="use-cases-grid" id="useCasesGrid"></div>
+    </div>
+  </div>
+
+  <div class="preview">
+    <div id="reportContainer"></div>
+  </div>
+</div>
+
+<script>
+const VERTICALS = {
+  law:        { label: 'Law Firm',          teamWord: 'fee earners' },
+  ifa:        { label: 'Financial Adviser', teamWord: 'advisers' },
+  consultant: { label: 'Consulting Firm',   teamWord: 'consultants' },
+  other:      { label: 'Professional Firm', teamWord: 'team members' },
+};
+
+const USE_CASES = [
+  {
+    id: 'intake', effort: 1, impact: 3, timeSaved: '3–5 hrs/week', tools: 'Tally · Make.com · Airtable',
+    name: { law: 'Client Intake Automation', ifa: 'Client Onboarding Automation', consultant: 'Client Intake Automation', other: 'Client Intake Automation' },
+    what: {
+      law: 'New enquiries trigger a structured intake flow: auto-send a branded questionnaire, collect matter details, create a case file in your system, and notify the responsible fee earner — all before anyone picks up the phone.',
+      ifa: 'New prospect enquiries trigger an automated onboarding sequence: fact-find form delivery, ID verification request, case creation, and adviser notification — reducing manual admin from hours to minutes.',
+      consultant: 'New project enquiries automatically trigger a scoping questionnaire, populate a project record, and notify the lead consultant — so no opportunity falls through the cracks.',
+      other: 'New enquiries automatically trigger a structured intake sequence, creating records and notifying your team without manual data entry.',
+    },
+  },
+  {
+    id: 'followup', effort: 1, impact: 3, timeSaved: '2–4 hrs/week', tools: 'Make.com · Gmail · Airtable',
+    name: { law: 'Follow-up Sequence Automation', ifa: 'Client Follow-up Automation', consultant: 'Prospect Follow-up Automation', other: 'Follow-up Sequence Automation' },
+    what: {
+      law: 'Prospects and clients who go quiet are automatically re-engaged at set intervals with personalised, context-aware emails — triggered by inactivity in your CRM. No more manually chasing stalled matters.',
+      ifa: 'Dormant prospects and review-overdue clients receive personalised, timed follow-up sequences automatically. Advisers are alerted only when a response comes in.',
+      consultant: 'Stalled proposals and unresponsive prospects receive automated, personalised nudges at the right intervals — keeping your pipeline warm without manual effort.',
+      other: 'Inactive contacts receive automated, personalised follow-up sequences based on time elapsed and last interaction — keeping your pipeline alive.',
+    },
+  },
+  {
+    id: 'scheduling', effort: 1, impact: 2, timeSaved: '2–3 hrs/week', tools: 'Cal.com · Make.com · Google Calendar',
+    name: { law: 'Meeting Scheduling & Prep', ifa: 'Review Meeting Automation', consultant: 'Meeting Scheduling & Prep', other: 'Meeting Scheduling & Prep' },
+    what: {
+      law: 'Client consultation bookings via a self-serve link automatically populate your calendar, send confirmation emails, trigger a pre-meeting briefing document, and add the matter to your case management system.',
+      ifa: 'Annual review appointments are automatically scheduled with clients, with pre-meeting documents and portfolio summaries prepared and sent before the adviser sees them.',
+      consultant: 'Discovery and project kick-off calls are booked via self-serve links, with automatic calendar blocks, pre-meeting agendas sent to both parties, and a briefing prepared for the lead consultant.',
+      other: 'Appointments are self-booked by clients, with automatic confirmations, reminders, and pre-meeting prep materials sent without manual intervention.',
+    },
+  },
+  {
+    id: 'docgen', effort: 2, impact: 3, timeSaved: '4–6 hrs/week', tools: 'Make.com · Google Docs · Claude API',
+    name: { law: 'Document Generation & Delivery', ifa: 'Suitability & Report Generation', consultant: 'Proposal & Deliverable Generation', other: 'Document Generation & Delivery' },
+    what: {
+      law: 'Standard documents — engagement letters, NDAs, matter summaries — are generated from intake data and sent for e-signature automatically. No copy-paste, no version errors, no delay.',
+      ifa: 'Suitability reports and client-facing summaries are auto-populated from case data and client records, ready for adviser review — cutting report prep time by 60–80%.',
+      consultant: 'Proposal documents are auto-generated from scoping call data, populated with relevant case studies and pricing, and ready for final review within minutes of a discovery call.',
+      other: 'Standard documents are automatically generated from client data and sent for review or signature — eliminating manual drafting of repetitive materials.',
+    },
+  },
+  {
+    id: 'contracts', effort: 2, impact: 3, timeSaved: '3–5 hrs/week', tools: 'Make.com · DocuSign / PandaDoc · Airtable',
+    name: { law: 'Contract & Signature Workflow', ifa: 'Agreement & Consent Workflow', consultant: 'Contract & SOW Workflow', other: 'Contract & Signature Workflow' },
+    what: {
+      law: 'From matter opening to signed retainer: contracts are generated, sent for e-signature, tracked, and filed automatically. Unsigned documents trigger a reminder sequence without manual chasing.',
+      ifa: 'Client agreements, mandate forms, and consent documents are generated, delivered for signature, and automatically filed once executed — with escalation if not signed within a set window.',
+      consultant: 'Statements of work are auto-generated from scoping data, sent for client approval, tracked, and filed. Unsigned SOWs trigger an automated follow-up chain.',
+      other: 'Agreements are generated, sent for signature, and filed automatically. Outstanding signatures trigger escalation without manual follow-up.',
+    },
+  },
+  {
+    id: 'reporting', effort: 2, impact: 2, timeSaved: '3–4 hrs/week', tools: 'Make.com · Airtable · Google Docs',
+    name: { law: 'Matter Status Reporting', ifa: 'Portfolio & Activity Reporting', consultant: 'Project Status Reporting', other: 'Automated Status Reporting' },
+    what: {
+      law: 'Weekly matter status reports are auto-compiled from your case management data and delivered to partners — no manual collation, no stale spreadsheets.',
+      ifa: 'Client portfolio summaries and adviser activity reports are auto-generated from live data on a set schedule — giving management visibility without manual effort.',
+      consultant: 'Weekly project status updates are auto-generated from task and time tracking data and delivered to clients and internal stakeholders — no Friday afternoon report scrambles.',
+      other: 'Regular status reports are auto-compiled from live data and delivered to the right people on schedule — eliminating manual reporting runs.',
+    },
+  },
+  {
+    id: 'invoicing', effort: 2, impact: 3, timeSaved: '2–4 hrs/week', tools: 'Make.com · Stripe · Gmail',
+    name: { law: 'Invoice & Payment Chasing', ifa: 'Fee Collection Automation', consultant: 'Invoice & Payment Automation', other: 'Invoice & Payment Automation' },
+    what: {
+      law: 'Invoices are generated from time records and sent automatically at billing milestones. Overdue invoices trigger a polite, escalating reminder sequence — reducing debtors without awkward partner conversations.',
+      ifa: 'Fee invoices are generated and sent at agreed intervals. Outstanding balances trigger an automated, tiered reminder sequence before requiring human escalation.',
+      consultant: 'Project milestone invoices are generated and sent automatically. Overdue payments trigger an escalating reminder sequence, with the client account flagged for review if unresolved.',
+      other: 'Invoices are generated and delivered automatically. Outstanding payments trigger a structured, polite reminder sequence without manual chasing.',
+    },
+  },
+  {
+    id: 'crm', effort: 2, impact: 2, timeSaved: '2–3 hrs/week', tools: 'Make.com · Airtable · Gmail',
+    name: { law: 'CRM & Matter Data Hygiene', ifa: 'CRM & Client Record Hygiene', consultant: 'CRM & Pipeline Automation', other: 'CRM Data Automation' },
+    what: {
+      law: 'New enquiries, emails, and call notes are automatically logged to the correct matter record. Duplicate contacts are flagged and stale records updated — keeping your CRM clean without manual data entry.',
+      ifa: 'Client interactions, document events, and status changes are automatically logged to the correct client record. Data gaps trigger enrichment requests to clients at the right moment.',
+      consultant: 'New leads, proposal sends, and deal stage changes are automatically recorded. Pipeline reports update in real time without manual CRM updates from consultants.',
+      other: 'Contact and engagement data flows automatically into your CRM from email, forms, and calendar — eliminating manual logging and keeping records accurate.',
+    },
+  },
+  {
+    id: 'onboarding', effort: 2, impact: 3, timeSaved: '3–4 hrs/week', tools: 'Make.com · Tally · Gmail · Airtable',
+    name: { law: 'New Client Onboarding Journey', ifa: 'New Client Onboarding Journey', consultant: 'New Client Onboarding Journey', other: 'New Client Onboarding Journey' },
+    what: {
+      law: 'From signed retainer to active matter: welcome email, ID verification, portal access, and initial document requests are all triggered automatically in the right sequence — creating a professional first impression without manual coordination.',
+      ifa: 'From signed agreement to active client: welcome pack, portal access, data gathering requests, and adviser introduction are delivered automatically in a structured sequence.',
+      consultant: 'From signed SOW to active project: welcome materials, access credentials, kick-off scheduling, and initial deliverable requests are handled automatically — freeing the consultant to focus on the work, not the setup.',
+      other: 'From signed agreement to active engagement: all onboarding steps are triggered automatically in sequence, creating a consistent, professional experience for every new client.',
+    },
+  },
+  {
+    id: 'approvals', effort: 3, impact: 3, timeSaved: '3–5 hrs/week', tools: 'Make.com · Slack · Airtable · Google Drive',
+    name: { law: 'Internal Approval Workflows', ifa: 'Compliance & Sign-off Workflows', consultant: 'Internal Approval & Review Flows', other: 'Internal Approval Workflows' },
+    what: {
+      law: 'Document reviews, conflict checks, and matter approvals are routed automatically to the right partner based on matter type. Deadlines are tracked, overdue items escalated, and outcomes recorded without admin chasing.',
+      ifa: 'Advice sign-off, compliance reviews, and file checks are routed automatically to the appropriate reviewer. Deadlines are enforced, escalations triggered automatically, and audit trails maintained.',
+      consultant: 'Project approvals, scope change requests, and deliverable sign-offs are routed to the right people automatically — with tracking, reminders, and a clear audit trail.',
+      other: 'Approval requests are automatically routed to the right person, tracked, and escalated if overdue — replacing manual coordination and email chains.',
+    },
+  },
+  {
+    id: 'knowledgebase', effort: 3, impact: 3, timeSaved: '4–6 hrs/week', tools: 'Make.com · Claude API · Google Drive · Airtable',
+    name: { law: 'Internal Knowledge Base Agent', ifa: 'Internal Knowledge Base Agent', consultant: 'Internal Knowledge Base Agent', other: 'Internal Knowledge Base Agent' },
+    what: {
+      law: 'A private AI assistant trained on your precedents, procedures, and know-how. Fee earners ask questions in plain English and get accurate answers instantly — reducing partner interruptions and onboarding time for new staff.',
+      ifa: 'A private AI assistant trained on your product library, compliance procedures, and internal guides. Advisers get instant answers to technical questions without interrupting senior staff.',
+      consultant: 'A private AI assistant trained on your methodology, past deliverables, and internal playbooks. Consultants get fast answers and relevant precedents without trawling shared drives.',
+      other: 'A private AI assistant trained on your internal documentation and procedures, giving your team instant access to institutional knowledge without manual searching.',
+    },
+  },
+  {
+    id: 'voice', effort: 3, impact: 3, timeSaved: '5–8 hrs/week', tools: 'Vapi.ai · Make.com · Cal.com · Airtable',
+    name: { law: 'AI Voice Appointment Setter', ifa: 'AI Voice Appointment Setter', consultant: 'AI Voice Appointment Setter', other: 'AI Voice Appointment Setter' },
+    what: {
+      law: 'An AI voice agent handles inbound enquiry calls outside office hours — qualifying the caller, collecting matter details, and booking a consultation directly into your calendar. No missed calls, no out-of-hours admin.',
+      ifa: 'An AI voice agent qualifies inbound enquiries, collects initial client information, and books adviser consultations — handling after-hours calls without a receptionist.',
+      consultant: 'An AI voice agent qualifies inbound enquiries, gathers project context, and schedules discovery calls — turning missed calls into booked meetings automatically.',
+      other: 'An AI voice agent qualifies inbound calls, collects key information, and books appointments — handling enquiries around the clock without human intervention.',
+    },
+  },
+];
+
+let selected = new Set();
+
+const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="30 42 228 70" width="200">
+  <line x1="54" y1="48" x2="34" y2="82" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="square"/>
+  <line x1="54" y1="48" x2="74" y2="82" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="square"/>
+  <line x1="34" y1="82" x2="74" y2="82" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="square"/>
+  <circle cx="54" cy="48" r="2.5" fill="#C9A84C"/>
+  <text x="88" y="82" font-family="'Georgia', serif" font-size="46" font-weight="400" letter-spacing="10" fill="#FFFFFF">APEX</text>
+  <text x="88" y="104" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="300" letter-spacing="9.5" fill="#C9A84C">SYSTEMATIC</text>
+</svg>`;
+
+const LOGO_SVG_SM = LOGO_SVG.replace('width="200"', 'width="140"');
+
+function init() { renderUseCases(); updateReport(); }
+
+function renderUseCases() {
+  const vertical = document.getElementById('vertical').value;
+  const grid = document.getElementById('useCasesGrid');
+  grid.innerHTML = '';
+  const effortLabels = ['', 'Low Effort', 'Med Effort', 'High Effort'];
+  const impactLabels = ['', '★ Impact', '★★ Impact', '★★★ Impact'];
+  USE_CASES.forEach(uc => {
+    const isSelected = selected.has(uc.id);
+    const isDisabled = !isSelected && selected.size >= 5;
+    const div = document.createElement('div');
+    div.className = `use-case-item${isSelected ? ' selected' : ''}${isDisabled ? ' disabled' : ''}`;
+    div.onclick = () => toggleUseCase(uc.id);
+    div.innerHTML = `
+      <div class="uc-checkbox">
+        <svg class="uc-check-icon" viewBox="0 0 10 10" fill="none" stroke="#0E1117" stroke-width="2"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+      </div>
+      <div class="uc-body">
+        <div class="uc-name">${uc.name[vertical]}</div>
+        <div class="uc-meta">
+          <span class="uc-tag tag-effort-${uc.effort}">${effortLabels[uc.effort]}</span>
+          <span class="uc-tag tag-impact">${impactLabels[uc.impact]}</span>
+          <span class="uc-tag tag-time">⏱ ${uc.timeSaved}</span>
+        </div>
+      </div>`;
+    grid.appendChild(div);
+  });
+  updatePips();
+}
+
+function toggleUseCase(id) {
+  if (selected.has(id)) { selected.delete(id); }
+  else { if (selected.size >= 5) return; selected.add(id); }
+  renderUseCases(); updateReport();
+}
+
+function updatePips() {
+  const count = selected.size;
+  document.getElementById('selectionCount').textContent = `${count} of 5 selected`;
+  for (let i = 1; i <= 5; i++) document.getElementById(`pip${i}`).className = 'pip' + (i <= count ? ' filled' : '');
+}
+
+function buildReportHTML() {
+  const vertical = document.getElementById('vertical').value;
+  const v = VERTICALS[vertical];
+  const contactName = document.getElementById('contactName').value.trim() || 'Your Name';
+  const firmName = document.getElementById('firmName').value.trim() || 'Your Firm';
+  const teamSize = document.getElementById('teamSize').value;
+  const currentTools = document.getElementById('currentTools').value.trim() || 'Not specified';
+  const painPoints = document.getElementById('painPoints').value.trim() || 'To be confirmed from discovery call.';
+  const auditorName = document.getElementById('auditorName').value.trim() || 'Apex Systematic';
+  const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Sort by effort ascending — low effort first
+  const selectedUCs = USE_CASES.filter(uc => selected.has(uc.id)).sort((a, b) => a.effort - b.effort);
+
+  if (selectedUCs.length === 0) {
+    return `<div class="report">
+      <div class="report-header">
+        <div class="report-logo">${LOGO_SVG}</div>
+        <div class="report-title">Select automations<br>to <em>preview</em> the report</div>
+        <div class="report-subtitle">Choose up to 5 opportunities from the left panel</div>
+      </div>
+      <div class="report-body"><div class="empty-state"><div class="empty-icon">◈</div><div class="empty-text">Your selected automations will appear here as a polished deliverable.</div></div></div>
+    </div>`;
+  }
+
+  const totalTime = selectedUCs.reduce((acc, uc) => { const m = uc.timeSaved.match(/(\d+)/); return acc + (m ? parseInt(m[1]) : 0); }, 0);
+  const effortLabel = ['', 'Low Effort', 'Medium Effort', 'Higher Effort'];
+  const impactLabel = ['', 'Moderate Impact', 'High Impact', 'Very High Impact'];
+
+  const cards = selectedUCs.map(uc => `
+    <div class="auto-card effort-${uc.effort}">
+      <div class="auto-card-header">
+        <div class="auto-card-accent"></div>
+        <div class="auto-card-content">
+          <div class="auto-card-top">
+            <div class="auto-card-name">${uc.name[vertical]}</div>
+            <div class="auto-card-scores">
+              <span class="score-pill score-effort-${uc.effort}">${effortLabel[uc.effort]}</span>
+              <span class="score-pill score-impact">${impactLabel[uc.impact]}</span>
+            </div>
+          </div>
+          <div class="auto-card-what">${uc.what[vertical]}</div>
+          <div class="auto-card-footer">
+            <div class="footer-item"><div class="footer-dot"></div><span class="footer-label">Est. time saved:&nbsp;</span>${uc.timeSaved} per week</div>
+            <div class="footer-item"><div class="footer-dot"></div><span class="footer-label">Tools:&nbsp;</span>${uc.tools}</div>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  return `<div class="report">
+    <div class="report-header">
+      <div class="report-logo">${LOGO_SVG}</div>
+      <div class="report-title"><em>${firmName}</em><br>Automation Roadmap</div>
+      <div class="report-subtitle">Prepared for ${contactName} by ${auditorName}</div>
+    </div>
+
+    <div class="report-summary">
+      <div class="summary-stat"><div class="stat-num">${selectedUCs.length}</div><div class="stat-label">Automation Opportunities</div></div>
+      <div class="summary-stat"><div class="stat-num">${totalTime}+</div><div class="stat-label">Hours Saved Per Week</div></div>
+      <div class="summary-stat"><div class="stat-num">2–4</div><div class="stat-label">Weeks to First Results</div></div>
+    </div>
+
+    <div class="report-body">
+      <div class="report-intro">
+        Based on our discovery conversation, <strong>${firmName}</strong> is carrying a significant manual workload across tasks that should be handled by well-designed automation. The opportunities below are ordered from lowest to highest effort — <strong>start at the top for the fastest visible results.</strong> Every build is fixed-price, delivered on your own accounts — you own it outright from day one, with no lock-in and no retainers.
+      </div>
+
+      <div class="discovery-block">
+        <div class="discovery-item">
+          <div class="discovery-key">Current Tools</div>
+          <div class="discovery-val">${currentTools}</div>
+        </div>
+        <div class="discovery-item">
+          <div class="discovery-key">Team</div>
+          <div class="discovery-val">${teamSize} · ${v.label}</div>
+        </div>
+        <div class="discovery-item full">
+          <div class="discovery-key">Key Pain Points Identified</div>
+          <div class="discovery-val">${painPoints}</div>
+        </div>
+      </div>
+
+      <div class="automations-header">
+        <div class="automations-title">Your Automation Roadmap</div>
+        <div class="automations-note">Ordered lowest → highest implementation effort</div>
+      </div>
+
+      ${cards}
+    </div>
+
+    <div class="report-cta">
+      <div class="cta-eyebrow">Ready to move forward?</div>
+      <div class="cta-heading">Let's build your first automation in the next two weeks.</div>
+      <div class="cta-body">
+        This roadmap is based on your specific situation at ${firmName}. Every build is fixed-price — you'll know the exact cost before any work starts, and everything runs on your own accounts from day one.<br><br>
+        <strong>Get in touch</strong> and we'll agree a scope and start date. No obligation — just a straight conversation about what to build first.
+      </div>
+    </div>
+
+    <div class="report-footer-bar">
+      ${LOGO_SVG_SM}
+      <div class="footer-right">
+        <div class="footer-url">apexsystematic.com</div>
+        <div class="footer-date">${today}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function updateReport() {
+  document.getElementById('reportContainer').innerHTML = buildReportHTML();
+}
+
+function getExportCSS() {
+  return `* { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f4f1eb; font-family: 'DM Sans', sans-serif; padding: 40px 20px; }
+  .report { max-width: 780px; margin: 0 auto; background: #ffffff; color: #1a1a2e; font-family: 'DM Sans', sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.12); }
+  .report-header { background: #0E1117; padding: 48px 52px 40px; position: relative; overflow: hidden; }
+  .report-header::before { content: ''; position: absolute; top: 0; right: 0; width: 300px; height: 300px; background: radial-gradient(circle at top right, rgba(201,168,76,0.12), transparent 60%); }
+  .report-header::after { content: ''; position: absolute; bottom: 0; left: 52px; right: 52px; height: 1px; background: linear-gradient(90deg, #C9A84C, transparent); }
+  .report-logo { margin-bottom: 28px; display: flex; justify-content: center; }
+  .report-title { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 700; color: #ffffff; line-height: 1.15; }
+  .report-title em { font-style: italic; color: #C9A84C; }
+  .report-subtitle { font-size: 0.9rem; color: rgba(255,255,255,0.45); margin-top: 10px; font-weight: 300; }
+  .report-summary { background: #0E1117; padding: 28px 52px; display: flex; align-items: stretch; }
+  .summary-stat { flex: 1; padding: 0 24px; border-right: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 4px; }
+  .summary-stat:first-child { padding-left: 0; } .summary-stat:last-child { border-right: none; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: #C9A84C; line-height: 1; }
+  .stat-label { font-size: 0.8rem; color: rgba(255,255,255,0.4); font-weight: 500; }
+  .report-body { padding: 44px 52px; }
+  .report-intro { font-size: 0.9rem; line-height: 1.75; color: #3a3a5c; margin-bottom: 32px; padding-bottom: 28px; border-bottom: 1px solid #e8e4dc; }
+  .report-intro strong { color: #1a1a2e; }
+  .discovery-block { background: #faf9f6; border: 1px solid #e8e4dc; border-left: 3px solid #C9A84C; padding: 20px 24px; margin-bottom: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .discovery-key { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #C9A84C; margin-bottom: 6px; }
+  .discovery-val { font-size: 0.9rem; color: #3a3a5c; line-height: 1.6; }
+  .discovery-item.full { grid-column: 1 / -1; }
+  .automations-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .automations-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 600; color: #1a1a2e; }
+  .automations-note { font-size: 0.8rem; color: #9a9ab0; font-style: italic; }
+  .auto-card { border: 1px solid #e8e4dc; margin-bottom: 12px; overflow: hidden; background: #faf9f6; }
+  .auto-card-header { display: flex; align-items: flex-start; }
+  .auto-card-accent { width: 4px; align-self: stretch; flex-shrink: 0; }
+  .effort-1 .auto-card-accent { background: #4ade80; } .effort-2 .auto-card-accent { background: #C9A84C; } .effort-3 .auto-card-accent { background: #818cf8; }
+  .auto-card-content { padding: 20px 22px; flex: 1; }
+  .auto-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+  .auto-card-name { font-size: 1rem; font-weight: 700; color: #1a1a2e; }
+  .auto-card-scores { display: flex; gap: 8px; flex-shrink: 0; }
+  .score-pill { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border: 1px solid; white-space: nowrap; }
+  .score-effort-1 { color: #16a34a; border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.08); }
+  .score-effort-2 { color: #92620a; border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.08); }
+  .score-effort-3 { color: #4338ca; border-color: rgba(129,140,248,0.4); background: rgba(129,140,248,0.08); }
+  .score-impact { color: #1a1a2e; border-color: #c9a84c; background: rgba(201,168,76,0.1); }
+  .auto-card-what { font-size: 0.9rem; color: #4a4a6a; line-height: 1.65; margin-bottom: 14px; }
+  .auto-card-footer { display: flex; gap: 16px; align-items: center; padding-top: 12px; border-top: 1px solid #eee9df; flex-wrap: wrap; }
+  .footer-item { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #7a7a9a; }
+  .footer-dot { width: 5px; height: 5px; border-radius: 50%; background: #c9a84c; flex-shrink: 0; }
+  .footer-label { font-weight: 600; color: #1a1a2e; }
+  .report-cta { padding: 40px 52px 48px; background: #faf9f6; border-top: 1px solid #e8e4dc; }
+  .cta-eyebrow { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #C9A84C; margin-bottom: 10px; }
+  .cta-heading { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: #1a1a2e; margin-bottom: 12px; line-height: 1.3; }
+  .cta-body { font-size: 0.9rem; color: #4a4a6a; line-height: 1.7; }
+  .report-footer-bar { background: #0E1117; padding: 16px 52px; display: flex; justify-content: space-between; align-items: center; }
+  .footer-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .footer-url { font-size: 0.8rem; color: rgba(255,255,255,0.55); font-family: monospace; }
+  .footer-date { font-size: 0.8rem; color: rgba(255,255,255,0.35); font-family: monospace; }
+  @media (max-width: 600px) {
+    .report-header, .report-body, .report-cta, .report-summary, .report-footer-bar { padding-left: 24px; padding-right: 24px; }
+    .report-title { font-size: 1.8rem; }
+    .auto-card-top { flex-direction: column; }
+    .discovery-block { grid-template-columns: 1fr; }
+    .report-summary { flex-wrap: wrap; gap: 16px; }
+    .summary-stat { flex: 1 1 40%; border-right: none; padding: 0; }
+  }`;
+}
+
+function exportHTML() {
+  const firmName = document.getElementById('firmName').value.trim() || 'Prospect';
+  const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${firmName} — Automation Roadmap · Apex Systematic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>${getExportCSS()}</style>
+</head>
+<body>${buildReportHTML()}</body>
+</html>`;
+  const blob = new Blob([fullHTML], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${firmName.replace(/[^a-z0-9]/gi, '-')}-Automation-Roadmap.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+init();
+</script>
+</body>
+</html>
