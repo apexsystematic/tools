@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apex Systematic — Proposal Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0E1117;
+    --surface:   #131820;
+    --elevated:  #182030;
+    --border:    #1E2838;
+    --border-lt: #263040;
+    --body:      #D8DCE4;
+    --muted:     #7A8299;
+    --dim:       #4F5B6E;
+    --white:     #FFFFFF;
+    --gold:      #C9A84C;
+    --gold-lt:   #DDB95A;
+    --panel:     #0B0E14;
+    --input-bg:  #0E1420;
+  }
+
+  html, body { height: 100%; overflow: hidden; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--body); -webkit-font-smoothing: antialiased; }
+
+  /* ── App shell ── */
+  .app { display: flex; height: 100vh; }
+
+  /* ── Editor panel ── */
+  .editor {
+    width: 400px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .editor-header {
+    padding: 20px 24px 18px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .editor-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    color: var(--white);
+    letter-spacing: 0.02em;
+  }
+
+  .btn-export {
+    background: var(--gold);
+    color: #0E1117;
+    border: none;
+    border-radius: 2px;
+    padding: 8px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-export:hover { background: var(--gold-lt); }
+
+  .editor-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 0 40px;
+  }
+
+  .editor-body::-webkit-scrollbar { width: 4px; }
+  .editor-body::-webkit-scrollbar-track { background: transparent; }
+  .editor-body::-webkit-scrollbar-thumb { background: var(--border-lt); border-radius: 2px; }
+
+  /* ── Editor sections ── */
+  .e-section {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+  }
+
+  .e-section-title {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  .e-field { margin-bottom: 14px; }
+  .e-field:last-child { margin-bottom: 0; }
+
+  .e-label {
+    display: block;
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .e-input, .e-textarea {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--body);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    resize: none;
+  }
+  .e-input:focus, .e-textarea:focus { border-color: var(--gold); }
+  .e-input::placeholder, .e-textarea::placeholder { color: var(--dim); }
+
+  .e-textarea { line-height: 1.55; min-height: 64px; }
+
+  /* ── Dynamic list items ── */
+  .e-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .e-list-item {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .e-list-item .e-input { flex: 1; }
+
+  .e-list-item-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .e-list-item-2col .e-input { width: 100%; }
+
+  .btn-remove {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--dim);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s;
+    margin-top: 1px;
+  }
+  .btn-remove:hover { border-color: #c0392b; color: #c0392b; }
+
+  .btn-add {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1px dashed var(--border-lt);
+    border-radius: 2px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 8px 12px;
+    width: 100%;
+    margin-top: 10px;
+    transition: border-color 0.15s, color 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .btn-add:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-add::before { content: '+'; font-size: 16px; line-height: 1; }
+
+  /* ── Preview panel ── */
+  .preview {
+    flex: 1;
+    overflow: hidden;
+    background: var(--bg);
+    position: relative;
+  }
+
+  .preview iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: var(--bg);
+  }
+
+  /* ── Scrollbar for editor ── */
+  * { scrollbar-width: thin; scrollbar-color: var(--border-lt) transparent; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ════════════════════════════════════════
+       EDITOR PANEL
+  ════════════════════════════════════════ -->
+  <div class="editor">
+
+    <div class="editor-header">
+      <span class="editor-title">Proposal Builder</span>
+      <button class="btn-export" onclick="exportHTML()">Export HTML</button>
+    </div>
+
+    <div class="editor-body">
+
+      <!-- Header fields -->
+      <div class="e-section">
+        <div class="e-section-title">Header</div>
+
+        <div class="e-field">
+          <label class="e-label">Project title</label>
+          <input class="e-input" id="f-title" type="text" placeholder="Keyword Research & Content Pipeline" oninput="render()">
+        </div>
+
+        <div class="e-field">
+          <label class="e-label">Subtitle</label>
+          <textarea class="e-textarea" id="f-subtitle" rows="2" placeholder="One or two sentences — what it does and the core outcome." oninput="render()"></textarea>
+        </div>
+
+        <div class="e-field">
+          <label class="e-label">Investment</label>
+          <input class="e-input" id="f-investment" type="text" placeholder="€535 fixed price" oninput="render()">
+        </div>
+
+        <div class="e-field">
+          <label class="e-label">Timeline</label>
+          <input class="e-input" id="f-timeline" type="text" placeholder="1–2 weeks" oninput="render()">
+        </div>
+
+        <div class="e-field">
+          <label class="e-label">Running cost <span style="color:var(--dim);font-size:10px;text-transform:none;letter-spacing:0">(leave blank to hide)</span></label>
+          <input class="e-input" id="f-running" type="text" placeholder="~€0.80–€1.20 per run" oninput="render()">
+        </div>
+      </div>
+
+      <!-- Overview -->
+      <div class="e-section">
+        <div class="e-section-title">Overview</div>
+        <div class="e-field">
+          <textarea class="e-textarea" id="f-overview" rows="5" placeholder="Describe what the system does and the outcome it delivers. Two paragraphs — separate with a blank line." oninput="render()"></textarea>
+        </div>
+      </div>
+
+      <!-- Process steps -->
+      <div class="e-section">
+        <div class="e-section-title">Process steps</div>
+        <div class="e-list" id="steps-list"></div>
+        <button class="btn-add" onclick="addStep()">Add step</button>
+      </div>
+
+      <!-- Tech stack -->
+      <div class="e-section">
+        <div class="e-section-title">Tech stack</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <span class="e-label" style="flex:1;margin-bottom:0">Tool</span>
+          <span class="e-label" style="flex:1;margin-bottom:0">Role</span>
+          <span style="width:32px;flex-shrink:0"></span>
+        </div>
+        <div class="e-list" id="stack-list"></div>
+        <button class="btn-add" onclick="addStack()">Add tool</button>
+      </div>
+
+      <!-- Deliverables -->
+      <div class="e-section">
+        <div class="e-section-title">Deliverables</div>
+        <div class="e-list" id="deliverables-list"></div>
+        <button class="btn-add" onclick="addDeliverable()">Add deliverable</button>
+      </div>
+
+      <!-- Exclusions -->
+      <div class="e-section">
+        <div class="e-section-title">Exclusions</div>
+        <div class="e-list" id="exclusions-list"></div>
+        <button class="btn-add" onclick="addExclusion()">Add exclusion</button>
+      </div>
+
+      <!-- Investment block -->
+      <div class="e-section">
+        <div class="e-section-title">Price & timeline</div>
+
+        <div class="e-field">
+          <label class="e-label">Price (large display)</label>
+          <input class="e-input" id="f-price" type="text" placeholder="€535" oninput="render()">
+        </div>
+
+        <div class="e-field">
+          <label class="e-label">Delivery</label>
+          <input class="e-input" id="f-delivery" type="text" placeholder="1–2 weeks" oninput="render()">
+        </div>
+
+        <div class="e-field">
+          <label class="e-label">Running costs line <span style="color:var(--dim);font-size:10px;text-transform:none;letter-spacing:0">(leave blank to hide)</span></label>
+          <input class="e-input" id="f-running2" type="text" placeholder="~€0.80–€1.20 per run, paid to providers" oninput="render()">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PREVIEW PANEL
+  ════════════════════════════════════════ -->
+  <div class="preview">
+    <iframe id="preview-frame"></iframe>
+  </div>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+
+const state = {
+  steps:        [],
+  stack:        [],
+  deliverables: [],
+  exclusions:   []
+};
+
+// ── Boot with defaults ─────────────────────────────────────────────────────
+
+function boot() {
+  // Default steps
+  [
+    { title: '', desc: '' },
+    { title: '', desc: '' },
+    { title: '', desc: '' },
+  ].forEach(() => addStep(false));
+
+  // Default stack
+  [
+    { tool: '', role: '' },
+    { tool: '', role: '' },
+    { tool: '', role: '' },
+    { tool: '', role: '' },
+  ].forEach(() => addStack(false));
+
+  // Default deliverables — always present
+  [
+    'Full documentation',
+    'Handover call',
+  ].forEach(v => addDeliverable(false, v));
+
+  // Default exclusions — always present
+  [
+    'Platform subscriptions — paid directly to providers',
+  ].forEach(v => addExclusion(false, v));
+
+  render();
+}
+
+// ── Dynamic list builders ──────────────────────────────────────────────────
+
+function addStep(doRender = true) {
+  const id = Date.now() + Math.random();
+  state.steps.push({ id, title: '', desc: '' });
+  renderStepRow(id);
+  if (doRender) render();
+}
+
+function renderStepRow(id) {
+  const list = document.getElementById('steps-list');
+  const item = state.steps.find(s => s.id === id);
+  const div = document.createElement('div');
+  div.className = 'e-list-item';
+  div.dataset.id = id;
+  div.innerHTML = `
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+      <input class="e-input" placeholder="Step title" value="${esc(item.title)}"
+        oninput="updateStep(${id},'title',this.value)">
+      <textarea class="e-textarea" placeholder="Step description" rows="2"
+        oninput="updateStep(${id},'desc',this.value)">${esc(item.desc)}</textarea>
+    </div>
+    <button class="btn-remove" onclick="removeStep(${id})" title="Remove">×</button>
+  `;
+  list.appendChild(div);
+}
+
+function updateStep(id, key, val) { const s = state.steps.find(s => s.id === id); if (s) { s[key] = val; render(); } }
+function removeStep(id) {
+  state.steps = state.steps.filter(s => s.id !== id);
+  document.querySelector(`#steps-list [data-id="${id}"]`).remove();
+  render();
+}
+
+function addStack(doRender = true) {
+  const id = Date.now() + Math.random();
+  state.stack.push({ id, tool: '', role: '' });
+  renderStackRow(id);
+  if (doRender) render();
+}
+
+function renderStackRow(id) {
+  const list = document.getElementById('stack-list');
+  const item = state.stack.find(s => s.id === id);
+  const div = document.createElement('div');
+  div.className = 'e-list-item';
+  div.dataset.id = id;
+  div.innerHTML = `
+    <div class="e-list-item-2col" style="flex:1;">
+      <input class="e-input" placeholder="Tool name" value="${esc(item.tool)}"
+        oninput="updateStack(${id},'tool',this.value)">
+      <input class="e-input" placeholder="Role" value="${esc(item.role)}"
+        oninput="updateStack(${id},'role',this.value)">
+    </div>
+    <button class="btn-remove" onclick="removeStack(${id})" title="Remove">×</button>
+  `;
+  list.appendChild(div);
+}
+
+function updateStack(id, key, val) { const s = state.stack.find(s => s.id === id); if (s) { s[key] = val; render(); } }
+function removeStack(id) {
+  state.stack = state.stack.filter(s => s.id !== id);
+  document.querySelector(`#stack-list [data-id="${id}"]`).remove();
+  render();
+}
+
+function addDeliverable(doRender = true, val = '') {
+  const id = Date.now() + Math.random();
+  state.deliverables.push({ id, val });
+  renderDeliverableRow(id, val);
+  if (doRender) render();
+}
+
+function renderDeliverableRow(id, val = '') {
+  const list = document.getElementById('deliverables-list');
+  const div = document.createElement('div');
+  div.className = 'e-list-item';
+  div.dataset.id = id;
+  div.innerHTML = `
+    <input class="e-input" placeholder="Deliverable" value="${esc(val)}"
+      oninput="updateItem('deliverables',${id},this.value)" style="flex:1;">
+    <button class="btn-remove" onclick="removeItem('deliverables',${id})" title="Remove">×</button>
+  `;
+  list.appendChild(div);
+}
+
+function addExclusion(doRender = true, val = '') {
+  const id = Date.now() + Math.random();
+  state.exclusions.push({ id, val });
+  renderExclusionRow(id, val);
+  if (doRender) render();
+}
+
+function renderExclusionRow(id, val = '') {
+  const list = document.getElementById('exclusions-list');
+  const div = document.createElement('div');
+  div.className = 'e-list-item';
+  div.dataset.id = id;
+  div.innerHTML = `
+    <input class="e-input" placeholder="Exclusion" value="${esc(val)}"
+      oninput="updateItem('exclusions',${id},this.value)" style="flex:1;">
+    <button class="btn-remove" onclick="removeItem('exclusions',${id})" title="Remove">×</button>
+  `;
+  list.appendChild(div);
+}
+
+function updateItem(list, id, val) { const item = state[list].find(i => i.id === id); if (item) { item.val = val; render(); } }
+function removeItem(list, id) {
+  state[list] = state[list].filter(i => i.id !== id);
+  document.querySelector(`#${list}-list [data-id="${id}"]`).remove();
+  render();
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function v(id) { return document.getElementById(id)?.value?.trim() || ''; }
+
+// Convert double-newline paragraphs to <p> tags
+function toParagraphs(text) {
+  return text.trim().split(/\n\n+/).map(p => `<p>${escHtml(p.trim()).replace(/\n/g, '<br>')}</p>`).join('\n    ');
+}
+
+// ── Render proposal HTML ───────────────────────────────────────────────────
+
+function buildHTML() {
+  const title       = v('f-title')      || 'Project Title';
+  const subtitle    = v('f-subtitle')   || '';
+  const investment  = v('f-investment') || '';
+  const timeline    = v('f-timeline')   || '';
+  const running     = v('f-running')    || '';
+  const overview    = v('f-overview')   || '';
+  const price       = v('f-price')      || '';
+  const delivery    = v('f-delivery')   || '';
+  const running2    = v('f-running2')   || '';
+
+  // Steps
+  const stepsHTML = state.steps.map((s, i) => {
+    const num = String(i + 1).padStart(2, '0');
+    return `
+      <div class="step">
+        <span class="step-num">${num}</span>
+        <div class="step-content">
+          <div class="step-title">${escHtml(s.title) || '&mdash;'}</div>
+          <div class="step-desc">${escHtml(s.desc)}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Stack
+  const stackHTML = state.stack.map(s => `
+      <div class="stack-item">
+        <div class="stack-tool">${escHtml(s.tool) || '&mdash;'}</div>
+        <div class="stack-role">${escHtml(s.role)}</div>
+      </div>`).join('');
+
+  // Deliverables
+  const delivHTML = state.deliverables.map(d =>
+    `      <li>${escHtml(d.val) || '&mdash;'}</li>`).join('\n');
+
+  // Exclusions
+  const exclHTML = state.exclusions.map(e =>
+    `      <li>${escHtml(e.val) || '&mdash;'}</li>`).join('\n');
+
+  // Optional meta items
+  const runningMeta = running ? `
+        <div class="meta-item">
+          <div class="meta-label">Running cost</div>
+          <div class="meta-value">${escHtml(running)}</div>
+        </div>` : '';
+
+  const runningRow = running2 ? `
+          <div class="inv-row">
+            <span class="inv-key">Running costs</span>
+            <span class="inv-val">${escHtml(running2)}</span>
+          </div>` : '';
+
+  // Overview paragraphs
+  const overviewHTML = overview ? toParagraphs(overview) : '<p></p>';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal — ${escHtml(title)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#0E1117;--surface:#131820;--elevated:#182030;--border:#1E2838;
+    --border-lt:#263040;--body:#D8DCE4;--muted:#7A8299;--dim:#4F5B6E;
+    --white:#FFFFFF;--gold:#C9A84C;--gold-lt:#DDB95A;
+  }
+  html{font-size:16px;}
+  body{background:var(--bg);color:var(--body);font-family:'DM Sans',sans-serif;font-weight:400;line-height:1.65;-webkit-font-smoothing:antialiased;}
+  .page{max-width:780px;margin:0 auto;padding:80px 48px 120px;}
+  .header{border-bottom:1px solid var(--border);padding-bottom:48px;margin-bottom:56px;}
+  .logo{display:block;margin-bottom:56px;}
+  .label{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;display:block;}
+  h1{font-family:'Playfair Display',serif;font-weight:400;font-size:38px;line-height:1.2;color:var(--white);margin-bottom:24px;max-width:560px;}
+  .header-sub{color:var(--muted);font-size:15px;max-width:520px;margin-bottom:0;}
+  .header-meta{display:flex;gap:48px;margin-top:36px;}
+  .meta-item .meta-label{font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:4px;}
+  .meta-item .meta-value{font-size:14px;color:var(--muted);}
+  .section{margin-bottom:56px;}
+  h2{font-family:'Playfair Display',serif;font-weight:400;font-size:22px;color:var(--white);margin-bottom:20px;}
+  p{font-size:15px;color:var(--body);margin-bottom:16px;max-width:640px;}
+  p:last-child{margin-bottom:0;}
+  .divider{border:none;border-top:1px solid var(--border);margin:56px 0;}
+  .gold-rule{width:32px;height:1px;background:var(--gold);margin-bottom:20px;}
+  .steps{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
+  .step{display:flex;gap:24px;padding:24px 28px;border-bottom:1px solid var(--border);background:var(--surface);transition:background .15s;}
+  .step:last-child{border-bottom:none;}
+  .step:hover{background:var(--elevated);}
+  .step-num{font-family:'Playfair Display',serif;font-size:13px;color:var(--gold);min-width:28px;padding-top:1px;flex-shrink:0;}
+  .step-title{font-size:14px;font-weight:500;color:var(--white);margin-bottom:4px;}
+  .step-desc{font-size:14px;color:var(--muted);line-height:1.55;}
+  .stack-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:2px;overflow:hidden;}
+  .stack-item{background:var(--surface);padding:20px 24px;}
+  .stack-tool{font-size:13px;font-weight:500;color:var(--white);margin-bottom:4px;}
+  .stack-role{font-size:13px;color:var(--muted);}
+  .deliverables{list-style:none;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
+  .deliverables li{display:flex;align-items:flex-start;gap:14px;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--surface);font-size:14px;color:var(--body);}
+  .deliverables li:last-child{border-bottom:none;}
+  .deliverables li::before{content:'';display:block;width:5px;height:5px;border-radius:50%;background:var(--gold);margin-top:7px;flex-shrink:0;}
+  .exclusions{list-style:none;}
+  .exclusions li{font-size:14px;color:var(--muted);padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px;}
+  .exclusions li:first-child{border-top:1px solid var(--border);}
+  .exclusions li::before{content:'—';color:var(--dim);flex-shrink:0;}
+  .investment-block{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:40px 40px 36px;}
+  .investment-price{font-family:'Playfair Display',serif;font-size:52px;color:var(--white);line-height:1;margin-bottom:8px;}
+  .investment-sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
+  .investment-details{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);padding-top:24px;}
+  .inv-row{display:flex;justify-content:space-between;font-size:13px;}
+  .inv-row .inv-key{color:var(--muted);}
+  .inv-row .inv-val{color:var(--body);}
+  .guarantee{margin-top:24px;padding:20px 24px;border:1px solid var(--border-lt);border-radius:2px;background:var(--elevated);font-size:13px;color:var(--muted);line-height:1.6;}
+  .guarantee strong{color:var(--body);font-weight:500;}
+  .footer{margin-top:80px;padding-top:32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .footer-logo{opacity:.35;}
+  .footer-url{font-size:12px;color:var(--dim);}
+  @media(max-width:600px){.page{padding:48px 24px 80px;}h1{font-size:28px;}.header-meta{flex-direction:column;gap:20px;}.stack-grid{grid-template-columns:1fr;}.investment-price{font-size:40px;}.footer{flex-direction:column;gap:20px;align-items:flex-start;}}
+  @media print{body{background:white;color:#111;}.page{padding:40px;}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="30 42 228 70" width="220">
+      <line x1="54" y1="48" x2="34" y2="82" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="square"/>
+      <line x1="54" y1="48" x2="74" y2="82" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="square"/>
+      <line x1="34" y1="82" x2="74" y2="82" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="square"/>
+      <circle cx="54" cy="48" r="2.5" fill="#C9A84C"/>
+      <text x="88" y="82" font-family="Georgia, serif" font-size="46" font-weight="400" letter-spacing="10" fill="#FFFFFF">APEX</text>
+      <text x="88" y="104" font-family="Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="300" letter-spacing="9.5" fill="#C9A84C">SYSTEMATIC</text>
+    </svg>
+    <span class="label">Project Proposal</span>
+    <h1>${escHtml(title)}</h1>
+    ${subtitle ? `<p class="header-sub">${escHtml(subtitle)}</p>` : ''}
+    <div class="header-meta">
+      ${investment ? `<div class="meta-item"><div class="meta-label">Investment</div><div class="meta-value">${escHtml(investment)}</div></div>` : ''}
+      ${timeline   ? `<div class="meta-item"><div class="meta-label">Timeline</div><div class="meta-value">${escHtml(timeline)}</div></div>` : ''}
+      ${runningMeta}
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="gold-rule"></div>
+    <span class="label">Overview</span>
+    <h2>What it does</h2>
+    ${overviewHTML}
+  </section>
+
+  <hr class="divider">
+
+  <section class="section">
+    <div class="gold-rule"></div>
+    <span class="label">Process</span>
+    <h2>How it works</h2>
+    <div class="steps">${stepsHTML}
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section class="section">
+    <div class="gold-rule"></div>
+    <span class="label">Technical</span>
+    <h2>Tech stack</h2>
+    <div class="stack-grid">${stackHTML}
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section class="section">
+    <div class="gold-rule"></div>
+    <span class="label">Scope</span>
+    <h2>Deliverables</h2>
+    <ul class="deliverables">
+${delivHTML}
+    </ul>
+  </section>
+
+  <section class="section">
+    <span class="label">Exclusions</span>
+    <h2>Not included</h2>
+    <ul class="exclusions">
+${exclHTML}
+    </ul>
+  </section>
+
+  <hr class="divider">
+
+  <section class="section">
+    <div class="gold-rule"></div>
+    <span class="label">Investment</span>
+    <h2>Price &amp; timeline</h2>
+    <div class="investment-block">
+      <div class="investment-price">${escHtml(price) || '—'}</div>
+      <div class="investment-sub">One-time fixed price. No retainer. You own everything built.</div>
+      <div class="investment-details">
+        ${delivery ? `<div class="inv-row"><span class="inv-key">Delivery</span><span class="inv-val">${escHtml(delivery)}</span></div>` : ''}
+        <div class="inv-row"><span class="inv-key">Payment</span><span class="inv-val">50% on agreement, 50% on delivery</span></div>
+        ${runningRow}
+        <div class="inv-row"><span class="inv-key">Bug fix guarantee</span><span class="inv-val">30 days post-handover</span></div>
+      </div>
+    </div>
+    <div class="guarantee">
+      <strong>Fixed price means fixed price.</strong> The scope above is what gets built. If something in that scope does not work as described, it gets fixed at no extra cost within 30 days of handover. Changes outside the scope are quoted separately, agreed before any work begins.
+    </div>
+  </section>
+
+  <footer class="footer">
+    <svg class="footer-logo" xmlns="http://www.w3.org/2000/svg" viewBox="30 42 228 70" width="140">
+      <line x1="54" y1="48" x2="34" y2="82" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="square"/>
+      <line x1="54" y1="48" x2="74" y2="82" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="square"/>
+      <line x1="34" y1="82" x2="74" y2="82" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="square"/>
+      <circle cx="54" cy="48" r="2.5" fill="#C9A84C"/>
+      <text x="88" y="82" font-family="Georgia, serif" font-size="46" font-weight="400" letter-spacing="10" fill="#FFFFFF">APEX</text>
+      <text x="88" y="104" font-family="Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="300" letter-spacing="9.5" fill="#C9A84C">SYSTEMATIC</text>
+    </svg>
+    <span class="footer-url">apexsystematic.com</span>
+  </footer>
+
+</div>
+</body>
+</html>`;
+}
+
+// ── Update preview ─────────────────────────────────────────────────────────
+
+function render() {
+  const frame = document.getElementById('preview-frame');
+  const html = buildHTML();
+  // Use srcdoc for live preview
+  frame.srcdoc = html;
+}
+
+// ── Export ─────────────────────────────────────────────────────────────────
+
+function exportHTML() {
+  const title = v('f-title') || 'proposal';
+  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const html = buildHTML();
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `apex-proposal-${slug}.html`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+
+boot();
+</script>
+</body>
+</html>
