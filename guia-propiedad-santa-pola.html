@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de Inspección · Santa Pola</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #F2EDE4;
+    --ink: #1A1612;
+    --rust: #B84A2F;
+    --sea: #2E5F6E;
+    --sea-light: #4A8A9E;
+    --gold: #C9943A;
+    --muted: #8A8278;
+    --paper: #FAF7F2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--sand);
+    color: var(--ink);
+    font-family: 'Lora', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--ink);
+    color: var(--sand);
+    padding: 60px 40px 50px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    border: 60px solid var(--sea);
+    opacity: 0.15;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 30%;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: 40px solid var(--rust);
+    opacity: 0.1;
+  }
+
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--sea-light);
+    margin-bottom: 16px;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  header h1 span {
+    color: var(--rust);
+  }
+
+  .header-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 20px;
+    border-top: 1px solid #333;
+    padding-top: 16px;
+    max-width: 520px;
+  }
+
+  /* MAIN LAYOUT */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+  }
+
+  /* INTRO BOX */
+  .intro-box {
+    background: var(--sea);
+    color: var(--sand);
+    padding: 32px 36px;
+    border-radius: 2px;
+    margin-bottom: 60px;
+    position: relative;
+  }
+
+  .intro-box::before {
+    content: '!';
+    font-family: 'Playfair Display', serif;
+    font-size: 80px;
+    font-weight: 900;
+    color: var(--sea-light);
+    opacity: 0.3;
+    position: absolute;
+    top: 10px; right: 24px;
+    line-height: 1;
+  }
+
+  .intro-box p {
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  .intro-box strong {
+    color: #fff;
+  }
+
+  /* SECTION */
+  .section {
+    margin-bottom: 56px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 12px;
+  }
+
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--rust);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  /* CHECKLIST */
+  .checklist {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .checklist li {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    align-items: start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--paper);
+    border-left: 3px solid transparent;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: default;
+  }
+
+  .checklist li:hover {
+    border-left-color: var(--sea);
+    background: #fff;
+  }
+
+  .checklist li.critical {
+    border-left-color: var(--rust);
+  }
+
+  .checklist li.critical:hover {
+    border-left-color: var(--rust);
+    background: #FDF5F3;
+  }
+
+  .check-box {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--muted);
+    border-radius: 3px;
+    margin-top: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .check-box.checked {
+    background: var(--sea);
+    border-color: var(--sea);
+  }
+
+  .check-box.checked::after {
+    content: '✓';
+    color: white;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .check-box.critical-check {
+    border-color: var(--rust);
+  }
+
+  .check-box.critical-check.checked {
+    background: var(--rust);
+    border-color: var(--rust);
+  }
+
+  .item-content {
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+
+  .item-title {
+    font-weight: 600;
+    color: var(--ink);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .item-detail {
+    color: var(--muted);
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    line-height: 1.5;
+  }
+
+  .badge-critical {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: var(--rust);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 2px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* ALERTA COASTAL */
+  .alert-box {
+    border: 2px solid var(--gold);
+    background: #FDF9F0;
+    padding: 20px 24px;
+    margin: 24px 0;
+    border-radius: 2px;
+  }
+
+  .alert-box .alert-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .alert-box p {
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  /* DOCUMENTOS TABLE */
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  .doc-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .doc-table td {
+    padding: 12px 12px;
+    border-bottom: 1px solid #E5E0D8;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .doc-table tr:nth-child(even) td {
+    background: var(--paper);
+  }
+
+  .doc-table .doc-name {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .doc-table .doc-why {
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+  }
+
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .pill-red { background: #FDECEA; color: var(--rust); }
+  .pill-blue { background: #EAF2F5; color: var(--sea); }
+  .pill-gold { background: #FDF5E0; color: var(--gold); }
+
+  /* PROGRESS */
+  .progress-section {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--ink);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .progress-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--sand);
+    white-space: nowrap;
+  }
+
+  .progress-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--sea-light);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 2px;
+  }
+
+  .progress-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--sea-light);
+    white-space: nowrap;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    color: var(--muted);
+    padding: 30px 40px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+
+  footer span { color: var(--rust); }
+
+  @media (max-width: 600px) {
+    header { padding: 40px 20px 36px; }
+    main { padding: 40px 16px 80px; }
+    .intro-box { padding: 24px 20px; }
+    .doc-table { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Guía de Inversión Inmobiliaria · Alquiler Larga Estancia</div>
+  <h1>Comprar en<br><span>Santa Pola</span><br>con cabeza.</h1>
+  <div class="header-sub">Un checklist exhaustivo para verificar el estado real de una propiedad antes de firmar nada. Enfocado en la costa de Alicante y sus particularidades.</div>
+</header>
+
+<div class="progress-section">
+  <span class="progress-label">Progreso</span>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressBar"></div>
+  </div>
+  <span class="progress-count" id="progressCount">0 / 0</span>
+</div>
+
+<main>
+
+  <div class="intro-box">
+    <p><strong>La regla número uno:</strong> nunca compres una propiedad en la costa sin una inspección técnica independiente. El 70% de los problemas graves en propiedades costeras — humedad, corrosión, aluminosis — son invisibles en una visita normal. Lo que ves en los portales es marketing. Lo que ves en persona sin un técnico es también marketing.</p>
+  </div>
+
+  <!-- SECCIÓN 1: DOCUMENTOS ANTES DE VER -->
+  <div class="section" style="animation-delay: 0.1s">
+    <div class="section-header">
+      <span class="section-num">01 — Antes de visitar</span>
+      <h2 class="section-title">Documentos que debes pedir primero</h2>
+    </div>
+
+    <p style="font-size:14px; color:var(--muted); margin-bottom:20px; font-family:'DM Mono',monospace;">Si el vendedor o la agencia no puede entregar estos documentos, no pierdas el tiempo visitando.</p>
+
+    <table class="doc-table">
+      <thead>
+        <tr>
+          <th>Documento</th>
+          <th>Qué buscas</th>
+          <th>Urgencia</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="doc-name">Nota Simple (Registro de la Propiedad)</span></td>
+          <td><span class="doc-why">Cargas, hipotecas, embargos, titularidad real</span></td>
+          <td><span class="pill pill-red">Crítico</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">IBI últimos 3 años</span></td>
+          <td><span class="doc-why">Detecta deudas pendientes con el Ayuntamiento. Las pagas tú si compras</span></td>
+          <td><span class="pill pill-red">Crítico</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">Certificado de Comunidad</span></td>
+          <td><span class="doc-why">Deudas de comunidad del propietario actual. También te las comes al comprar</span></td>
+          <td><span class="pill pill-red">Crítico</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">Certificado Energético</span></td>
+          <td><span class="doc-why">Obligatorio por ley. Si no existe, alerta. Clase D o peor = facturas altas para el inquilino</span></td>
+          <td><span class="pill pill-blue">Importante</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">Cédula de Habitabilidad</span></td>
+          <td><span class="doc-why">Sin esto no puedes alquilar legalmente en la Comunitat Valenciana</span></td>
+          <td><span class="pill pill-red">Crítico</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">Actas de Comunidad (últimos 3 años)</span></td>
+          <td><span class="doc-why">Obras aprobadas pendientes de pagar. Derramas futuras que te tocarán</span></td>
+          <td><span class="pill pill-blue">Importante</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">ITE o Informe Técnico del Edificio</span></td>
+          <td><span class="doc-why">Edificios >50 años lo necesitan. Si está en mal estado, problemas estructurales garantizados</span></td>
+          <td><span class="pill pill-gold">Según edad</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECCIÓN 2: FACHADA Y EXTERIOR -->
+  <div class="section" style="animation-delay: 0.15s">
+    <div class="section-header">
+      <span class="section-num">02 — En la visita</span>
+      <h2 class="section-title">Fachada y zonas comunes</h2>
+    </div>
+
+    <div class="alert-box">
+      <div class="alert-title">⚠ Alerta Costa</div>
+      <p>Santa Pola está a metros del mar. La salinidad ambiental accelera la corrosión del hierro, degrada el hormigón y destruye instalaciones eléctricas 3–4 veces más rápido que en interior. Cualquier problema que en otro sitio es "menor", aquí puede ser grave en 2 años.</p>
+    </div>
+
+    <ul class="checklist" id="checklist">
+
+      <li class="critical">
+        <div class="check-box critical-check" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Manchas de humedad o eflorescencias en fachada <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Manchas blancas salinas o verdosas = agua filtrando. Muy común en edificios costeros de los años 70–90. Puede ser síntoma de aluminosis en hormigón.</span>
+        </div>
+      </li>
+
+      <li class="critical">
+        <div class="check-box critical-check" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Corrosión visible en elementos metálicos <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Barandillas, perfiles de ventanas, estructura de garajes. Óxido superficial = mantenimiento. Óxido con abombamiento del hormigón = problema estructural serio.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Estado del revestimiento de fachada</span>
+          <span class="item-detail">Grietas horizontales son más preocupantes que verticales. Grietas en esquinas de ventanas indican asiento o movimiento estructural.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Azotea o cubierta del edificio</span>
+          <span class="item-detail">Pide acceso o pregunta cuándo fue la última impermeabilización. Una cubierta en mal estado afecta a todos los pisos superiores.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Estado del portal, ascensor y escaleras</span>
+          <span class="item-detail">Indicador del nivel de mantenimiento general de la comunidad. Abandono en zonas comunes = probablemente lo mismo dentro.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Garajes y sótanos: humedad y marcas de agua</span>
+          <span class="item-detail">Las manchas de nivel de agua en paredes de garaje indican inundaciones pasadas. Santa Pola tiene riesgo de DANA — el historial importa.</span>
+        </div>
+      </li>
+
+    </ul>
+  </div>
+
+  <!-- SECCIÓN 3: INTERIOR -->
+  <div class="section" style="animation-delay: 0.2s">
+    <div class="section-header">
+      <span class="section-num">03 — En la visita</span>
+      <h2 class="section-title">Interior del piso</h2>
+    </div>
+
+    <ul class="checklist">
+
+      <li class="critical">
+        <div class="check-box critical-check" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Humedad en techos y paredes <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Revisa esquinas superiores, paredes exteriores y debajo de ventanas. Lleva una linterna. Las manchas pintadas encima son la trampa clásica del vendedor.</span>
+        </div>
+      </li>
+
+      <li class="critical">
+        <div class="check-box critical-check" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Instalación eléctrica: cuadro y cableado <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Cuadros con fusibles de cerámica (años 70–80) = instalación a sustituir. Mínimo exige ICP, diferencial e interruptores magnetotérmicos. Sin tierra = no apta.</span>
+        </div>
+      </li>
+
+      <li class="critical">
+        <div class="check-box critical-check" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Instalación de fontanería: presión y materiales <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Abre todos los grifos simultáneamente. Presión débil = tuberías incrustadas o problema de red. Tuberías de plomo o galvanizadas en edificios antiguos = sustitución obligatoria.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Ventanas: estanqueidad y estado de perfiles</span>
+          <span class="item-detail">Ventanas de aluminio anodizado antiguas en costa = corroídas por dentro aunque parezcan bien. Toca los perfiles: si hay polvo blanco-grisáceo es oxidación avanzada.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Suelos: niveles y estado</span>
+          <span class="item-detail">Lleva una canica o nivel de burbuja. Inclinación notable puede indicar asiento. Gres o terrazo levantado en zonas húmedas = filtraciones pasadas.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Baños y cocina: impermeabilización y desagües</span>
+          <span class="item-detail">Silicona negra o mohosa en juntas = llevan años sin mantenimiento. Comprueba que los desagües evacúan sin lentitud. Olor a húmedo bajo el fregadero = fuga crónica.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Climatización: estado de split o caldera</span>
+          <span class="item-detail">Pregunta la edad del equipo. Un split costero con más de 8–10 años tiene el intercambiador deteriorado por sal. Coste de sustitución: 800–1.500€ por unidad.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Calentador de agua: año de fabricación</span>
+          <span class="item-detail">Los calentadores eléctricos en zona costera duran 6–8 años (el agua dura los destroza antes). Los de gas requieren revisión periódica certificada.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Orientación y ventilación cruzada</span>
+          <span class="item-detail">Para larga estancia: orientación sur o sureste ideal. Sin ventilación cruzada en costa = condensa y desarrolla moho aunque el piso esté en buen estado. Muy relevante para retener inquilinos.</span>
+        </div>
+      </li>
+
+    </ul>
+  </div>
+
+  <!-- SECCIÓN 4: ESPECÍFICO COSTA -->
+  <div class="section" style="animation-delay: 0.25s">
+    <div class="section-header">
+      <span class="section-num">04 — Específico Costa</span>
+      <h2 class="section-title">Problemas exclusivos de zona litoral</h2>
+    </div>
+
+    <ul class="checklist">
+
+      <li class="critical">
+        <div class="check-box critical-check" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Aluminosis — edificios 1960–1985 <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">El cemento aluminoso pierde resistencia con humedad y calor. Santa Pola tiene stock de esta época. Solicita estudio de carbonatación si el edificio es de ese período. Coste del estudio: ~300€. Coste de ignorarlo: el edificio entero.</span>
+        </div>
+      </li>
+
+      <li class="critical">
+        <div class="check-box critical-check" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Zona inundable DANA <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Consulta el visor PATRICOVA de la Generalitat Valenciana. Tras la DANA de 2024, los bancos y aseguradoras están endureciendo condiciones en zonas de riesgo. Un piso en zona inundable puede ser inasegurable o con primas prohibitivas.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Cercanía a la salina o zonas húmedas</span>
+          <span class="item-detail">El Parque Natural de las Salinas está en Santa Pola. Propiedades muy próximas tienen humedad ambiental elevada constante. Comprueba en días de levante.</span>
+        </div>
+      </li>
+
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Viento de levante y exposición directa al mar</span>
+          <span class="item-detail">Primera y segunda línea: las más expuestas. La brisa salina degrada ventanas, toldos y cerramientos de terraza dos veces más rápido. Calcula ese mantenimiento en tu análisis de rentabilidad.</span>
+        </div>
+      </li>
+
+    </ul>
+  </div>
+
+  <!-- SECCIÓN 5: TÉCNICO INDEPENDIENTE -->
+  <div class="section" style="animation-delay: 0.3s">
+    <div class="section-header">
+      <span class="section-num">05 — Imprescindible</span>
+      <h2 class="section-title">La inspección técnica independiente</h2>
+    </div>
+
+    <div class="alert-box">
+      <div class="alert-title">No es opcional</div>
+      <p>Un arquitecto técnico o aparejador independiente (no uno recomendado por la agencia) cobra entre <strong>200–400€</strong> por una inspección completa. Si la propiedad tiene un problema oculto de 8.000€, acabas de ahorrar 7.600€. Si no tiene problemas, tienes la tranquilidad documentada. Es la inversión con mejor ROI de toda la compra.</p>
+    </div>
+
+    <ul class="checklist">
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Contratar arquitecto técnico INDEPENDIENTE</span>
+          <span class="item-detail">Busca en el COAAT de Alicante (Colegio Oficial de Aparejadores). No uses el que proponga la inmobiliaria. Conflicto de intereses garantizado.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Pedir informe escrito con fotografías</span>
+          <span class="item-detail">Verbal no sirve. Necesitas un documento que puedas usar para renegociar precio o para protegerte legalmente si aparece un vicio oculto post-compra.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Pedir presupuesto de reparación de los defectos encontrados</span>
+          <span class="item-detail">Que el técnico también estime el coste de arreglar lo que encuentre. Ese número es tu palanca de negociación de precio con el vendedor.</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- SECCIÓN 6: ANÁLISIS INVERSIÓN -->
+  <div class="section" style="animation-delay: 0.35s">
+    <div class="section-header">
+      <span class="section-num">06 — Números</span>
+      <h2 class="section-title">Antes de ofertar: el cálculo real</h2>
+    </div>
+
+    <p style="font-size:14px; color:var(--muted); margin-bottom:20px; font-family:'DM Mono',monospace;">Una propiedad en buen estado estructural puede ser mala inversión si los números no cuadran. Calcula esto antes de enamorarte del piso.</p>
+
+    <ul class="checklist">
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Rentabilidad bruta mínima objetivo: 5–6%</span>
+          <span class="item-detail">En Santa Pola, alquiler larga estancia: 600–850€/mes según zona y tamaño. Divide renta anual entre precio de compra. Por debajo del 5% bruto, el neto tras gastos será decepcionante.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Calcular gastos reales de compra: 10–12% sobre precio</span>
+          <span class="item-detail">ITP 10% (segunda mano en C. Valenciana) + notaría + registro + gestoría. Ese dinero no se recupera en años. Mételo en el cálculo desde el inicio.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Provisión anual de mantenimiento: mínimo 1% del valor</span>
+          <span class="item-detail">En costa, sube al 1,5–2%. Un piso de 120.000€ genera entre 1.800–2.400€/año de mantenimiento esperado. Si no lo incluyes en tu análisis, te sorprenderá.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="toggle(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Verificar derramas aprobadas o previsibles</span>
+          <span class="item-detail">Revisa actas de comunidad. Una derrama de fachada puede ser 3.000–8.000€ por piso. Si está aprobada antes de la firma, legalmente puede ser tuya aunque no la hayas votado.</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+</main>
+
+<footer>
+  Guía elaborada para inversión en alquiler larga estancia · Santa Pola, Alicante · <span>Uso privado</span>
+</footer>
+
+<script>
+  function toggle(el) {
+    el.classList.toggle('checked');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const all = document.querySelectorAll('.check-box');
+    const done = document.querySelectorAll('.check-box.checked');
+    const pct = all.length ? (done.length / all.length) * 100 : 0;
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressCount').textContent = done.length + ' / ' + all.length;
+  }
+
+  updateProgress();
+</script>
+
+</body>
+</html>
