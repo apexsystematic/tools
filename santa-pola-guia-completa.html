@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía + Calculadora · Santa Pola</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────── */
+:root {
+  --sand:      #F2EDE4;
+  --ink:       #1A1612;
+  --rust:      #B84A2F;
+  --sea:       #2E5F6E;
+  --sea-light: #4A8A9E;
+  --gold:      #C9943A;
+  --muted:     #8A8278;
+  --paper:     #FAF7F2;
+  --green:     #2A6B4A;
+  --green-bg:  #EEF6F1;
+}
+
+/* ─── RESET ───────────────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; }
+
+body {
+  background: var(--sand);
+  color: var(--ink);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ─── HEADER ──────────────────────────────────────────── */
+header {
+  background: var(--ink);
+  color: var(--sand);
+  padding: 48px 20px 40px;
+  position: relative;
+  overflow: hidden;
+}
+header::before {
+  content:'';
+  position:absolute; top:-60px; right:-60px;
+  width:280px; height:280px; border-radius:50%;
+  border:55px solid var(--sea); opacity:.12;
+}
+header::after {
+  content:'';
+  position:absolute; bottom:-40px; left:28%;
+  width:180px; height:180px; border-radius:50%;
+  border:38px solid var(--rust); opacity:.09;
+}
+.header-label {
+  font-family:'DM Mono',monospace;
+  font-size:10px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--sea-light); margin-bottom:14px;
+}
+header h1 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(32px,8vw,60px);
+  font-weight:900; line-height:1.1; margin-bottom:8px;
+}
+header h1 span { color:var(--rust); }
+.header-sub {
+  font-family:'DM Mono',monospace;
+  font-size:12px; color:var(--muted);
+  margin-top:18px; border-top:1px solid #2e2e2e;
+  padding-top:14px; max-width:480px; line-height:1.6;
+}
+
+/* ─── STICKY PROGRESS ────────────────────────────────── */
+.progress-bar {
+  position:sticky; top:0; z-index:100;
+  background:var(--ink);
+  display:flex; align-items:center; gap:12px;
+  padding:10px 20px;
+}
+.progress-label {
+  font-family:'DM Mono',monospace;
+  font-size:10px; letter-spacing:1px; color:var(--sand);
+  white-space:nowrap;
+}
+.progress-track {
+  flex:1; height:3px; background:#2e2e2e; border-radius:2px; overflow:hidden;
+}
+.progress-fill {
+  height:100%; background:var(--sea-light); width:0%;
+  transition:width .3s ease; border-radius:2px;
+}
+.progress-count {
+  font-family:'DM Mono',monospace;
+  font-size:11px; color:var(--sea-light); white-space:nowrap;
+}
+
+/* ─── MAIN ────────────────────────────────────────────── */
+main {
+  max-width:860px; margin:0 auto;
+  padding:40px 16px 80px;
+}
+
+/* ─── INTRO BOX ───────────────────────────────────────── */
+.intro-box {
+  background:var(--sea); color:var(--sand);
+  padding:24px 20px; border-radius:2px;
+  margin-bottom:48px; position:relative;
+}
+.intro-box::before {
+  content:'!';
+  font-family:'Playfair Display',serif;
+  font-size:70px; font-weight:900;
+  color:var(--sea-light); opacity:.25;
+  position:absolute; top:8px; right:16px; line-height:1;
+}
+.intro-box p { font-size:14px; line-height:1.8; }
+.intro-box strong { color:#fff; }
+
+/* ─── SECTION ─────────────────────────────────────────── */
+.section { margin-bottom:48px; }
+.section-header {
+  display:flex; align-items:baseline; gap:12px;
+  margin-bottom:20px; border-bottom:2px solid var(--ink); padding-bottom:10px;
+  flex-wrap:wrap;
+}
+.section-num {
+  font-family:'DM Mono',monospace;
+  font-size:10px; letter-spacing:2px; color:var(--rust);
+  text-transform:uppercase; white-space:nowrap;
+}
+.section-title {
+  font-family:'Playfair Display',serif;
+  font-size:20px; font-weight:700;
+}
+
+/* ─── DOC TABLE ───────────────────────────────────────── */
+.doc-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+.doc-table th {
+  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px;
+  text-transform:uppercase; color:var(--muted);
+  text-align:left; padding:8px 10px; border-bottom:2px solid var(--ink);
+}
+.doc-table td { padding:10px 10px; border-bottom:1px solid #E5E0D8; vertical-align:top; }
+.doc-table tr:nth-child(even) td { background:var(--paper); }
+.doc-name { font-weight:600; display:block; margin-bottom:3px; }
+.doc-why { color:var(--muted); font-family:'DM Mono',monospace; font-size:11px; line-height:1.5; }
+.pill {
+  display:inline-block; padding:2px 7px; border-radius:20px;
+  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:1px; text-transform:uppercase;
+  white-space:nowrap;
+}
+.pill-red  { background:#FDECEA; color:var(--rust); }
+.pill-blue { background:#EAF2F5; color:var(--sea); }
+.pill-gold { background:#FDF5E0; color:var(--gold); }
+
+/* ─── ALERT BOX ───────────────────────────────────────── */
+.alert-box {
+  border:2px solid var(--gold); background:#FDF9F0;
+  padding:16px 18px; margin:18px 0; border-radius:2px;
+}
+.alert-box .alert-title {
+  font-family:'DM Mono',monospace; font-size:10px;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--gold); margin-bottom:6px;
+}
+.alert-box p { font-size:13px; }
+
+/* ─── CHECKLIST ───────────────────────────────────────── */
+.checklist { list-style:none; display:flex; flex-direction:column; gap:8px; }
+.checklist li {
+  display:grid; grid-template-columns:28px 1fr;
+  align-items:start; gap:10px;
+  padding:12px 14px; background:var(--paper);
+  border-left:3px solid transparent;
+  transition:border-color .15s, background .15s;
+}
+.checklist li:hover { border-left-color:var(--sea); background:#fff; }
+.checklist li.critical { border-left-color:var(--rust); }
+.checklist li.critical:hover { background:#FDF5F3; }
+
+.check-box {
+  width:20px; height:20px; border:2px solid var(--muted);
+  border-radius:3px; margin-top:2px; cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .15s;
+}
+.check-box.checked            { background:var(--sea);  border-color:var(--sea); }
+.check-box.critical-check     { border-color:var(--rust); }
+.check-box.critical-check.checked { background:var(--rust); border-color:var(--rust); }
+.check-box.checked::after     { content:'✓'; color:#fff; font-size:12px; font-family:'DM Mono',monospace; }
+
+.item-content { font-size:14px; line-height:1.6; }
+.item-title   { font-weight:600; display:block; margin-bottom:2px; }
+.item-detail  { color:var(--muted); font-size:12px; font-family:'DM Mono',monospace; line-height:1.5; }
+
+.badge-critical {
+  display:inline-block; font-family:'DM Mono',monospace;
+  font-size:8px; letter-spacing:1px; text-transform:uppercase;
+  background:var(--rust); color:#fff; padding:2px 5px;
+  border-radius:2px; margin-left:6px; vertical-align:middle;
+}
+
+/* ─── CALCULADORA ─────────────────────────────────────── */
+.calc-section {
+  background:var(--ink); color:var(--sand);
+  padding:28px 16px; border-radius:2px; margin-bottom:48px;
+}
+.calc-section-title {
+  font-family:'DM Mono',monospace; font-size:10px;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--sea-light); margin-bottom:20px;
+  padding-bottom:10px; border-bottom:1px solid #2e2e2e;
+}
+
+/* TABS */
+.mode-tabs {
+  display:flex; border:1.5px solid #3a3a3a; border-radius:2px;
+  overflow:hidden; margin-bottom:20px;
+}
+.mode-tab {
+  flex:1; padding:11px 8px;
+  background:#222; border:none; cursor:pointer;
+  font-family:'DM Mono',monospace; font-size:10px;
+  letter-spacing:1px; text-transform:uppercase;
+  color:var(--muted); transition:all .2s;
+  border-right:1px solid #3a3a3a; text-align:center;
+}
+.mode-tab:last-child { border-right:none; }
+.mode-tab.active { background:var(--sea); color:#fff; }
+
+/* INPUT GROUPS */
+.input-group {
+  display:flex; flex-direction:column; gap:12px;
+  margin-bottom:16px;
+}
+.field {
+  display:flex; flex-direction:column; gap:5px;
+}
+.field label {
+  font-family:'DM Mono',monospace; font-size:9px;
+  letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); line-height:1.5;
+}
+.field label small {
+  display:block; color:var(--rust); font-size:9px;
+  text-transform:none; letter-spacing:0; margin-top:1px;
+}
+.input-wrap {
+  display:flex; align-items:center;
+  border:1.5px solid #3a3a3a; border-radius:2px;
+  overflow:hidden; background:#111; transition:border-color .15s;
+}
+.input-wrap:focus-within { border-color:var(--sea-light); }
+.input-pre {
+  padding:0 10px; background:#2a2a2a;
+  font-family:'DM Mono',monospace; font-size:12px; color:var(--muted);
+  align-self:stretch; display:flex; align-items:center;
+  border-right:1px solid #3a3a3a; white-space:nowrap; flex-shrink:0;
+}
+.input-wrap input {
+  flex:1; min-width:0; padding:11px 10px;
+  border:none; background:transparent;
+  font-family:'DM Mono',monospace; font-size:15px; color:#fff;
+  outline:none;
+}
+.input-wrap input::placeholder { color:#444; }
+
+.mortgage-fields { display:none; }
+.mortgage-fields.visible { display:flex; flex-direction:column; gap:12px; }
+
+/* DESGLOSE */
+.desglose {
+  background:#111; border-radius:2px; padding:16px;
+  margin-top:16px; display:none;
+}
+.desglose.visible { display:block; }
+.desglose-title {
+  font-family:'DM Mono',monospace; font-size:9px;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--sea-light); margin-bottom:12px;
+}
+.des-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:6px 0; border-bottom:1px solid #1e1e1e;
+  font-family:'DM Mono',monospace; font-size:11px;
+}
+.des-row:last-child { border-bottom:none; }
+.des-row .dl { color:#666; }
+.des-row .dv { color:var(--sand); }
+.des-row.des-total {
+  border-top:1.5px solid var(--sea); margin-top:6px;
+  padding-top:10px; font-size:12px;
+}
+.des-row.des-total .dl { color:var(--sand); font-weight:600; }
+.des-row.des-total .dv { color:var(--gold); font-weight:600; }
+
+/* RESULTADO CARDS */
+.result-cards {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:10px; margin-top:16px;
+}
+.rcard {
+  background:#111; padding:14px 12px; border-radius:2px;
+  border-top:3px solid #333;
+}
+.rcard.accent   { border-top-color:var(--sea-light); }
+.rcard.positive { border-top-color:var(--green); }
+.rcard.negative { border-top-color:var(--rust); }
+.rcard.golden   { border-top-color:var(--gold); }
+
+.rcard-label {
+  font-family:'DM Mono',monospace; font-size:9px;
+  letter-spacing:1px; text-transform:uppercase;
+  color:#666; margin-bottom:6px; line-height:1.4;
+}
+.rcard-value {
+  font-family:'Playfair Display',serif;
+  font-size:20px; font-weight:700; color:var(--sand); line-height:1.1;
+}
+.rcard.accent   .rcard-value { color:var(--sea-light); }
+.rcard.positive .rcard-value { color:#6ecfa0; }
+.rcard.negative .rcard-value { color:#e8826a; }
+.rcard.golden   .rcard-value { color:var(--gold); }
+
+.rcard-sub {
+  font-family:'DM Mono',monospace; font-size:9px;
+  color:#555; margin-top:4px; line-height:1.4;
+}
+
+/* CASHFLOW */
+.cashflow {
+  background:#111; border-radius:2px; padding:16px;
+  margin-top:10px; display:none;
+}
+.cashflow.visible { display:block; }
+.cashflow-title {
+  font-family:'DM Mono',monospace; font-size:9px;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--sea-light); margin-bottom:12px;
+}
+.cf-row {
+  display:flex; justify-content:space-between;
+  padding:7px 0; border-bottom:1px dashed #222;
+  font-family:'DM Mono',monospace; font-size:12px;
+}
+.cf-row:last-child { border-bottom:none; }
+.cf-l { color:#666; }
+.cf-v { }
+.cf-v.pos { color:#6ecfa0; }
+.cf-v.neg { color:#e8826a; }
+.cf-total {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:10px; padding:12px 14px; border-radius:2px;
+}
+.cf-total.pos { background:#0f2a1e; }
+.cf-total.neg { background:#2a0f0f; }
+.cf-total-l {
+  font-family:'DM Mono',monospace; font-size:10px;
+  letter-spacing:1px; text-transform:uppercase;
+}
+.cf-total.pos .cf-total-l { color:#6ecfa0; }
+.cf-total.neg .cf-total-l { color:#e8826a; }
+.cf-total-v {
+  font-family:'Playfair Display',serif;
+  font-size:24px; font-weight:700;
+}
+.cf-total.pos .cf-total-v { color:#6ecfa0; }
+.cf-total.neg .cf-total-v { color:#e8826a; }
+
+/* VEREDICTO */
+.veredicto {
+  display:none; flex-direction:row; gap:14px;
+  align-items:flex-start; padding:18px 16px; border-radius:2px;
+  border:2px solid #333; margin-top:14px;
+  transition:all .3s;
+}
+.veredicto.visible { display:flex; }
+.veredicto.good { border-color:var(--green); background:#0a1f13; }
+.veredicto.ok   { border-color:var(--gold);  background:#1f1600; }
+.veredicto.bad  { border-color:var(--rust);  background:#1f0a0a; }
+.v-icon { font-size:26px; flex-shrink:0; }
+.v-title {
+  font-family:'Playfair Display',serif;
+  font-size:16px; font-weight:700; margin-bottom:5px; color:var(--sand);
+}
+.v-text {
+  font-family:'DM Mono',monospace; font-size:11px;
+  color:#777; line-height:1.7;
+}
+
+/* NOTA CALC */
+.calc-nota {
+  font-family:'DM Mono',monospace; font-size:10px;
+  color:#555; line-height:1.6; margin-top:14px;
+  padding-top:14px; border-top:1px solid #2a2a2a;
+}
+.calc-nota strong { color:#888; }
+
+/* ─── FOOTER ──────────────────────────────────────────── */
+footer {
+  background:var(--ink); color:var(--muted);
+  padding:24px 20px; font-family:'DM Mono',monospace;
+  font-size:10px; letter-spacing:1px; text-align:center; line-height:1.8;
+}
+footer span { color:var(--rust); }
+
+/* ─── RESPONSIVE ──────────────────────────────────────── */
+@media (max-width:480px) {
+  .doc-table thead { display:none; }
+  .doc-table tr { display:block; margin-bottom:12px; background:var(--paper); padding:10px; }
+  .doc-table td { display:block; padding:4px 0; border:none; font-size:12px; }
+  .result-cards { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════════ -->
+<header>
+  <div class="header-label">Guía de Inversión Inmobiliaria · Alquiler Larga Estancia</div>
+  <h1>Comprar en<br><span>Santa Pola</span><br>con cabeza.</h1>
+  <div class="header-sub">Checklist de inspección + calculadora de rentabilidad. Para no comprar un problema disfrazado de oportunidad.</div>
+</header>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar">
+  <span class="progress-label">Progreso</span>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <span class="progress-count" id="progressCount">0 / 0</span>
+</div>
+
+<main>
+
+  <div class="intro-box">
+    <p><strong>La regla número uno:</strong> nunca compres una propiedad en la costa sin una inspección técnica independiente. El 70% de los problemas graves en propiedades costeras —humedad, corrosión, aluminosis— son invisibles en una visita normal. Lo que ves en los portales es marketing.</p>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       01 — DOCUMENTOS
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01 — Antes de visitar</span>
+      <h2 class="section-title">Documentos que pedir primero</h2>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;font-family:'DM Mono',monospace;">Si el vendedor no puede entregar estos documentos, no pierdas el tiempo visitando.</p>
+    <table class="doc-table">
+      <thead>
+        <tr><th>Documento</th><th>Qué buscas</th><th>Urgencia</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="doc-name">Nota Simple (Registro de la Propiedad)</span><span class="doc-why">Cargas, hipotecas, embargos, titularidad real</span></td>
+          <td><span class="doc-why">Cargas, hipotecas, embargos, titularidad real</span></td>
+          <td><span class="pill pill-red">Crítico</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">IBI últimos 3 años</span></td>
+          <td><span class="doc-why">Detecta deudas con el Ayuntamiento. Las heredas al comprar.</span></td>
+          <td><span class="pill pill-red">Crítico</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">Certificado de Comunidad</span></td>
+          <td><span class="doc-why">Deudas de comunidad del propietario actual. También te las comes.</span></td>
+          <td><span class="pill pill-red">Crítico</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">Cédula de Habitabilidad</span></td>
+          <td><span class="doc-why">Sin esto no puedes alquilar legalmente en la C. Valenciana.</span></td>
+          <td><span class="pill pill-red">Crítico</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">Certificado Energético</span></td>
+          <td><span class="doc-why">Clase D o peor = facturas altas para el inquilino. Clase G = problema futuro.</span></td>
+          <td><span class="pill pill-blue">Importante</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">Actas de Comunidad (3 años)</span></td>
+          <td><span class="doc-why">Obras aprobadas pendientes. Derramas futuras que te tocarán.</span></td>
+          <td><span class="pill pill-blue">Importante</span></td>
+        </tr>
+        <tr>
+          <td><span class="doc-name">ITE / Informe Técnico del Edificio</span></td>
+          <td><span class="doc-why">Edificios >50 años lo necesitan. Mal estado = problemas estructurales.</span></td>
+          <td><span class="pill pill-gold">Según edad</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       02 — FACHADA
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02 — En la visita</span>
+      <h2 class="section-title">Fachada y zonas comunes</h2>
+    </div>
+    <div class="alert-box">
+      <div class="alert-title">⚠ Alerta Costa</div>
+      <p>La salinidad de Santa Pola acelera la corrosión del hierro y degrada el hormigón 3–4 veces más rápido que en el interior. Lo que en otro sitio es "menor", aquí puede ser grave en 2 años.</p>
+    </div>
+    <ul class="checklist">
+      <li class="critical">
+        <div class="check-box critical-check" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Manchas de humedad o eflorescencias <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Manchas blancas o verdosas en fachada = agua filtrando. Muy común en edificios costeros 70–90. Puede ser síntoma de aluminosis.</span>
+        </div>
+      </li>
+      <li class="critical">
+        <div class="check-box critical-check" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Corrosión en elementos metálicos <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Barandillas, perfiles de ventanas, estructura de garajes. Óxido con abombamiento del hormigón = problema estructural.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Grietas en revestimiento de fachada</span>
+          <span class="item-detail">Las horizontales son más preocupantes que las verticales. Grietas en esquinas de ventanas indican movimiento estructural.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Azotea o cubierta del edificio</span>
+          <span class="item-detail">Pregunta cuándo fue la última impermeabilización. Una cubierta en mal estado afecta a todos los pisos superiores.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Estado del portal, ascensor y escaleras</span>
+          <span class="item-detail">Indicador del nivel de mantenimiento general. Abandono en zonas comunes = lo mismo dentro.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Garajes y sótanos: marcas de agua</span>
+          <span class="item-detail">Manchas de nivel en paredes = inundaciones pasadas. Santa Pola tiene riesgo de DANA.</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       03 — INTERIOR
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">03 — En la visita</span>
+      <h2 class="section-title">Interior del piso</h2>
+    </div>
+    <ul class="checklist">
+      <li class="critical">
+        <div class="check-box critical-check" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Humedad en techos y paredes <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Revisa esquinas superiores, paredes exteriores y debajo de ventanas. Lleva linterna. Las manchas pintadas encima son la trampa clásica.</span>
+        </div>
+      </li>
+      <li class="critical">
+        <div class="check-box critical-check" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Cuadro eléctrico y cableado <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Fusibles de cerámica (años 70–80) = instalación a sustituir. Mínimo: ICP, diferencial e interruptores magnetotérmicos. Sin tierra = no apta.</span>
+        </div>
+      </li>
+      <li class="critical">
+        <div class="check-box critical-check" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Fontanería: presión y materiales <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Abre todos los grifos a la vez. Presión débil = tuberías incrustadas. Tuberías de plomo o galvanizadas en edificios antiguos = sustitución obligatoria.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Ventanas: estanqueidad y perfiles</span>
+          <span class="item-detail">Aluminio anodizado antiguo en costa = corroído por dentro aunque parezca bien. Polvo blanco-grisáceo en perfiles = oxidación avanzada.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Suelos: nivel y estado</span>
+          <span class="item-detail">Lleva una canica. Inclinación notable = posible asiento. Gres o terrazo levantado en zonas húmedas = filtraciones pasadas.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Baños y cocina: impermeabilización</span>
+          <span class="item-detail">Silicona negra o mohosa = sin mantenimiento. Desagüe lento = obstrucción. Olor húmedo bajo el fregadero = fuga crónica.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Split o caldera: edad del equipo</span>
+          <span class="item-detail">Un split costero con más de 8–10 años tiene el intercambiador deteriorado por sal. Coste de sustitución: 800–1.500€ por unidad.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Calentador de agua: año de fabricación</span>
+          <span class="item-detail">En costa duran 6–8 años. El agua dura los destroza antes. Los de gas requieren revisión periódica certificada.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Orientación y ventilación cruzada</span>
+          <span class="item-detail">Sur o sureste = ideal. Sin ventilación cruzada en costa = condensa y desarrolla moho. Muy relevante para retener inquilinos.</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       04 — ESPECÍFICO COSTA
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">04 — Específico Costa</span>
+      <h2 class="section-title">Problemas exclusivos de litoral</h2>
+    </div>
+    <ul class="checklist">
+      <li class="critical">
+        <div class="check-box critical-check" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Aluminosis — edificios 1960–1985 <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">El cemento aluminoso pierde resistencia con humedad y calor. Solicita estudio de carbonatación si el edificio es de ese período. Coste: ~300€. Coste de ignorarlo: el edificio entero.</span>
+        </div>
+      </li>
+      <li class="critical">
+        <div class="check-box critical-check" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Zona inundable DANA <span class="badge-critical">Crítico</span></span>
+          <span class="item-detail">Consulta el visor PATRICOVA (Generalitat Valenciana). Tras la DANA de 2024, bancos y aseguradoras están endureciendo condiciones en zonas de riesgo.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Cercanía a la salina o zonas húmedas</span>
+          <span class="item-detail">El Parque Natural de las Salinas genera humedad ambiental elevada constante. Comprueba en días de levante.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Exposición directa al mar y levante</span>
+          <span class="item-detail">Primera y segunda línea: la brisa salina degrada ventanas, toldos y cerramientos dos veces más rápido. Inclúyelo en el análisis de rentabilidad.</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       05 — TÉCNICO INDEPENDIENTE
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">05 — Imprescindible</span>
+      <h2 class="section-title">La inspección técnica independiente</h2>
+    </div>
+    <div class="alert-box">
+      <div class="alert-title">No es opcional</div>
+      <p>Un aparejador independiente cobra entre <strong>200–400€</strong>. Si detecta un problema oculto de 8.000€, acabas de ahorrar 7.600€. No uses el que proponga la inmobiliaria. Conflicto de intereses garantizado.</p>
+    </div>
+    <ul class="checklist">
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Contratar aparejador del COAAT de Alicante</span>
+          <span class="item-detail">Colegio Oficial de Aparejadores y Arquitectos Técnicos. No uses el que sugiera la agencia.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Pedir informe escrito con fotografías</span>
+          <span class="item-detail">Verbal no sirve. Lo necesitas para renegociar precio o para protegerte si aparece un vicio oculto post-compra.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Pedir presupuesto de los defectos encontrados</span>
+          <span class="item-detail">Ese número es tu palanca de negociación de precio con el vendedor.</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       06 — CHECKLIST NÚMEROS
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">06 — Números</span>
+      <h2 class="section-title">Antes de ofertar</h2>
+    </div>
+    <ul class="checklist">
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Rentabilidad bruta mínima objetivo: 5–6%</span>
+          <span class="item-detail">En Santa Pola, larga estancia: 600–850€/mes. Por debajo del 5% bruto, el neto tras gastos será decepcionante.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Gastos reales de compra: 10–12% sobre precio</span>
+          <span class="item-detail">ITP 10% + notaría + registro + gestoría. Ese dinero no se recupera en años.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Provisión anual de mantenimiento: 1,5% en costa</span>
+          <span class="item-detail">Un piso de 120.000€ genera ~1.800€/año de mantenimiento esperado. Si no lo incluyes, te sorprenderá.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-box" onclick="tick(this)"></div>
+        <div class="item-content">
+          <span class="item-title">Verificar derramas aprobadas en actas</span>
+          <span class="item-detail">Una derrama de fachada puede ser 3.000–8.000€ por piso. Si está aprobada antes de la firma, puede ser tuya legalmente.</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       07 — CALCULADORA
+  ═══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">07 — Calculadora</span>
+      <h2 class="section-title">Rentabilidad real de la inversión</h2>
+    </div>
+
+    <div class="calc-section">
+      <div class="calc-section-title">Modo de compra</div>
+
+      <!-- TABS -->
+      <div class="mode-tabs">
+        <button class="mode-tab active" onclick="setMode('contado')">Sin hipoteca</button>
+        <button class="mode-tab" onclick="setMode('hipoteca')">Con hipoteca</button>
+      </div>
+
+      <!-- INPUTS BASE (siempre visibles) -->
+      <div class="input-group">
+        <div class="field">
+          <label>Precio de venta<small>Sin impuestos ni gastos — los calcula la herramienta</small></label>
+          <div class="input-wrap">
+            <span class="input-pre">€</span>
+            <input type="number" id="c-precio" placeholder="135000" inputmode="numeric" oninput="onPrecioChange()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Alquiler mensual estimado</label>
+          <div class="input-wrap">
+            <span class="input-pre">€ / mes</span>
+            <input type="number" id="c-alquiler" placeholder="680" inputmode="numeric" oninput="calcular()">
+          </div>
+        </div>
+        <div class="field">
+          <label>IBI anual</label>
+          <div class="input-wrap">
+            <span class="input-pre">€ / año</span>
+            <input type="number" id="c-ibi" placeholder="142" inputmode="numeric" oninput="calcular()">
+          </div>
+        </div>
+      </div>
+
+      <!-- INPUTS HIPOTECA -->
+      <div class="mortgage-fields" id="mortgageFields">
+        <div class="field">
+          <label>Entrada (%)<small>Bancos piden habitualmente 20–30% en pisos de inversión</small></label>
+          <div class="input-wrap">
+            <span class="input-pre">%</span>
+            <input type="number" id="c-entrada" placeholder="30" inputmode="decimal" oninput="onEntradaChange()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Capital financiado<small>Se calcula automáticamente con la entrada</small></label>
+          <div class="input-wrap">
+            <span class="input-pre">€</span>
+            <input type="number" id="c-capital" placeholder="—" inputmode="numeric" oninput="calcular()" style="color:#aaa">
+          </div>
+        </div>
+        <div class="field">
+          <label>Tipo de interés anual</label>
+          <div class="input-wrap">
+            <span class="input-pre">%</span>
+            <input type="number" id="c-interes" placeholder="3.5" step="0.1" inputmode="decimal" oninput="calcular()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Plazo</label>
+          <div class="input-wrap">
+            <span class="input-pre">años</span>
+            <input type="number" id="c-plazo" placeholder="25" inputmode="numeric" oninput="calcular()">
+          </div>
+        </div>
+      </div>
+
+      <!-- DESGLOSE GASTOS COMPRA -->
+      <div class="desglose" id="desglose">
+        <div class="desglose-title">Desglose de gastos de compra</div>
+        <div class="des-row"><span class="dl">Precio de venta</span><span class="dv" id="d-precio">—</span></div>
+        <div class="des-row"><span class="dl">ITP (10% — C. Valenciana)</span><span class="dv" id="d-itp">—</span></div>
+        <div class="des-row"><span class="dl">Notaría + Registro</span><span class="dv" id="d-notaria">—</span></div>
+        <div class="des-row"><span class="dl">Gestoría</span><span class="dv" id="d-gestoria">—</span></div>
+        <div class="des-row" id="d-entrada-row" style="display:none"><span class="dl">Entrada aportada</span><span class="dv" id="d-entrada">—</span></div>
+        <div class="des-row des-total"><span class="dl" id="d-total-lbl">Desembolso real total</span><span class="dv" id="d-total">—</span></div>
+      </div>
+
+      <!-- RESULTADO CONTADO -->
+      <div id="res-contado" style="display:none">
+        <div class="result-cards">
+          <div class="rcard">
+            <div class="rcard-label">Ingresos brutos anuales</div>
+            <div class="rcard-value" id="r-bruto">—</div>
+          </div>
+          <div class="rcard negative">
+            <div class="rcard-label">Gastos anuales</div>
+            <div class="rcard-value" id="r-gastos">—</div>
+            <div class="rcard-sub" id="r-gastos-det">—</div>
+          </div>
+          <div class="rcard">
+            <div class="rcard-label">Ingresos netos anuales</div>
+            <div class="rcard-value" id="r-neto">—</div>
+            <div class="rcard-sub">Antes de IRPF</div>
+          </div>
+          <div class="rcard accent">
+            <div class="rcard-label">Rentabilidad bruta</div>
+            <div class="rcard-value" id="r-pct-bruto">—</div>
+            <div class="rcard-sub">Sobre inversión total</div>
+          </div>
+          <div class="rcard accent">
+            <div class="rcard-label">Rentabilidad neta</div>
+            <div class="rcard-value" id="r-pct-neto">—</div>
+            <div class="rcard-sub">Antes de IRPF</div>
+          </div>
+          <div class="rcard golden">
+            <div class="rcard-label">Años para recuperar</div>
+            <div class="rcard-value" id="r-payback">—</div>
+            <div class="rcard-sub">Sobre neto anual</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTADO HIPOTECA -->
+      <div id="res-hipoteca" style="display:none">
+        <div class="result-cards">
+          <div class="rcard accent">
+            <div class="rcard-label">Cuota hipoteca mensual</div>
+            <div class="rcard-value" id="h-cuota">—</div>
+            <div class="rcard-sub" id="h-cuota-det">—</div>
+          </div>
+          <div class="rcard golden">
+            <div class="rcard-label">Alquiler cubre la hipoteca</div>
+            <div class="rcard-value" id="h-cobertura">—</div>
+            <div class="rcard-sub">El inquilino paga este % de la cuota</div>
+          </div>
+        </div>
+
+        <div class="cashflow" id="cashflow">
+          <div class="cashflow-title">Cash flow mensual · Lo que entra y sale de tu bolsillo</div>
+          <div class="cf-row"><span class="cf-l">+ Alquiler cobrado</span><span class="cf-v pos" id="cf-alq">—</span></div>
+          <div class="cf-row"><span class="cf-l">− Cuota hipoteca</span><span class="cf-v neg" id="cf-cuota">—</span></div>
+          <div class="cf-row"><span class="cf-l">− IBI mensualizado</span><span class="cf-v neg" id="cf-ibi">—</span></div>
+          <div class="cf-row"><span class="cf-l">− Mantenimiento 1,5%/año</span><span class="cf-v neg" id="cf-mant">—</span></div>
+          <div class="cf-total" id="cf-total">
+            <span class="cf-total-l" id="cf-total-l">Cash flow neto mensual</span>
+            <span class="cf-total-v" id="cf-total-v">—</span>
+          </div>
+        </div>
+
+        <div class="result-cards" style="margin-top:10px">
+          <div class="rcard golden">
+            <div class="rcard-label">Patrimonio acumulado en 10 años</div>
+            <div class="rcard-value" id="h-patrimonio">—</div>
+            <div class="rcard-sub">Capital amortizado del préstamo</div>
+          </div>
+          <div class="rcard accent">
+            <div class="rcard-label">Rentabilidad bruta s/ desembolso</div>
+            <div class="rcard-value" id="h-rent-bruta">—</div>
+            <div class="rcard-sub">Apalancamiento financiero</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VEREDICTO -->
+      <div class="veredicto" id="veredicto">
+        <div class="v-icon" id="v-icon">—</div>
+        <div>
+          <div class="v-title" id="v-title">—</div>
+          <div class="v-text"  id="v-text">—</div>
+        </div>
+      </div>
+
+      <div class="calc-nota">
+        <strong>Supuestos:</strong> ITP 10% (C. Valenciana, segunda transmisión). Notaría + registro estimados 800–2.000€ según precio. Gestoría fija 400€. Mantenimiento 1,5%/año del valor (estándar costa). Sin seguro de hogar, derramas, ni vacancia. IRPF no incluido.
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Guía de inversión en alquiler larga estancia · Santa Pola, Alicante<br>
+  <span>Uso privado · Elaborada con datos del mercado 2025</span>
+</footer>
+
+<script>
+/* ── CHECKLIST ───────────────────────────────────────── */
+function tick(el) {
+  el.classList.toggle('checked');
+  updateProgress();
+}
+function updateProgress() {
+  const all  = document.querySelectorAll('.check-box');
+  const done = document.querySelectorAll('.check-box.checked');
+  const pct  = all.length ? (done.length / all.length) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = done.length + ' / ' + all.length;
+}
+updateProgress();
+
+/* ── CALCULADORA ─────────────────────────────────────── */
+let mode = 'contado';
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && m === 'contado') || (i === 1 && m === 'hipoteca'));
+  });
+  document.getElementById('mortgageFields').classList.toggle('visible', m === 'hipoteca');
+  clearResults();
+  calcular();
+}
+
+function clearResults() {
+  document.getElementById('desglose').classList.remove('visible');
+  document.getElementById('res-contado').style.display  = 'none';
+  document.getElementById('res-hipoteca').style.display = 'none';
+  document.getElementById('cashflow').classList.remove('visible');
+  document.getElementById('veredicto').classList.remove('visible','good','ok','bad');
+}
+
+function onPrecioChange() {
+  const precio = parseFloat(document.getElementById('c-precio').value) || 0;
+  const entrada = parseFloat(document.getElementById('c-entrada').value) || 0;
+  if (precio && entrada) {
+    document.getElementById('c-capital').value = Math.round(precio * (1 - entrada / 100));
+  }
+  calcular();
+}
+
+function onEntradaChange() {
+  const precio  = parseFloat(document.getElementById('c-precio').value) || 0;
+  const entrada = parseFloat(document.getElementById('c-entrada').value) || 0;
+  if (precio && entrada) {
+    document.getElementById('c-capital').value = Math.round(precio * (1 - entrada / 100));
+  }
+  calcular();
+}
+
+function fmt(n, dec = 0) {
+  return n.toLocaleString('es-ES', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + ' €';
+}
+function fmtPct(n) {
+  return n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+}
+
+function cuota(capital, tasaAnual, años) {
+  const r = tasaAnual / 100 / 12;
+  const n = años * 12;
+  if (r === 0) return capital / n;
+  return capital * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+}
+
+function capitalAmortizado10(capital, tasaAnual, años) {
+  const r = tasaAnual / 100 / 12;
+  const n = años * 12;
+  const q = cuota(capital, tasaAnual, años);
+  if (r === 0) return q * 120;
+  const pendiente = capital * Math.pow(1+r,120) - q * (Math.pow(1+r,120) - 1) / r;
+  return capital - pendiente;
+}
+
+function calcular() {
+  const precio   = parseFloat(document.getElementById('c-precio').value)   || 0;
+  const alquiler = parseFloat(document.getElementById('c-alquiler').value) || 0;
+  const ibi      = parseFloat(document.getElementById('c-ibi').value)      || 0;
+
+  if (!precio || !alquiler) { clearResults(); return; }
+
+  /* gastos compra */
+  const itp      = precio * 0.10;
+  const notaria  = Math.min(Math.max(precio * 0.005, 800), 2000);
+  const gestoria = 400;
+  const gastosCompra = itp + notaria + gestoria;
+
+  document.getElementById('d-precio').textContent   = fmt(precio);
+  document.getElementById('d-itp').textContent      = fmt(itp);
+  document.getElementById('d-notaria').textContent  = fmt(notaria);
+  document.getElementById('d-gestoria').textContent = fmt(gestoria);
+
+  const esHipoteca = mode === 'hipoteca';
+  document.getElementById('d-entrada-row').style.display = esHipoteca ? 'flex' : 'none';
+
+  if (!esHipoteca) {
+    /* ── CONTADO ─────────────────────────────────────── */
+    const totalInv = precio + gastosCompra;
+    document.getElementById('d-total-lbl').textContent = 'Desembolso real total';
+    document.getElementById('d-total').textContent     = fmt(totalInv);
+
+    const ingBruto = alquiler * 12;
+    const mant     = precio * 0.015;
+    const gastos   = ibi + mant;
+    const ingNeto  = ingBruto - gastos;
+    const rBruta   = ingBruto / totalInv * 100;
+    const rNeta    = ingNeto  / totalInv * 100;
+    const payback  = ingNeto > 0 ? totalInv / ingNeto : null;
+
+    document.getElementById('r-bruto').textContent     = fmt(ingBruto);
+    document.getElementById('r-gastos').textContent    = '− ' + fmt(gastos);
+    document.getElementById('r-gastos-det').textContent= 'IBI ' + fmt(ibi) + ' + Mant. ' + fmt(mant);
+    document.getElementById('r-neto').textContent      = fmt(ingNeto);
+    document.getElementById('r-pct-bruto').textContent = fmtPct(rBruta);
+    document.getElementById('r-pct-neto').textContent  = fmtPct(rNeta);
+    document.getElementById('r-payback').textContent   = payback ? payback.toFixed(1) + ' años' : '—';
+
+    document.getElementById('res-contado').style.display  = 'grid';
+    document.getElementById('res-hipoteca').style.display = 'none';
+
+    veredictoContado(rNeta);
+
+  } else {
+    /* ── HIPOTECA ────────────────────────────────────── */
+    const entradaPct = parseFloat(document.getElementById('c-entrada').value)  || 30;
+    const capital    = parseFloat(document.getElementById('c-capital').value)  || (precio * (1 - entradaPct / 100));
+    const interes    = parseFloat(document.getElementById('c-interes').value)  || 3.5;
+    const plazo      = parseFloat(document.getElementById('c-plazo').value)    || 25;
+
+    const entrada    = precio - capital;
+    const totalDesemb = entrada + gastosCompra;
+
+    document.getElementById('d-entrada').textContent  = fmt(entrada);
+    document.getElementById('d-total-lbl').textContent= 'Desembolso inicial (entrada + gastos)';
+    document.getElementById('d-total').textContent    = fmt(totalDesemb);
+
+    const q        = cuota(capital, interes, plazo);
+    const mantMes  = precio * 0.015 / 12;
+    const ibiMes   = ibi / 12;
+    const cfNeto   = alquiler - q - ibiMes - mantMes;
+    const cobertura= alquiler / q * 100;
+    const rBruta   = alquiler * 12 / totalDesemb * 100;
+    const patrim10 = capitalAmortizado10(capital, interes, plazo);
+
+    document.getElementById('h-cuota').textContent     = fmt(q, 2);
+    document.getElementById('h-cuota-det').textContent = capital.toLocaleString('es-ES') + ' € · ' + interes + '% · ' + plazo + ' años';
+    document.getElementById('h-cobertura').textContent = fmtPct(cobertura);
+    document.getElementById('cf-alq').textContent      = '+' + fmt(alquiler, 2);
+    document.getElementById('cf-cuota').textContent    = '−' + fmt(q, 2);
+    document.getElementById('cf-ibi').textContent      = '−' + fmt(ibiMes, 2);
+    document.getElementById('cf-mant').textContent     = '−' + fmt(mantMes, 2);
+
+    const cfEl = document.getElementById('cf-total');
+    const isPos = cfNeto >= 0;
+    cfEl.className = 'cf-total ' + (isPos ? 'pos' : 'neg');
+    document.getElementById('cf-total-l').className = 'cf-total-l';
+    document.getElementById('cf-total-v').className = 'cf-total-v';
+    document.getElementById('cf-total-v').textContent = (isPos ? '+' : '') + fmt(cfNeto, 2);
+
+    document.getElementById('h-patrimonio').textContent  = fmt(patrim10);
+    document.getElementById('h-rent-bruta').textContent  = fmtPct(rBruta);
+
+    document.getElementById('res-contado').style.display  = 'none';
+    document.getElementById('res-hipoteca').style.display = 'block';
+    document.getElementById('cashflow').classList.add('visible');
+
+    veredictoHipoteca(cfNeto, cobertura);
+  }
+
+  document.getElementById('desglose').classList.add('visible');
+}
+
+function veredictoContado(rNeta) {
+  const el = document.getElementById('veredicto');
+  el.classList.remove('good','ok','bad');
+  el.classList.add('visible');
+
+  const sets = rNeta >= 5
+    ? ['good','✓','Rentabilidad sólida','Neto ≥5% sobre la inversión total. Buen resultado para larga estancia en costa de Alicante. Asegúrate de que el edificio no tenga sorpresas estructurales.']
+    : rNeta >= 3.5
+    ? ['ok','△','Rentabilidad aceptable, con matices','Entre 3,5% y 5% neto. Viable pero ajustado. Cualquier imprevisto —derrama, mes sin inquilino— erosiona el retorno. Negocia precio o busca un alquiler superior.']
+    : ['bad','✕','Rentabilidad insuficiente','Por debajo del 3,5% neto. El dinero trabaja mejor en activos con menos gestión y riesgo. Negocia agresivamente o descarta.'];
+
+  el.classList.add(sets[0]);
+  document.getElementById('v-icon').textContent  = sets[1];
+  document.getElementById('v-title').textContent = sets[2];
+  document.getElementById('v-text').textContent  = sets[3];
+}
+
+function veredictoHipoteca(cfNeto, cobertura) {
+  const el = document.getElementById('veredicto');
+  el.classList.remove('good','ok','bad');
+  el.classList.add('visible');
+
+  const sets = (cfNeto > 50 && cobertura >= 110)
+    ? ['good','✓','Cash flow positivo y bien cubierto','El alquiler cubre la hipoteca con holgura y te sobra dinero mensual. Los inquilinos están pagando el piso mientras acumulas patrimonio.']
+    : (cfNeto >= -100 && cobertura >= 90)
+    ? ['ok','△','Cash flow neutro — patrimonio a largo plazo','El alquiler casi cubre todos los gastos. Pagas poco de tu bolsillo y el piso se amortiza. Funciona si tienes colchón para imprevistos.']
+    : ['bad','✕','Cash flow negativo — te cuesta dinero cada mes','Pones dinero de tu bolsillo mensualmente además de la entrada. Solo tiene sentido si confías en una revalorización futura importante. Revisa el precio o aumenta la entrada.'];
+
+  el.classList.add(sets[0]);
+  document.getElementById('v-icon').textContent  = sets[1];
+  document.getElementById('v-title').textContent = sets[2];
+  document.getElementById('v-text').textContent  = sets[3];
+}
+</script>
+</body>
+</html>
