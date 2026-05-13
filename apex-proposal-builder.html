@@ -72,6 +72,22 @@
   }
   .btn-export:hover { background: var(--gold-lt); }
 
+  .btn-catalogue {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    border-radius: 2px;
+    padding: 8px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-catalogue:hover { background: var(--gold); color: #0E1117; }
+
   .editor-body {
     flex: 1;
     overflow-y: auto;
@@ -216,7 +232,10 @@
 
     <div class="editor-header">
       <span class="editor-title">Proposal Builder</span>
-      <button class="btn-export" onclick="exportHTML()">Export HTML</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-catalogue" onclick="openCatalogue()">+ Catalogue</button>
+        <button class="btn-export" onclick="exportHTML()">Export HTML</button>
+      </div>
     </div>
 
     <div class="editor-body">
@@ -352,16 +371,7 @@ function boot() {
     { tool: '', role: '' },
   ].forEach(() => addStack(false));
 
-  // Default deliverables — always present
-  [
-    'Full documentation',
-    'Handover call',
-  ].forEach(v => addDeliverable(false, v));
-
-  // Default exclusions — always present
-  [
-    'Platform subscriptions — paid directly to providers',
-  ].forEach(v => addExclusion(false, v));
+  // Deliverables and exclusions start empty — populated by catalogue or manually.
 
   render();
 }
@@ -598,8 +608,8 @@ function buildHTML() {
   .step-num{font-family:'Playfair Display',serif;font-size:13px;color:var(--gold);min-width:28px;padding-top:1px;flex-shrink:0;}
   .step-title{font-size:14px;font-weight:500;color:var(--white);margin-bottom:4px;}
   .step-desc{font-size:14px;color:var(--muted);line-height:1.55;}
-  .stack-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:2px;overflow:hidden;}
-  .stack-item{background:var(--surface);padding:20px 24px;}
+  .stack-grid{display:grid;grid-template-columns:1fr 1fr;}
+  .stack-item{background:var(--surface);padding:20px 24px;border:1px solid var(--border);margin-right:-1px;margin-bottom:-1px;}
   .stack-tool{font-size:13px;font-weight:500;color:var(--white);margin-bottom:4px;}
   .stack-role{font-size:13px;color:var(--muted);}
   .deliverables{list-style:none;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
@@ -607,8 +617,7 @@ function buildHTML() {
   .deliverables li:last-child{border-bottom:none;}
   .deliverables li::before{content:'';display:block;width:5px;height:5px;border-radius:50%;background:var(--gold);margin-top:7px;flex-shrink:0;}
   .exclusions{list-style:none;}
-  .exclusions li{font-size:14px;color:var(--muted);padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px;}
-  .exclusions li:first-child{border-top:1px solid var(--border);}
+  .exclusions li{font-size:14px;color:var(--muted);padding:6px 0;display:flex;align-items:flex-start;gap:14px;}
   .exclusions li::before{content:'—';color:var(--dim);flex-shrink:0;}
   .investment-block{background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:40px 40px 36px;}
   .investment-price{font-family:'Playfair Display',serif;font-size:52px;color:var(--white);line-height:1;margin-bottom:8px;}
@@ -758,6 +767,1386 @@ function exportHTML() {
 // ── Init ───────────────────────────────────────────────────────────────────
 
 boot();
+</script>
+
+<!-- ════════════════════════════════════════
+     CATALOGUE MODAL
+════════════════════════════════════════ -->
+<style>
+  /* ── Modal overlay ── */
+  .cat-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.82);
+    z-index: 1000;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 20px;
+    overflow-y: auto;
+  }
+  .cat-overlay.open { display: flex; }
+
+  .cat-modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    width: 100%;
+    max-width: 780px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    margin: auto;
+  }
+
+  .cat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 18px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    background: var(--panel);
+    z-index: 2;
+  }
+
+  .cat-header-left { display: flex; flex-direction: column; gap: 2px; }
+  .cat-header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    color: var(--white);
+  }
+  .cat-header-sub {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  .cat-header-right { display: flex; gap: 8px; align-items: center; }
+
+  .btn-cat-close {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-cat-close:hover { border-color: var(--muted); color: var(--white); }
+
+  .btn-cat-apply {
+    background: var(--gold);
+    color: #0E1117;
+    border: none;
+    border-radius: 2px;
+    padding: 8px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-cat-apply:hover { background: var(--gold-lt); }
+  .btn-cat-apply:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ── Tabs ── */
+  .cat-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 61px;
+    background: var(--panel);
+    z-index: 2;
+  }
+
+  .cat-tab {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .cat-tab:hover { color: var(--body); }
+  .cat-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* ── Body ── */
+  .cat-body { padding: 20px 24px 24px; overflow-y: auto; }
+
+  .cat-panel { display: none; }
+  .cat-panel.active { display: block; }
+
+  /* ── Group label ── */
+  .cat-group-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 20px 0 10px;
+  }
+  .cat-group-label:first-child { margin-top: 0; }
+
+  /* ── Item cards ── */
+  .cat-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .cat-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+  }
+  .cat-item:hover { border-color: var(--border-lt); background: var(--elevated); }
+  .cat-item.selected { border-color: var(--gold); background: rgba(201,168,76,0.06); }
+
+  .cat-check {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--dim);
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: all 0.15s;
+    color: transparent;
+  }
+  .cat-item.selected .cat-check {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #0E1117;
+  }
+
+  .cat-item-body { flex: 1; min-width: 0; }
+
+  .cat-item-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 3px;
+  }
+
+  .cat-item-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .cat-item-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .cat-tag {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 2px;
+    background: rgba(201,168,76,0.1);
+    color: var(--gold);
+    border: 1px solid rgba(201,168,76,0.2);
+    text-transform: uppercase;
+  }
+  .cat-tag.suite { background: rgba(91,143,212,0.1); color: #7AADEA; border-color: rgba(91,143,212,0.2); }
+  .cat-tag.addon { background: rgba(76,175,125,0.1); color: #7ACFA5; border-color: rgba(76,175,125,0.2); }
+
+  /* ── Selection summary bar ── */
+  .cat-summary {
+    padding: 12px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--elevated);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .cat-summary-count {
+    color: var(--gold);
+    font-weight: 500;
+  }
+  .cat-summary-items {
+    color: var(--dim);
+    font-size: 11px;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>
+
+<div class="cat-overlay" id="cat-overlay">
+  <div class="cat-modal">
+
+    <div class="cat-header">
+      <div class="cat-header-left">
+        <span class="cat-header-title">Automation Catalogue</span>
+        <span class="cat-header-sub">Select items to pre-populate the proposal</span>
+      </div>
+      <div class="cat-header-right">
+        <button class="btn-cat-close" onclick="closeCatalogue()">✕</button>
+        <button class="btn-cat-apply" id="btn-apply" onclick="applySelection()">Apply to Proposal</button>
+      </div>
+    </div>
+
+    <div class="cat-tabs">
+      <div class="cat-tab active" onclick="showCatTab('tab-suites', this)">Suites</div>
+      <div class="cat-tab" onclick="showCatTab('tab-standalone', this)">Standalone</div>
+      <div class="cat-tab" onclick="showCatTab('tab-addons', this)">Add-Ons</div>
+    </div>
+
+    <div class="cat-body">
+
+      <!-- ── SUITES ── -->
+      <div class="cat-panel active" id="tab-suites">
+        <div class="cat-grid" id="grid-suites"></div>
+      </div>
+
+      <!-- ── STANDALONE ── -->
+      <div class="cat-panel" id="tab-standalone">
+        <div class="cat-group-label">Intake Suite</div>
+        <div class="cat-grid" id="grid-intake"></div>
+        <div class="cat-group-label">Client Suite</div>
+        <div class="cat-grid" id="grid-client"></div>
+        <div class="cat-group-label">Admin Suite</div>
+        <div class="cat-grid" id="grid-admin"></div>
+        <div class="cat-group-label">Retention Suite</div>
+        <div class="cat-grid" id="grid-retention"></div>
+      </div>
+
+      <!-- ── ADD-ONS ── -->
+      <div class="cat-panel" id="tab-addons">
+        <div class="cat-grid" id="grid-addons"></div>
+      </div>
+
+    </div>
+
+    <div class="cat-summary">
+      <span class="cat-summary-count" id="cat-count">0 selected</span>
+      <span class="cat-summary-items" id="cat-items-preview">Nothing selected yet</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// CATALOGUE DATA
+// ════════════════════════════════════════
+
+const CATALOGUE = {
+
+  suites: [
+    {
+      id: 'suite-intake',
+      name: 'Intake Suite',
+      tag: 'suite',
+      tagLabel: 'Bundle · 15% saving',
+      desc: 'From first enquiry to onboarded client. Includes Enquiry & Lead Capture, Appointment Setting, and Client Onboarding.',
+      overview: 'The Intake Suite automates every step from first contact to fully onboarded client. New enquiries are captured, scored, and responded to instantly. Appointments are booked without back-and-forth. New clients are set up, welcomed, and tracked — without manual involvement at any stage.\n\nDelivered as three integrated automations working as a single system. 15% saving versus purchasing standalone.',
+      deliverables: [
+        'Enquiry capture form with AI lead scoring',
+        'Automated lead response and CRM record creation',
+        'Duplicate detection and deduplication',
+        'High-priority lead alerts',
+        'Calendar booking with confirmation and reminders (24h and 2h)',
+        'Preparation materials sent by meeting type',
+        'No-show flagging and follow-up task creation',
+        'Client onboarding form with automatic folder creation',
+        'Engagement agreement sent for e-signature',
+        'KYC document flag for human review',
+        'Three-email welcome sequence',
+        'Onboarding tracker dashboard',
+        'Full documentation and handover',
+        '30-day post-handover support',
+      ],
+      exclusions: [
+        'Platform subscriptions (Make.com, calendar, e-signature) — paid directly to providers',
+        'KYC document processing or verification — flagged for human review only',
+        'Content creation for emails or welcome materials',
+        'Website chatbot (available as Add-On 3)',
+        'CRM build (available as Add-On 4)',
+      ],
+      steps: [
+        { title: 'Discovery & audit', desc: 'Map your current intake process, identify tools in use, and confirm access and API requirements.' },
+        { title: 'Build — Enquiry & Lead Capture', desc: 'Intake form, AI scoring logic, CRM record creation, duplicate detection, and lead alerts.' },
+        { title: 'Build — Appointment Setting', desc: 'Calendar integration, booking flow, confirmation and reminder sequences, no-show handling.' },
+        { title: 'Build — Client Onboarding', desc: 'Onboarding form, folder creation, e-signature trigger, welcome sequence, and tracker.' },
+        { title: 'Integration testing', desc: 'End-to-end tests across all three automations with real data. Edge cases confirmed.' },
+        { title: 'Handover', desc: 'Full documentation, walkthrough call, 30-day support window.' },
+      ],
+      stack: [
+        { tool: 'Make.com', role: 'Workflow automation platform' },
+        { tool: 'Airtable', role: 'Client database and onboarding tracker' },
+        { tool: 'Claude (Anthropic)', role: 'Lead scoring and response drafting' },
+        { tool: 'Calendly / Cal.com', role: 'Appointment booking' },
+        { tool: 'Brevo / Gmail', role: 'Email sequences and confirmations' },
+        { tool: 'DocuSign / PandaDoc', role: 'Engagement agreement e-signature' },
+      ],
+    },
+    {
+      id: 'suite-client',
+      name: 'Client Suite',
+      tag: 'suite',
+      tagLabel: 'Bundle · 15% saving',
+      desc: 'Keep active clients moving without the admin. Includes Client Intake Triage, Client Portal Updates, Invoice Generation, and Document & Payment Chasing.',
+      overview: 'The Client Suite handles everything that happens once a client is on board — without you managing any of it manually. Requests are triaged and prioritised the moment they arrive. Clients receive updates at every milestone. Invoices are generated and sent automatically. Outstanding payments and documents are chased on a schedule.\n\nDelivered as four integrated automations. 15% saving versus purchasing standalone.',
+      deliverables: [
+        'Inbound request categorisation and prioritisation',
+        'Conflict-of-interest check against client database',
+        'Acknowledgement email with expected response time',
+        'Unified open-requests dashboard ranked by urgency',
+        'Automated milestone updates drafted in plain English',
+        'Document links included in client updates',
+        'Configurable tone and detail level by matter type',
+        'Invoice generation at matter completion or billing milestone',
+        'Payment link included in invoice email',
+        'Automatic line items for disbursements and expenses',
+        'Payment receipt confirmation and record update',
+        'Four-stage chasing sequence (days 1, 4, 7, 10)',
+        'Automatic chase stop on payment or signature',
+        'Escalation alert and folder flag at day 10',
+        'Full documentation and handover',
+        '30-day post-handover support',
+      ],
+      exclusions: [
+        'Platform subscriptions — paid directly to providers',
+        'Accounting software integration beyond invoice record creation',
+        'Legal advice or matter-specific content — drafted for approval only',
+        'Payment processing setup (Stripe, GoCardless) — configured by client',
+        'CRM build (available as Add-On 4)',
+      ],
+      steps: [
+        { title: 'Discovery & audit', desc: 'Map existing client communication workflows, billing process, and tools in use.' },
+        { title: 'Build — Client Intake Triage', desc: 'Request intake, categorisation logic, conflict check, acknowledgement, and dashboard.' },
+        { title: 'Build — Client Portal Updates', desc: 'Milestone triggers, update drafting, tone configuration, and delivery.' },
+        { title: 'Build — Invoice Generation', desc: 'Billing triggers, invoice generation, payment link, and receipt handling.' },
+        { title: 'Build — Document & Payment Chasing', desc: 'Chase schedule, four-stage sequence, stop conditions, and escalation.' },
+        { title: 'Integration testing & handover', desc: 'End-to-end tests, documentation, walkthrough, 30-day support.' },
+      ],
+      stack: [
+        { tool: 'Make.com', role: 'Workflow automation platform' },
+        { tool: 'Airtable', role: 'Matter and request tracking' },
+        { tool: 'Claude (Anthropic)', role: 'Update and email drafting' },
+        { tool: 'Stripe / GoCardless', role: 'Payment processing (client-configured)' },
+        { tool: 'Brevo / Gmail', role: 'Client email communications' },
+        { tool: 'Google Docs / PDF', role: 'Invoice generation' },
+      ],
+    },
+    {
+      id: 'suite-admin',
+      name: 'Admin Suite',
+      tag: 'suite',
+      tagLabel: 'Bundle · 15% saving',
+      desc: 'Run active matters without lifting a finger. Includes Document & Proposal Generation, Deadline & Compliance Tracking, Call Notes to CRM, and Reporting & Data Sync.',
+      overview: 'The Admin Suite handles the internal work that fills your evenings. Documents are drafted from client data and gated for approval. Every deadline is monitored with escalating reminders. Call transcripts are processed into action items and CRM records. Reporting runs on a schedule and lands in your inbox.\n\nDelivered as four integrated automations. 15% saving versus purchasing standalone.',
+      deliverables: [
+        'Automated document and proposal drafting from client data',
+        'Approval gate before any document is sent',
+        'PDF export, folder save, and email delivery with covering note',
+        'Trigger configuration (form, status change, or external event)',
+        'Deadline monitoring with reminders at 30, 14, 7, 3, and 1 day',
+        'Client and firm reminders on separate schedules',
+        'Missing file alert 24 hours before deadline',
+        'Missed deadline escalation and urgent task creation',
+        'Weekly deadline digest delivered to inbox',
+        'Call transcript processing for action items and decisions',
+        'CRM record update with extracted next steps',
+        'Task creation with owners and due dates',
+        'Optional client summary email (toggleable)',
+        'Urgency and dissatisfaction flag on call content',
+        'Scheduled data pull from CRM or project tracker',
+        'Google Sheet population and automated commentary',
+        'Data anomaly alert',
+        'Full documentation and handover',
+        '30-day post-handover support',
+      ],
+      exclusions: [
+        'Platform subscriptions — paid directly to providers',
+        'Call transcription service subscription (e.g. Otter, Fathom) — client-configured',
+        'Legal or compliance review of generated documents — for approval only',
+        'RAG Knowledge Base for document retrieval (available as Add-On 1)',
+        'CRM build (available as Add-On 4)',
+      ],
+      steps: [
+        { title: 'Discovery & audit', desc: 'Map document types, deadline workflows, call tools in use, and reporting requirements.' },
+        { title: 'Build — Document & Proposal Generation', desc: 'Prompt engineering, draft generation, approval gate, PDF export, and delivery.' },
+        { title: 'Build — Deadline & Compliance Tracking', desc: 'Deadline ingestion, reminder schedule, missing file logic, and digest.' },
+        { title: 'Build — Call Notes to CRM', desc: 'Transcript integration, extraction prompt, CRM write, task creation, and flags.' },
+        { title: 'Build — Reporting & Data Sync', desc: 'Data pull schedule, Sheet population, commentary generation, and anomaly detection.' },
+        { title: 'Integration testing & handover', desc: 'End-to-end tests, documentation, walkthrough, 30-day support.' },
+      ],
+      stack: [
+        { tool: 'Make.com', role: 'Workflow automation platform' },
+        { tool: 'Claude (Anthropic)', role: 'Document drafting, extraction, commentary' },
+        { tool: 'Airtable', role: 'Matter, deadline, and task tracking' },
+        { tool: 'Google Docs / Sheets', role: 'Document output and reporting' },
+        { tool: 'Otter / Fathom', role: 'Call transcription (client-configured)' },
+        { tool: 'Brevo / Gmail', role: 'Alerts, digests, and client summaries' },
+      ],
+    },
+    {
+      id: 'suite-retention',
+      name: 'Retention Suite',
+      tag: 'suite',
+      tagLabel: 'Bundle · 15% saving',
+      desc: 'Monetise relationships after the matter closes. Includes Client Retention & Referrals and NPS & Satisfaction Survey.',
+      overview: 'The Retention Suite keeps past clients engaged and converts satisfaction into revenue — without any manual effort. Lapsed clients are identified and re-engaged. Review requests go out at the right moment. Referrals are tracked. Unhappy clients are flagged before they leave quietly.\n\nDelivered as two integrated automations. 15% saving versus purchasing standalone.',
+      deliverables: [
+        'Lapsed client identification at 60, 90, and 180 days',
+        'Personalised re-engagement email drafted for approval',
+        'Review request triggered 14 days after matter close',
+        'Referral tracking and top-tier client nudge logic',
+        'NPS survey sent automatically after matter close',
+        'High scorer (9–10) referral prompt',
+        'Low scorer (0–6) internal alert for personal follow-up',
+        'Score feed into client record for running satisfaction view',
+        'Full documentation and handover',
+        '14-day post-handover support',
+      ],
+      exclusions: [
+        'Platform subscriptions — paid directly to providers',
+        'Review platform management (Google, Trustpilot) — linked only',
+        'Content creation for re-engagement emails beyond drafting',
+        'Survey platform subscription (Typeform, Tally) — client-configured',
+      ],
+      steps: [
+        { title: 'Discovery & audit', desc: 'Confirm existing client database structure, matter close triggers, and review platform.' },
+        { title: 'Build — Client Retention & Referrals', desc: 'Lapsed client logic, re-engagement drafting, review request, and referral tracking.' },
+        { title: 'Build — NPS & Satisfaction Survey', desc: 'Survey trigger, response routing, high/low score logic, and CRM score feed.' },
+        { title: 'Integration testing & handover', desc: 'End-to-end tests, documentation, walkthrough, 14-day support.' },
+      ],
+      stack: [
+        { tool: 'Make.com', role: 'Workflow automation platform' },
+        { tool: 'Airtable', role: 'Client records and satisfaction scores' },
+        { tool: 'Claude (Anthropic)', role: 'Re-engagement email drafting' },
+        { tool: 'Typeform / Tally', role: 'NPS survey (client-configured)' },
+        { tool: 'Brevo / Gmail', role: 'Email delivery' },
+      ],
+    },
+    {
+      id: 'suite-complete',
+      name: 'Complete Firm',
+      tag: 'suite',
+      tagLabel: 'All 13 automations · ~25% saving',
+      desc: 'All four suites across all 13 automations. Delivered in category sprints over 6–14 weeks. Fixed price per sprint, full documentation and handover at each stage.',
+      overview: 'The Complete Firm package automates the entire client lifecycle — from first enquiry to post-matter retention. All 13 automations across the Intake, Client, Admin, and Retention Suites, delivered as an integrated system.\n\nDelivered in four consecutive sprints: Intake Suite first, then Client Suite, Admin Suite, and Retention Suite. Fixed price per sprint. Full documentation and handover at each stage. Approximately 25% saving versus purchasing suites individually.',
+      deliverables: [
+        'All 13 automations across Intake, Client, Admin, and Retention Suites',
+        'Delivered in four sprint stages — one suite per sprint',
+        'Full documentation and handover call at each stage',
+        'Priority support window per sprint',
+        'Single integrated Airtable CRM (included)',
+      ],
+      exclusions: [
+        'Platform subscriptions — paid directly to providers',
+        'Add-on features (RAG Knowledge Base, Voice Agent, Chatbot) — quoted separately',
+        'Content creation beyond AI-drafted, approval-gated output',
+        'Accounting software integration',
+        'Call transcription subscription',
+      ],
+      steps: [
+        { title: 'Sprint 1 — Intake Suite', desc: 'Enquiry & Lead Capture, Appointment Setting, Client Onboarding. Handover at completion.' },
+        { title: 'Sprint 2 — Client Suite', desc: 'Client Intake Triage, Client Portal Updates, Invoice Generation, Document & Payment Chasing.' },
+        { title: 'Sprint 3 — Admin Suite', desc: 'Document & Proposal Generation, Deadline Tracking, Call Notes to CRM, Reporting & Data Sync.' },
+        { title: 'Sprint 4 — Retention Suite', desc: 'Client Retention & Referrals, NPS & Satisfaction Survey. Final handover and review.' },
+      ],
+      stack: [
+        { tool: 'Make.com', role: 'Workflow automation platform' },
+        { tool: 'Airtable', role: 'Central CRM and data layer' },
+        { tool: 'Claude (Anthropic)', role: 'AI throughout all workflows' },
+        { tool: 'Google Workspace', role: 'Docs, Sheets, and email' },
+        { tool: 'Brevo', role: 'Transactional email' },
+        { tool: 'Calendly / Cal.com', role: 'Appointment booking' },
+      ],
+    },
+  ],
+
+  standalone: {
+    intake: [
+      {
+        id: 'sa-1',
+        name: '#1 — Enquiry & Lead Capture',
+        tag: 'standalone',
+        tagLabel: 'Intake Suite',
+        desc: 'Captures enquiries, scores them, responds instantly, and creates CRM records — with duplicate detection and priority alerts.',
+        overview: 'Every new enquiry is captured through an intake form and automatically scored. Hot leads receive an immediate, personalised reply. Cold ones are queued for review. Each enquiry becomes a clean contact record with no manual input — duplicate detection keeps the database accurate. An alert fires when a high-priority lead comes in.',
+        deliverables: [
+          'Intake form connected to automation pipeline',
+          'AI lead scoring (hot / warm / cold)',
+          'Immediate personalised response to hot leads',
+          'CRM record creation with zero manual input',
+          'Duplicate detection and deduplication',
+          'High-priority lead alert (email or Slack)',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Platform subscriptions — paid directly to providers',
+          'Website chatbot (available as Add-On 3)',
+          'CRM build (available as Add-On 4)',
+          'Cold lead nurture sequences',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Define intake form fields, scoring criteria, and CRM structure.' },
+          { title: 'Build', desc: 'Form connection, AI scoring logic, response automation, CRM write, and duplicate check.' },
+          { title: 'Testing & handover', desc: 'Live tests with real data, documentation, and handover call.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Airtable', role: 'Contact database' },
+          { tool: 'Claude (Anthropic)', role: 'Lead scoring and response drafting' },
+          { tool: 'Brevo / Gmail', role: 'Automated responses' },
+        ],
+      },
+      {
+        id: 'sa-2',
+        name: '#2 — Appointment Setting',
+        tag: 'standalone',
+        tagLabel: 'Intake Suite',
+        desc: 'Clients book directly into your calendar. Confirmations, reminders, prep materials, and no-show handling — all automatic.',
+        overview: 'Clients book directly into the calendar — no back-and-forth emails. Confirmation and reminder messages go out automatically at 24h and 2h before the appointment. Preparation materials are sent based on the type of meeting booked. No-shows are flagged and a follow-up task is created. Rescheduling is handled without human involvement.',
+        deliverables: [
+          'Calendar booking integration',
+          'Confirmation email on booking',
+          'Reminder sequence (24h and 2h before)',
+          'Preparation materials sent by meeting type',
+          'No-show detection and follow-up task creation',
+          'Rescheduling handling',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Calendar platform subscription — paid directly to provider',
+          'Voice appointment setting (available as Add-On 2)',
+          'Complex multi-step booking flows with conditional logic',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Confirm calendar platform, meeting types, and preparation material content.' },
+          { title: 'Build', desc: 'Booking integration, confirmation and reminder sequences, no-show logic.' },
+          { title: 'Testing & handover', desc: 'Live tests, documentation, handover call.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Calendly / Cal.com', role: 'Appointment booking' },
+          { tool: 'Brevo / Gmail', role: 'Confirmations and reminders' },
+          { tool: 'Airtable', role: 'Appointment records' },
+        ],
+      },
+      {
+        id: 'sa-3',
+        name: '#3 — Client Onboarding',
+        tag: 'standalone',
+        tagLabel: 'Intake Suite',
+        desc: 'One form. Then: folder created, database populated, agreement sent, welcome sequence started, tracker updated. All automatic.',
+        overview: 'New clients fill in one form — everything else is automatic. A folder is created in the correct structure. The database is populated. The engagement agreement is sent for e-signature. KYC documents are flagged for human review. A three-email welcome sequence keeps the client informed through the first week. An onboarding tracker shows exactly where each new client is in the process.',
+        deliverables: [
+          'Onboarding intake form',
+          'Automatic folder creation',
+          'Database population from form submission',
+          'Engagement agreement sent for e-signature',
+          'KYC document flag for human review',
+          'Three-email welcome sequence',
+          'Onboarding tracker dashboard',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Platform subscriptions — paid directly to providers',
+          'KYC verification or processing — flagged for human review only',
+          'Welcome email content creation',
+          'CRM build (available as Add-On 4)',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Map onboarding steps, confirm folder structure, e-signature provider, and welcome sequence content.' },
+          { title: 'Build', desc: 'Form, folder creation, database write, e-signature trigger, welcome sequence, and tracker.' },
+          { title: 'Testing & handover', desc: 'End-to-end test with real data, documentation, handover call.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Airtable', role: 'Client database and tracker' },
+          { tool: 'Google Drive', role: 'Folder creation' },
+          { tool: 'DocuSign / PandaDoc', role: 'E-signature' },
+          { tool: 'Brevo / Gmail', role: 'Welcome sequence' },
+        ],
+      },
+    ],
+    client: [
+      {
+        id: 'sa-4',
+        name: '#4 — Client Intake Triage',
+        tag: 'standalone',
+        tagLabel: 'Client Suite',
+        desc: 'Inbound requests categorised, prioritised, and conflict-checked automatically. Clients acknowledged. All requests in one ranked dashboard.',
+        overview: 'When an existing client submits a request, it is automatically categorised and prioritised — urgent matters go straight to the inbox; routine ones join the queue. A conflict-of-interest check runs against the client database before the request is logged. The client receives an acknowledgement with an expected response time. All open requests are visible in a single dashboard, ranked by urgency.',
+        deliverables: [
+          'Request intake form or email trigger',
+          'AI categorisation and urgency prioritisation',
+          'Conflict-of-interest check against client database',
+          'Client acknowledgement with expected response time',
+          'Unified open-requests dashboard ranked by urgency',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Platform subscriptions — paid directly to providers',
+          'Legal conflict-of-interest system replacement — cross-reference only',
+          'CRM build (available as Add-On 4)',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Define request categories, urgency criteria, and conflict-check logic.' },
+          { title: 'Build', desc: 'Intake trigger, AI categorisation, conflict check, acknowledgement, and dashboard.' },
+          { title: 'Testing & handover', desc: 'Live tests, documentation, handover call.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Claude (Anthropic)', role: 'Categorisation and prioritisation' },
+          { tool: 'Airtable', role: 'Request dashboard and client database' },
+          { tool: 'Brevo / Gmail', role: 'Acknowledgement emails' },
+        ],
+      },
+      {
+        id: 'sa-5',
+        name: '#5 — Client Portal Updates',
+        tag: 'standalone',
+        tagLabel: 'Client Suite',
+        desc: 'Automated plain-English client updates at every matter milestone. Cuts inbound "where are we up to?" calls significantly.',
+        overview: 'Every time a matter reaches a key milestone, the client receives a plain-English update — drafted automatically and sent without human involvement. Links to relevant documents are included. The tone and level of detail are configurable by matter type. Significantly cuts inbound status enquiries.',
+        deliverables: [
+          'Milestone trigger configuration',
+          'Automated update drafting in plain English',
+          'Configurable tone and detail by matter type',
+          'Document link inclusion',
+          'Delivery via email',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Platform subscriptions — paid directly to providers',
+          'Client portal build or website changes',
+          'Legal advice or matter-specific content — drafted for approval only',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Map matter stages, milestone triggers, and configure tone per matter type.' },
+          { title: 'Build', desc: 'Trigger logic, update drafting prompt, document linking, and delivery.' },
+          { title: 'Testing & handover', desc: 'Tests across matter types, documentation, handover.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Claude (Anthropic)', role: 'Update drafting' },
+          { tool: 'Airtable', role: 'Matter stage tracking' },
+          { tool: 'Brevo / Gmail', role: 'Update delivery' },
+        ],
+      },
+      {
+        id: 'sa-6',
+        name: '#6 — Invoice Generation',
+        tag: 'standalone',
+        tagLabel: 'Client Suite',
+        desc: 'Invoices generated and sent automatically at matter completion or billing milestone. Connects to payment chasing if unpaid.',
+        overview: 'When a matter is marked complete or hits a billing milestone, an invoice is generated and emailed to the client with a payment link — no manual input. Disbursements and expenses are picked up automatically as line items. Records update when payment is received. Connects directly to Document & Payment Chasing (#7) if payment is not received.',
+        deliverables: [
+          'Invoice generation trigger (matter complete or billing milestone)',
+          'Automatic disbursement and expense line items',
+          'Invoice email with payment link',
+          'Payment receipt handling and record update',
+          'Integration point for payment chasing (#7)',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Platform subscriptions — paid directly to providers',
+          'Accounting software reconciliation',
+          'Payment processor setup (Stripe, GoCardless) — client-configured',
+          'VAT or tax calculation logic',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Confirm billing triggers, line item sources, invoice format, and payment processor.' },
+          { title: 'Build', desc: 'Trigger, invoice generation, email delivery, receipt handling, and record update.' },
+          { title: 'Testing & handover', desc: 'Live invoice tests, documentation, handover.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Airtable', role: 'Matter and billing records' },
+          { tool: 'Google Docs / PDF', role: 'Invoice generation' },
+          { tool: 'Stripe / GoCardless', role: 'Payment processing (client-configured)' },
+          { tool: 'Brevo / Gmail', role: 'Invoice delivery' },
+        ],
+      },
+      {
+        id: 'sa-7',
+        name: '#7 — Document & Payment Chasing',
+        tag: 'standalone',
+        tagLabel: 'Client Suite',
+        desc: 'Four-stage automated chasing sequence for outstanding documents, signatures, and payments. Stops automatically when resolved.',
+        overview: 'Outstanding items are checked daily — documents, signatures, payments. A four-stage chasing sequence runs automatically, with the tone escalating across days 1, 4, 7, and 10. The chase stops the moment a signature lands or payment clears. If nothing has moved by day 10, an alert fires and the client folder is flagged for review.',
+        deliverables: [
+          'Daily outstanding item check',
+          'Four-stage chasing sequence (days 1, 4, 7, 10)',
+          'Tone escalation across stages',
+          'Automatic stop on payment or signature received',
+          'Day 10 alert and folder flag',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Platform subscriptions — paid directly to providers',
+          'Legal debt recovery or formal demand letters',
+          'Payment processor setup — client-configured',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Define outstanding item types, escalation tone, and stop conditions.' },
+          { title: 'Build', desc: 'Daily check, four-stage sequence, stop logic, and escalation alert.' },
+          { title: 'Testing & handover', desc: 'End-to-end sequence tests, documentation, handover.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Airtable', role: 'Outstanding item tracking' },
+          { tool: 'Claude (Anthropic)', role: 'Escalating tone drafting' },
+          { tool: 'Brevo / Gmail', role: 'Chasing emails' },
+        ],
+      },
+    ],
+    admin: [
+      {
+        id: 'sa-8',
+        name: '#8 — Document & Proposal Generation',
+        tag: 'standalone',
+        tagLabel: 'Admin Suite',
+        desc: 'First drafts generated from client data, gated for approval, exported to PDF, and delivered. Triggered by form, status, or event.',
+        overview: 'A first draft is generated automatically using the client\'s data — gated for approval before anything is sent. The finished document is exported to PDF, saved in the client\'s folder, and delivered by email with a covering note. Can be triggered by a form submission, a status change in the CRM, or an external event.',
+        deliverables: [
+          'Document drafting from client data',
+          'Approval gate before sending',
+          'PDF export and folder save',
+          'Email delivery with covering note',
+          'Configurable triggers (form, status, event)',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Platform subscriptions — paid directly to providers',
+          'Legal review of generated content — approval gate only',
+          'RAG Knowledge Base for firm document retrieval (available as Add-On 1)',
+          'Template creation — existing templates required',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Confirm document types, data sources, trigger events, and approval process.' },
+          { title: 'Prompt engineering', desc: 'Draft and test generation prompts with real client data samples.' },
+          { title: 'Build', desc: 'Trigger, generation, approval gate, PDF export, folder save, and delivery.' },
+          { title: 'Testing & handover', desc: 'Output quality tests, documentation, handover.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Claude (Anthropic)', role: 'Document and proposal drafting' },
+          { tool: 'Airtable', role: 'Client data source' },
+          { tool: 'Google Docs / PDF', role: 'Document output' },
+          { tool: 'Brevo / Gmail', role: 'Delivery with covering note' },
+        ],
+      },
+      {
+        id: 'sa-9',
+        name: '#9 — Deadline & Compliance Tracking',
+        tag: 'standalone',
+        tagLabel: 'Admin Suite',
+        desc: 'Every deadline monitored with reminders at 30, 14, 7, 3, and 1 day. Missing file alerts, missed deadline escalation, and weekly digest.',
+        overview: 'Every deadline is monitored — reminders go to the firm and the client at 30, 14, 7, 3, and 1 days out. If required files are missing 24 hours before a deadline, an alert fires automatically. Missed deadlines trigger an escalation and an urgent task. A weekly digest gives a single view of everything due in the coming days.',
+        deliverables: [
+          'Deadline monitoring across all active matters',
+          'Reminders at 30, 14, 7, 3, and 1 day',
+          'Separate firm and client reminder schedules',
+          'Missing file alert 24 hours before deadline',
+          'Missed deadline escalation and urgent task creation',
+          'Weekly deadline digest',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Platform subscriptions — paid directly to providers',
+          'Regulatory compliance system replacement — deadline tracking only',
+          'CRM build (available as Add-On 4)',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Map deadline types, reminder recipients, and missing file criteria.' },
+          { title: 'Build', desc: 'Deadline ingestion, reminder schedule, missing file check, escalation, and digest.' },
+          { title: 'Testing & handover', desc: 'Deadline simulation tests, documentation, handover.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Airtable', role: 'Deadline and matter tracking' },
+          { tool: 'Brevo / Gmail', role: 'Reminders, alerts, and digest' },
+        ],
+      },
+      {
+        id: 'sa-10',
+        name: '#10 — Call Notes to CRM',
+        tag: 'standalone',
+        tagLabel: 'Admin Suite',
+        desc: 'Call transcripts processed into action items, decisions, and CRM records. Tasks created automatically. Urgency and dissatisfaction flagged.',
+        overview: 'As soon as a call ends, the transcript is processed — action items, decisions, and next steps are extracted and pushed to the client\'s CRM record. Tasks are created with owners and due dates. A summary can be emailed to the client (toggleable). Any mention of urgency or dissatisfaction is flagged automatically.',
+        deliverables: [
+          'Call transcript integration',
+          'Extraction of action items, decisions, and next steps',
+          'CRM record update',
+          'Task creation with owner and due date',
+          'Optional client summary email (toggleable)',
+          'Urgency and dissatisfaction flag',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Call transcription subscription (Otter, Fathom, etc.) — client-configured',
+          'CRM build (available as Add-On 4)',
+          'Meeting scheduling or booking — see Appointment Setting (#2)',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Confirm transcript source, CRM structure, task fields, and flag criteria.' },
+          { title: 'Prompt engineering', desc: 'Build and test extraction prompt with real transcript samples.' },
+          { title: 'Build', desc: 'Transcript trigger, extraction, CRM write, task creation, email toggle, and flags.' },
+          { title: 'Testing & handover', desc: 'Real transcript tests, documentation, handover.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Claude (Anthropic)', role: 'Transcript extraction' },
+          { tool: 'Airtable', role: 'CRM and task records' },
+          { tool: 'Otter / Fathom', role: 'Transcription source (client-configured)' },
+          { tool: 'Brevo / Gmail', role: 'Client summary emails' },
+        ],
+      },
+      {
+        id: 'sa-11',
+        name: '#11 — Reporting & Data Sync',
+        tag: 'standalone',
+        tagLabel: 'Admin Suite',
+        desc: 'Scheduled data pull, Google Sheet population, AI-written commentary comparing periods, and anomaly alerts — delivered to your inbox.',
+        overview: 'Pulls data from the CRM or project tracker on a schedule, reformats it, and drops it into a Google Sheet. A written commentary is generated automatically — plain English, comparing this period against the last. Delivered to the inbox with a link to the sheet. If the data looks wrong, an alert fires.',
+        deliverables: [
+          'Scheduled data pull from CRM or project tracker',
+          'Google Sheet population and formatting',
+          'Automated written commentary (current vs. previous period)',
+          'Data anomaly detection and alert',
+          'Email delivery with Sheet link',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Platform subscriptions — paid directly to providers',
+          'Data visualisation or dashboard build (Google Sheets only)',
+          'Custom BI tooling (Power BI, Looker, etc.)',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Define data sources, metrics, schedule, and commentary requirements.' },
+          { title: 'Build', desc: 'Data pull, Sheet population, commentary prompt, anomaly check, and delivery.' },
+          { title: 'Testing & handover', desc: 'Live data tests, documentation, handover.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Airtable', role: 'Data source' },
+          { tool: 'Claude (Anthropic)', role: 'Written commentary generation' },
+          { tool: 'Google Sheets', role: 'Report output' },
+          { tool: 'Brevo / Gmail', role: 'Report delivery' },
+        ],
+      },
+    ],
+    retention: [
+      {
+        id: 'sa-12',
+        name: '#12 — Client Retention & Referrals',
+        tag: 'standalone',
+        tagLabel: 'Retention Suite',
+        desc: 'Lapsed clients re-engaged at 60/90/180 days. Review requests at matter close. Referrals tracked. Top-tier clients nudged at the right moment.',
+        overview: 'Clients who have not heard from the firm in 60, 90, or 180 days are identified automatically. A personalised re-engagement email is drafted for each one — reviewed and approved before sending. A review request is triggered automatically 14 days after a matter closes. Referrals from past clients are tracked and credited; top-tier clients receive a referral nudge at the right moment.',
+        deliverables: [
+          'Lapsed client identification at 60, 90, and 180 days',
+          'Personalised re-engagement email drafted for approval',
+          'Review request at 14 days post-matter close',
+          'Referral tracking and credit',
+          'Top-tier client referral nudge logic',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Platform subscriptions — paid directly to providers',
+          'Review platform management — linked only',
+          'Referral reward or incentive processing',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Define lapse thresholds, top-tier criteria, and review platform.' },
+          { title: 'Build', desc: 'Lapse detection, re-engagement drafting, review trigger, and referral tracking.' },
+          { title: 'Testing & handover', desc: 'Tests, documentation, handover.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Claude (Anthropic)', role: 'Re-engagement email drafting' },
+          { tool: 'Airtable', role: 'Client records and last-contact tracking' },
+          { tool: 'Brevo / Gmail', role: 'Email delivery' },
+        ],
+      },
+      {
+        id: 'sa-13',
+        name: '#13 — NPS & Satisfaction Survey',
+        tag: 'standalone',
+        tagLabel: 'Retention Suite',
+        desc: 'Automated NPS after matter close. High scorers prompted to refer. Low scorers trigger an internal alert. All scores feed into the client record.',
+        overview: 'A short survey is sent automatically after each matter closes. High scorers (9–10) are prompted to refer — automatically. Low scorers (0–6) trigger an internal alert so the firm can follow up personally before the relationship breaks down. All scores feed into the client record for a running view of satisfaction over time.',
+        deliverables: [
+          'Survey sent automatically at matter close',
+          'High scorer (9–10) referral prompt',
+          'Low scorer (0–6) internal alert',
+          'Score feed into client record',
+          'Running satisfaction view per client',
+          'Full documentation and handover',
+          '14-day post-handover support',
+        ],
+        exclusions: [
+          'Survey platform subscription (Typeform, Tally) — client-configured',
+          'Review platform management',
+          'Custom survey design beyond NPS',
+        ],
+        steps: [
+          { title: 'Scoping', desc: 'Confirm survey platform, matter close trigger, and alert routing.' },
+          { title: 'Build', desc: 'Survey trigger, response routing, referral prompt, alert, and CRM score write.' },
+          { title: 'Testing & handover', desc: 'Response routing tests, documentation, handover.' },
+        ],
+        stack: [
+          { tool: 'Make.com', role: 'Workflow automation' },
+          { tool: 'Typeform / Tally', role: 'NPS survey (client-configured)' },
+          { tool: 'Airtable', role: 'Satisfaction score records' },
+          { tool: 'Brevo / Gmail', role: 'Alert and referral prompt delivery' },
+        ],
+      },
+    ],
+  },
+
+  addons: [
+    {
+      id: 'addon-1',
+      name: 'Add-On 1 — RAG Knowledge Base',
+      tag: 'addon',
+      tagLabel: 'Add-On',
+      desc: 'Connects firm documents to AI agents so they retrieve and reference actual firm content — templates, precedents, policies — instead of general AI knowledge.',
+      overview: 'Connects firm documents — templates, precedents, policy guides, matter histories, standard clauses — to the AI agents in agentic workflows. Instead of relying on general AI knowledge, agents retrieve and reference actual firm content when drafting documents, assessing compliance, or classifying requests.\n\nBest paired with Document & Proposal Generation (#8), Deadline & Compliance Tracking (#9), and Client Intake Triage (#4).',
+      deliverables: [
+        'Document ingestion (PDFs, Word, Google Docs)',
+        'Vector database setup',
+        'Retrieval integration into up to 3 existing agentic workflows',
+        'Relevance scoring',
+        'Auto-update trigger for new documents',
+        'Source citation on AI outputs',
+        'Basic access control',
+        'Full documentation and handover',
+      ],
+      exclusions: [
+        'Content creation — existing firm documents required',
+        'Legal research databases',
+        'Real-time data sources',
+        'More than 3 workflow integrations (quoted separately)',
+        'OCR on scanned documents',
+        'Vector database subscription — paid directly to provider',
+      ],
+      steps: [
+        { title: 'Document audit', desc: 'Review and prepare firm documents for ingestion. Define retrieval scope.' },
+        { title: 'Vector database setup', desc: 'Configure database, ingest documents, and tune relevance scoring.' },
+        { title: 'Workflow integration', desc: 'Connect retrieval to up to 3 designated agentic workflows.' },
+        { title: 'Testing & handover', desc: 'Retrieval quality tests with real queries, documentation, handover.' },
+      ],
+      stack: [
+        { tool: 'Make.com', role: 'Workflow automation' },
+        { tool: 'Claude (Anthropic)', role: 'Retrieval-augmented generation' },
+        { tool: 'Pinecone / Qdrant', role: 'Vector database' },
+        { tool: 'Google Drive', role: 'Document source' },
+      ],
+    },
+    {
+      id: 'addon-2',
+      name: 'Add-On 2 — Voice Appointment Setter',
+      tag: 'addon',
+      tagLabel: 'Add-On',
+      desc: 'AI voice agent calls new enquiries within minutes of form submission, qualifies them, and books directly into the calendar — including outside office hours.',
+      overview: 'An AI voice agent that calls new enquiries within minutes of a form submission, qualifies them against the firm\'s intake criteria, and books the appointment directly into the calendar — without the firm picking up the phone. Runs continuously, including outside office hours.\n\nBest paired with Enquiry & Lead Capture (#1), Appointment Setting (#2), and Client Intake Triage (#4).',
+      deliverables: [
+        'Custom voice persona and firm name',
+        'Call script design and intent handling',
+        'Live calendar check and appointment booking',
+        'Call transcript and summary pushed to database',
+        'Warm transfer with caller intent summary',
+        'Voicemail-to-text',
+        'Phone number provisioning guidance',
+        'Full documentation and handover',
+      ],
+      exclusions: [
+        'Telephony subscription costs — paid directly to provider',
+        'AI voice platform usage costs — paid directly to provider',
+        'Complex call types (complaints, disputes)',
+        'Multi-language support',
+        'CRM integrations beyond Airtable',
+      ],
+      steps: [
+        { title: 'Script design', desc: 'Define qualification criteria, call flow, and objection handling.' },
+        { title: 'Voice agent build', desc: 'Configure voice persona, script, intent handling, and calendar integration.' },
+        { title: 'Integration', desc: 'Connect form trigger, database write, and warm transfer.' },
+        { title: 'Testing & handover', desc: 'Live call tests, documentation, handover.' },
+      ],
+      stack: [
+        { tool: 'Make.com', role: 'Workflow automation' },
+        { tool: 'Vapi / Bland.ai', role: 'AI voice platform' },
+        { tool: 'Calendly / Cal.com', role: 'Appointment booking' },
+        { tool: 'Airtable', role: 'Call records and database' },
+      ],
+    },
+    {
+      id: 'addon-3',
+      name: 'Add-On 3 — Client-Facing AI Chatbot',
+      tag: 'addon',
+      tagLabel: 'Add-On',
+      desc: 'Branded AI chat widget on the firm website. Handles FAQs, qualifies leads, books appointments, and routes into the automation pipeline.',
+      overview: 'A branded AI chat assistant embedded on the firm website that handles inbound visitor questions, qualifies prospective clients, answers FAQs from firm content, and routes qualified leads into the automation pipeline.\n\nBest paired with Enquiry & Lead Capture (#1) and Appointment Setting (#2).',
+      deliverables: [
+        'Custom chat widget with firm branding (colours and logo)',
+        'System prompt trained on firm services and FAQs',
+        'Intake qualification logic',
+        'Lead routing to automation pipeline',
+        'Appointment booking integration',
+        'Out-of-scope handling with human contact details',
+        'Conversation logging',
+        'Full documentation and handover',
+      ],
+      exclusions: [
+        'Website build or CMS changes',
+        'Legal advice or matter-specific guidance',
+        'RAG Knowledge Base — available as Add-On 1',
+        'Multilingual support',
+        'Ongoing FAQ updates after handover — client-managed',
+      ],
+      steps: [
+        { title: 'FAQ and scope definition', desc: 'Gather firm FAQs, qualification criteria, and out-of-scope handling instructions.' },
+        { title: 'System prompt engineering', desc: 'Build and test chatbot persona and knowledge with real visitor questions.' },
+        { title: 'Widget build and integration', desc: 'Configure widget, embed on website, connect to lead routing and booking.' },
+        { title: 'Testing & handover', desc: 'Conversation tests across scenarios, documentation, handover.' },
+      ],
+      stack: [
+        { tool: 'Make.com', role: 'Workflow automation and lead routing' },
+        { tool: 'Claude (Anthropic)', role: 'Conversational AI' },
+        { tool: 'Custom widget', role: 'Embedded chat interface' },
+        { tool: 'Airtable', role: 'Lead and conversation records' },
+        { tool: 'Calendly / Cal.com', role: 'Appointment booking' },
+      ],
+    },
+    {
+      id: 'addon-4',
+      name: 'Add-On 4 — Airtable CRM Build',
+      tag: 'addon',
+      tagLabel: 'Add-On',
+      desc: 'Airtable CRM designed and built from scratch to support all 13 workflows. Recommended first build for any firm purchasing 3 or more automations.',
+      overview: 'Designs and builds the firm\'s Airtable CRM from the ground up — schema, views, permissions, and native automations — structured to support the full 13-workflow suite from day one. Recommended as the first build for any firm purchasing 3 or more workflows.\n\nThis is the data foundation all 13 automations run on.',
+      deliverables: [
+        'Schema design session (2 hours)',
+        'Core tables: Clients, Matters, Contacts, Deadlines, Tasks, Invoices, Requests, Documents',
+        'Views per table',
+        'Native Airtable automations',
+        'Interface Designer dashboard',
+        'Permission levels',
+        'Data migration from existing system',
+        'Documentation',
+        '1-hour handover session',
+      ],
+      exclusions: [
+        'Airtable Teams plan subscription — paid directly to Airtable',
+        'Data cleaning of large existing datasets',
+        'Training beyond 1-hour handover',
+        'Ongoing administration',
+      ],
+      steps: [
+        { title: 'Schema design session', desc: '2-hour working session to map the firm\'s data requirements and relationships.' },
+        { title: 'CRM build', desc: 'Tables, views, fields, permissions, native automations, and Interface dashboard.' },
+        { title: 'Data migration', desc: 'Import and map existing client data from current system.' },
+        { title: 'Handover', desc: '1-hour walkthrough, documentation, Q&A.' },
+      ],
+      stack: [
+        { tool: 'Airtable', role: 'CRM platform' },
+        { tool: 'Airtable Interface Designer', role: 'Dashboard and views' },
+        { tool: 'Make.com', role: 'Data migration automation' },
+      ],
+    },
+  ],
+};
+
+// ════════════════════════════════════════
+// CATALOGUE STATE
+// ════════════════════════════════════════
+
+const catSelected = new Set();
+
+// ════════════════════════════════════════
+// CATALOGUE UI
+// ════════════════════════════════════════
+
+function openCatalogue() {
+  renderCatalogueGrids();
+  document.getElementById('cat-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCatalogue() {
+  document.getElementById('cat-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function showCatTab(panelId, tabEl) {
+  document.querySelectorAll('.cat-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+  tabEl.classList.add('active');
+}
+
+function renderCatalogueGrids() {
+  renderGrid('grid-suites', CATALOGUE.suites);
+  renderGrid('grid-intake', CATALOGUE.standalone.intake);
+  renderGrid('grid-client', CATALOGUE.standalone.client);
+  renderGrid('grid-admin', CATALOGUE.standalone.admin);
+  renderGrid('grid-retention', CATALOGUE.standalone.retention);
+  renderGrid('grid-addons', CATALOGUE.addons);
+}
+
+function renderGrid(gridId, items) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  grid.innerHTML = '';
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'cat-item' + (catSelected.has(item.id) ? ' selected' : '');
+    div.dataset.id = item.id;
+    div.innerHTML = `
+      <div class="cat-check">✓</div>
+      <div class="cat-item-body">
+        <div class="cat-item-name">${item.name}</div>
+        <div class="cat-item-desc">${item.desc}</div>
+        <div class="cat-item-meta">
+          <span class="cat-tag ${item.tag}">${item.tagLabel}</span>
+        </div>
+      </div>
+    `;
+    div.addEventListener('click', () => toggleCatItem(item.id));
+    grid.appendChild(div);
+  });
+}
+
+function toggleCatItem(id) {
+  if (catSelected.has(id)) {
+    catSelected.delete(id);
+  } else {
+    catSelected.add(id);
+  }
+  document.querySelectorAll(`.cat-item[data-id="${id}"]`).forEach(el => {
+    el.classList.toggle('selected', catSelected.has(id));
+  });
+  updateCatSummary();
+}
+
+function updateCatSummary() {
+  const count = catSelected.size;
+  document.getElementById('cat-count').textContent = count === 0 ? '0 selected' : `${count} selected`;
+  const names = getAllItems()
+    .filter(i => catSelected.has(i.id))
+    .map(i => i.name);
+  document.getElementById('cat-items-preview').textContent =
+    names.length ? names.join(' · ') : 'Nothing selected yet';
+  document.getElementById('btn-apply').disabled = false;
+  document.getElementById('btn-apply').textContent = count === 0 ? 'Clear Catalogue' : 'Apply to Proposal';
+}
+
+function getAllItems() {
+  return [
+    ...CATALOGUE.suites,
+    ...CATALOGUE.standalone.intake,
+    ...CATALOGUE.standalone.client,
+    ...CATALOGUE.standalone.admin,
+    ...CATALOGUE.standalone.retention,
+    ...CATALOGUE.addons,
+  ];
+}
+
+// ════════════════════════════════════════
+// APPLY SELECTION TO PROPOSAL
+// Rebuilds deliverables, exclusions, steps,
+// and stack entirely from current selection.
+// Manual rows (no data-cat attribute) are
+// preserved across applies.
+// ════════════════════════════════════════
+
+function applySelection() {
+  const selected = getAllItems().filter(i => catSelected.has(i.id));
+
+  // If nothing selected, just clear all catalogue-sourced content
+  if (!selected.length) {
+    ['deliverables','exclusions'].forEach(listKey => {
+      const catIds = state[listKey].filter(d => d.fromCat).map(d => d.id);
+      catIds.forEach(id => {
+        state[listKey] = state[listKey].filter(d => d.id !== id);
+        const el = document.querySelector(`#${listKey}-list [data-id="${id}"]`);
+        if (el) el.remove();
+      });
+    });
+    state.steps = [];
+    document.getElementById('steps-list').innerHTML = '';
+    state.stack = [];
+    document.getElementById('stack-list').innerHTML = '';
+    document.getElementById('f-overview').value = '';
+    render();
+    closeCatalogue();
+    return;
+  }
+
+  // ── Title (only if empty) ──
+  const titleEl = document.getElementById('f-title');
+  if (!titleEl.value.trim()) {
+    titleEl.value = selected.length === 1
+      ? selected[0].name
+      : selected.map(i => i.name).join(' + ');
+  }
+
+  // ── Overview ──
+  const overviewEl = document.getElementById('f-overview');
+  if (selected.length === 1) {
+    overviewEl.value = selected[0].overview;
+  } else {
+    const parts = selected.map(i => `${i.name}\n\n${i.overview}`);
+    overviewEl.value = parts.join('\n\n---\n\n');
+  }
+
+  // ── Steps: clear all, rebuild from selection ──
+  state.steps = [];
+  document.getElementById('steps-list').innerHTML = '';
+  selected.forEach(item => {
+    item.steps.forEach(s => {
+      const id = Date.now() + Math.random();
+      const title = selected.length === 1 ? s.title : `[${item.name}] ${s.title}`;
+      state.steps.push({ id, title, desc: s.desc });
+      renderStepRow(id);
+    });
+  });
+
+  // ── Stack: clear all, rebuild deduplicated from selection ──
+  state.stack = [];
+  document.getElementById('stack-list').innerHTML = '';
+  const seenTools = new Set();
+  selected.forEach(item => {
+    item.stack.forEach(s => {
+      const key = s.tool.toLowerCase();
+      if (!seenTools.has(key)) {
+        seenTools.add(key);
+        const id = Date.now() + Math.random();
+        state.stack.push({ id, tool: s.tool, role: s.role });
+        renderStackRow(id);
+      }
+    });
+  });
+
+  // ── Deliverables: remove all catalogue rows, rebuild from selection ──
+  // Remove existing catalogue-sourced rows from DOM and state
+  const catDelivIds = state.deliverables
+    .filter(d => d.fromCat)
+    .map(d => d.id);
+  catDelivIds.forEach(id => {
+    state.deliverables = state.deliverables.filter(d => d.id !== id);
+    const el = document.querySelector(`#deliverables-list [data-id="${id}"]`);
+    if (el) el.remove();
+  });
+  // Add fresh from selection, deduplicated
+  const seenDeliv = new Set();
+  selected.forEach(item => {
+    item.deliverables.forEach(d => {
+      if (!seenDeliv.has(d)) {
+        seenDeliv.add(d);
+        addCatDeliverable(d);
+      }
+    });
+  });
+
+  // ── Exclusions: remove all catalogue rows, rebuild from selection ──
+  const catExclIds = state.exclusions
+    .filter(e => e.fromCat)
+    .map(e => e.id);
+  catExclIds.forEach(id => {
+    state.exclusions = state.exclusions.filter(e => e.id !== id);
+    const el = document.querySelector(`#exclusions-list [data-id="${id}"]`);
+    if (el) el.remove();
+  });
+  // Add fresh from selection, deduplicated
+  const seenExcl = new Set();
+  selected.forEach(item => {
+    item.exclusions.forEach(e => {
+      if (!seenExcl.has(e)) {
+        seenExcl.add(e);
+        addCatExclusion(e);
+      }
+    });
+  });
+
+  render();
+  closeCatalogue();
+}
+
+// ── Catalogue-sourced row adders (tagged with fromCat:true) ──
+function addCatDeliverable(val) {
+  const id = Date.now() + Math.random();
+  state.deliverables.push({ id, val, fromCat: true });
+  renderDeliverableRow(id, val);
+}
+
+function addCatExclusion(val) {
+  const id = Date.now() + Math.random();
+  state.exclusions.push({ id, val, fromCat: true });
+  renderExclusionRow(id, val);
+}
+
+// Close on overlay click
+document.getElementById('cat-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeCatalogue();
+});
+
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeCatalogue();
+});
+
+// Init summary state
+updateCatSummary();
 </script>
 </body>
 </html>
