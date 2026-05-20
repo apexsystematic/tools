@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UTM Link Generator — Apex Systematic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy:       #0E1117;
+    --slate:      #131820;
+    --slate-el:   #182030;
+    --border:     #1E2838;
+    --border-lt:  #263040;
+    --text:       #D8DCE4;
+    --muted:      #7A8299;
+    --dim:        #4F5B6E;
+    --white:      #FFFFFF;
+    --gold:       #C9A84C;
+    --gold-lt:    #DDB95A;
+    --danger:     #8B3A3A;
+    --danger-lt:  #B04A4A;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .wordmark {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    letter-spacing: 0.12em;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+
+  .wordmark span {
+    color: var(--gold);
+  }
+
+  header .divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border-lt);
+  }
+
+  header .tool-label {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* LAYOUT */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* PANEL */
+  .panel {
+    background: var(--slate);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .panel-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .panel-body {
+    padding: 20px;
+  }
+
+  /* FORM ELEMENTS */
+  .field {
+    margin-bottom: 14px;
+  }
+
+  .field:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  input[type="text"], input[type="url"] {
+    width: 100%;
+    background: var(--slate-el);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="text"]:focus, input[type="url"]:focus {
+    border-color: var(--gold);
+  }
+
+  input[type="text"]::placeholder, input[type="url"]::placeholder {
+    color: var(--dim);
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* PREVIEW */
+  .url-preview {
+    background: var(--navy);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: var(--muted);
+    word-break: break-all;
+    line-height: 1.5;
+    margin-top: 16px;
+    min-height: 44px;
+  }
+
+  .url-preview .highlight {
+    color: var(--gold);
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    border: 1px solid transparent;
+    padding: 9px 16px;
+  }
+
+  .btn-primary {
+    background: var(--gold);
+    color: var(--navy);
+    width: 100%;
+    margin-top: 16px;
+  }
+
+  .btn-primary:hover { background: var(--gold-lt); }
+
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border-color: var(--border);
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .btn-ghost:hover {
+    color: var(--text);
+    border-color: var(--border-lt);
+  }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--dim);
+    border-color: transparent;
+    padding: 6px 8px;
+  }
+
+  .btn-danger:hover {
+    color: var(--danger-lt);
+  }
+
+  /* SAVED LINKS TABLE */
+  .links-panel {
+    background: var(--slate);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+
+  .links-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .links-count {
+    font-size: 11px;
+    color: var(--dim);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+  }
+
+  /* FILTER */
+  .filter-bar {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+  }
+
+  .filter-bar input {
+    flex: 1;
+    background: var(--slate-el);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 6px 10px;
+    outline: none;
+  }
+
+  .filter-bar input:focus { border-color: var(--gold); }
+  .filter-bar input::placeholder { color: var(--dim); }
+
+  /* TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--slate-el); }
+
+  td {
+    padding: 12px 20px;
+    vertical-align: top;
+  }
+
+  .td-label {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .td-campaign {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .td-url {
+    font-size: 11px;
+    color: var(--muted);
+    word-break: break-all;
+    max-width: 340px;
+  }
+
+  .td-date {
+    font-size: 11px;
+    color: var(--dim);
+    white-space: nowrap;
+  }
+
+  .td-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    padding: 48px 20px;
+    text-align: center;
+    color: var(--dim);
+    font-size: 13px;
+  }
+
+  .empty-state p:first-child {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  /* STATUS */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--slate-el);
+    border: 1px solid var(--border-lt);
+    border-left: 3px solid var(--gold);
+    border-radius: 2px;
+    padding: 12px 18px;
+    font-size: 12px;
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* LOADING */
+  .loading-row td {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--dim);
+    font-size: 12px;
+  }
+
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">Apex <span>Systematic</span></div>
+  <div class="divider"></div>
+  <div class="tool-label">UTM Link Generator</div>
+</header>
+
+<main>
+
+  <!-- LEFT: GENERATOR -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-label">Generate Link</span>
+      </div>
+      <div class="panel-body">
+
+        <div class="field">
+          <label>Label</label>
+          <input type="text" id="label" placeholder="e.g. Accounting report — post 1" />
+        </div>
+
+        <div class="field">
+          <label>Base URL</label>
+          <input type="url" id="baseUrl" placeholder="https://www.apexsystematic.com/reports/..." />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Source</label>
+            <input type="text" id="source" value="linkedin" />
+          </div>
+          <div class="field">
+            <label>Medium</label>
+            <input type="text" id="medium" value="organic" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Campaign</label>
+            <input type="text" id="campaign" placeholder="e.g. accounting-report" />
+          </div>
+          <div class="field">
+            <label>Content</label>
+            <input type="text" id="content" placeholder="e.g. post-w21-1" />
+          </div>
+        </div>
+
+        <div class="url-preview" id="urlPreview">
+          <span style="color:var(--dim);">URL preview will appear here.</span>
+        </div>
+
+        <button class="btn btn-primary" id="saveBtn" onclick="saveLink()" disabled>
+          Save Link
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: SAVED LINKS -->
+  <div class="links-panel">
+    <div class="links-header">
+      <span class="panel-label">Saved Links</span>
+      <span class="links-count" id="linksCount">—</span>
+    </div>
+    <div class="filter-bar">
+      <input type="text" id="filterInput" placeholder="Filter by label, campaign, or URL…" oninput="filterLinks()" />
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Label</th>
+            <th>Campaign</th>
+            <th>URL</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="linksBody">
+          <tr class="loading-row"><td colspan="5">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let allLinks = [];
+  let WORKER_URL = 'https://utm-links-api.apexsystematic.workers.dev';
+
+  // --- INIT ---
+  window.addEventListener('DOMContentLoaded', () => {
+    fetchLinks();
+    ['baseUrl','source','medium','campaign','content','label'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updatePreview);
+    });
+  });
+
+  // --- BUILD URL ---
+  function buildURL() {
+    const base = document.getElementById('baseUrl').value.trim().replace(/\?.*$/, '');
+    if (!base) return '';
+    const params = new URLSearchParams();
+    const source   = document.getElementById('source').value.trim();
+    const medium   = document.getElementById('medium').value.trim();
+    const campaign = document.getElementById('campaign').value.trim();
+    const content  = document.getElementById('content').value.trim();
+    if (source)   params.set('utm_source', source);
+    if (medium)   params.set('utm_medium', medium);
+    if (campaign) params.set('utm_campaign', campaign);
+    if (content)  params.set('utm_content', content);
+    return base + (params.toString() ? '?' + params.toString() : '');
+  }
+
+  function updatePreview() {
+    const url = buildURL();
+    const preview = document.getElementById('urlPreview');
+    const btn = document.getElementById('saveBtn');
+    if (!url) {
+      preview.innerHTML = '<span style="color:var(--dim);">URL preview will appear here.</span>';
+      btn.disabled = true;
+      return;
+    }
+    const [basepart, querypart] = url.split('?');
+    preview.innerHTML = basepart + (querypart
+      ? '?<span class="highlight">' + querypart + '</span>'
+      : '');
+    btn.disabled = !document.getElementById('label').value.trim();
+  }
+
+  // --- FETCH LINKS ---
+  async function fetchLinks() {
+    try {
+      const res = await fetch(WORKER_URL + '/links');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      allLinks = await res.json();
+      renderLinks(allLinks);
+      updateSaveBtn();
+    } catch (e) {
+      renderLinks([]);
+    }
+  }
+
+  // --- SAVE LINK ---
+  async function saveLink() {
+    const label = document.getElementById('label').value.trim();
+    const url   = buildURL();
+    if (!label || !url || !WORKER_URL) return;
+
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    try {
+      const res = await fetch(WORKER_URL + '/links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          label,
+          url,
+          campaign: document.getElementById('campaign').value.trim(),
+          content:  document.getElementById('content').value.trim(),
+        }),
+      });
+      if (!res.ok) throw new Error();
+      const link = await res.json();
+      allLinks.unshift(link);
+      renderLinks(allLinks);
+      showToast('Link saved.');
+      document.getElementById('label').value = '';
+      document.getElementById('content').value = '';
+      updatePreview();
+    } catch {
+      showToast('Failed to save. Check Worker connection.');
+    } finally {
+      btn.textContent = 'Save Link';
+      updateSaveBtn();
+    }
+  }
+
+  // --- DELETE LINK ---
+  async function deleteLink(id) {
+    try {
+      const res = await fetch(WORKER_URL + '/links/' + id, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      allLinks = allLinks.filter(l => l.id !== id);
+      renderLinks(allLinks);
+      showToast('Link deleted.');
+    } catch {
+      showToast('Failed to delete.');
+    }
+  }
+
+  // --- COPY ---
+  function copyLink(url, btn) {
+    navigator.clipboard.writeText(url).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => { btn.textContent = orig; }, 1500);
+    });
+  }
+
+  // --- FILTER ---
+  function filterLinks() {
+    const q = document.getElementById('filterInput').value.toLowerCase();
+    const filtered = q
+      ? allLinks.filter(l =>
+          (l.label || '').toLowerCase().includes(q) ||
+          (l.campaign || '').toLowerCase().includes(q) ||
+          (l.url || '').toLowerCase().includes(q)
+        )
+      : allLinks;
+    renderLinks(filtered, true);
+  }
+
+  // --- RENDER ---
+  function renderLinks(links, filtered) {
+    const tbody = document.getElementById('linksBody');
+    const count = document.getElementById('linksCount');
+
+    count.textContent = allLinks.length
+      ? allLinks.length + ' link' + (allLinks.length !== 1 ? 's' : '')
+      : '';
+
+    if (!links.length) {
+      tbody.innerHTML = `<tr><td colspan="5">
+        <div class="empty-state">
+          <p>${filtered ? 'No results' : 'No links yet'}</p>
+          <span>${filtered ? 'Try a different search.' : 'Generate your first link using the form.'}</span>
+        </div>
+      </td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = links.map(l => {
+      const date = new Date(l.created);
+      const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
+      return `
+        <tr>
+          <td>
+            <div class="td-label">${esc(l.label)}</div>
+            ${l.content ? `<div style="font-size:11px;color:var(--dim);margin-top:2px;">${esc(l.content)}</div>` : ''}
+          </td>
+          <td><div class="td-campaign">${esc(l.campaign || '—')}</div></td>
+          <td><div class="td-url">${esc(l.url)}</div></td>
+          <td><div class="td-date">${dateStr}</div></td>
+          <td>
+            <div class="td-actions">
+              <button class="btn btn-ghost" onclick="copyLink('${esc(l.url)}', this)">Copy</button>
+              <button class="btn btn-danger" onclick="deleteLink('${esc(l.id)}')" title="Delete">✕</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function updateSaveBtn() {
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = !document.getElementById('label').value.trim() || !buildURL();
+  }
+
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+</script>
+</body>
+</html>
