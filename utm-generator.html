@@ -316,7 +316,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.15s;
   }
+
+  .td-url:hover { color: var(--text); }
 
   .td-short {
     font-size: 12px;
@@ -325,7 +329,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.15s;
   }
+
+  .td-short:hover { color: var(--gold-lt); }
 
   .td-date {
     font-size: 11px;
@@ -576,11 +584,15 @@
     }
   }
 
-  function copyLink(url, btn) {
+  function copyText(url, el) {
     navigator.clipboard.writeText(url).then(() => {
-      const orig = btn.textContent;
-      btn.textContent = 'Copied';
-      setTimeout(() => { btn.textContent = orig; }, 1500);
+      const orig = el.textContent;
+      el.textContent = 'Copied';
+      el.style.opacity = '0.6';
+      setTimeout(() => {
+        el.textContent = orig;
+        el.style.opacity = '';
+      }, 1500);
     });
   }
 
@@ -616,9 +628,8 @@
 
     tbody.innerHTML = links.map(l => {
       const dateStr = new Date(l.created).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
-      const copyTarget = l.shortUrl || l.url;
       const shortDisplay = l.shortUrl
-        ? `<div class="td-short">${esc(l.shortUrl)}</div>`
+        ? `<div class="td-short" onclick="copyText('${esc(l.shortUrl)}',this)" title="Click to copy">${esc(l.shortUrl)}</div>`
         : `<div style="font-size:11px;color:var(--dim);">—</div>`;
 
       return `<tr>
@@ -628,11 +639,10 @@
         </td>
         <td><div class="td-campaign">${esc(l.campaign || '—')}</div></td>
         <td>${shortDisplay}</td>
-        <td><div class="td-url" title="${esc(l.url)}">${esc(l.url)}</div></td>
+        <td><div class="td-url" onclick="copyText('${esc(l.url)}',this)" title="Click to copy">${esc(l.url)}</div></td>
         <td><div class="td-date">${dateStr}</div></td>
         <td>
           <div class="td-actions">
-            <button class="btn btn-ghost" onclick="copyLink('${esc(copyTarget)}',this)">Copy</button>
             <button class="btn btn-danger" onclick="deleteLink('${esc(l.id)}')" title="Delete">✕</button>
           </div>
         </td>
