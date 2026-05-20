@@ -463,13 +463,14 @@
           <tr>
             <th>Label</th>
             <th>Campaign</th>
-            <th>URL</th>
+            <th>Short URL</th>
+            <th>Full URL</th>
             <th>Date</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="linksBody">
-          <tr class="loading-row"><td colspan="5">Loading…</td></tr>
+          <tr class="loading-row"><td colspan="6">Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -618,7 +619,7 @@
       : '';
 
     if (!links.length) {
-      tbody.innerHTML = `<tr><td colspan="5">
+      tbody.innerHTML = `<tr><td colspan="6">
         <div class="empty-state">
           <p>${filtered ? 'No results' : 'No links yet'}</p>
           <span>${filtered ? 'Try a different search.' : 'Generate your first link using the form.'}</span>
@@ -630,6 +631,7 @@
     tbody.innerHTML = links.map(l => {
       const date = new Date(l.created);
       const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
+      const copyTarget = l.shortUrl || l.url;
       return `
         <tr>
           <td>
@@ -637,11 +639,16 @@
             ${l.content ? `<div style="font-size:11px;color:var(--dim);margin-top:2px;">${esc(l.content)}</div>` : ''}
           </td>
           <td><div class="td-campaign">${esc(l.campaign || '—')}</div></td>
+          <td>
+            ${l.shortUrl
+              ? `<div class="td-url" style="color:var(--gold);">${esc(l.shortUrl)}</div>`
+              : `<div style="font-size:11px;color:var(--dim);">—</div>`}
+          </td>
           <td><div class="td-url">${esc(l.url)}</div></td>
           <td><div class="td-date">${dateStr}</div></td>
           <td>
             <div class="td-actions">
-              <button class="btn btn-ghost" onclick="copyLink('${esc(l.url)}', this)">Copy</button>
+              <button class="btn btn-ghost" onclick="copyLink('${esc(copyTarget)}', this)" title="Copy ${l.shortUrl ? 'short' : 'full'} URL">Copy</button>
               <button class="btn btn-danger" onclick="deleteLink('${esc(l.id)}')" title="Delete">✕</button>
             </div>
           </td>
