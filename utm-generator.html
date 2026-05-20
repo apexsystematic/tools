@@ -9,19 +9,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --navy:       #0E1117;
-    --slate:      #131820;
-    --slate-el:   #182030;
-    --border:     #1E2838;
-    --border-lt:  #263040;
-    --text:       #D8DCE4;
-    --muted:      #7A8299;
-    --dim:        #4F5B6E;
-    --white:      #FFFFFF;
-    --gold:       #C9A84C;
-    --gold-lt:    #DDB95A;
-    --danger:     #8B3A3A;
-    --danger-lt:  #B04A4A;
+    --navy:      #0E1117;
+    --slate:     #131820;
+    --slate-el:  #182030;
+    --border:    #1E2838;
+    --border-lt: #263040;
+    --text:      #D8DCE4;
+    --muted:     #7A8299;
+    --dim:       #4F5B6E;
+    --white:     #FFFFFF;
+    --gold:      #C9A84C;
+    --gold-lt:   #DDB95A;
+    --danger-lt: #B04A4A;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,7 +34,6 @@
     min-height: 100vh;
   }
 
-  /* HEADER */
   header {
     border-bottom: 1px solid var(--border);
     padding: 20px 40px;
@@ -52,17 +50,11 @@
     text-transform: uppercase;
   }
 
-  .wordmark span {
-    color: var(--gold);
-  }
+  .wordmark span { color: var(--gold); }
 
-  header .divider {
-    width: 1px;
-    height: 16px;
-    background: var(--border-lt);
-  }
+  .hd { width: 1px; height: 16px; background: var(--border-lt); }
 
-  header .tool-label {
+  .tool-label {
     font-size: 12px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -70,30 +62,25 @@
     font-weight: 500;
   }
 
-  /* LAYOUT */
   main {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 40px 40px 80px;
-    display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: 32px;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
   }
 
-  /* PANEL */
-  .panel {
+  /* GENERATOR PANEL — horizontal layout */
+  .gen-panel {
     background: var(--slate);
     border: 1px solid var(--border);
     border-radius: 2px;
   }
 
   .panel-header {
-    padding: 16px 20px;
+    padding: 14px 20px;
     border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
   }
 
   .panel-label {
@@ -104,25 +91,22 @@
     color: var(--gold);
   }
 
-  .panel-body {
+  .gen-body {
     padding: 20px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+    gap: 12px;
+    align-items: end;
   }
 
-  /* FORM ELEMENTS */
-  .field {
-    margin-bottom: 14px;
-  }
-
-  .field:last-child { margin-bottom: 0; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
 
   label {
-    display: block;
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 6px;
   }
 
   input[type="text"], input[type="url"] {
@@ -136,39 +120,39 @@
     padding: 8px 12px;
     outline: none;
     transition: border-color 0.15s;
+    height: 36px;
   }
 
-  input[type="text"]:focus, input[type="url"]:focus {
-    border-color: var(--gold);
+  input:focus { border-color: var(--gold); }
+  input::placeholder { color: var(--dim); }
+
+  .preview-row {
+    padding: 0 20px 16px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
-  input[type="text"]::placeholder, input[type="url"]::placeholder {
-    color: var(--dim);
+  .preview-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
   }
 
-  .field-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  /* PREVIEW */
   .url-preview {
-    background: var(--navy);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    padding: 10px 12px;
+    flex: 1;
     font-size: 11px;
     color: var(--muted);
     word-break: break-all;
     line-height: 1.5;
-    margin-top: 16px;
-    min-height: 44px;
   }
 
-  .url-preview .highlight {
-    color: var(--gold);
-  }
+  .url-preview .highlight { color: var(--gold); }
 
   /* BUTTONS */
   .btn {
@@ -185,14 +169,14 @@
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s, color 0.15s;
     border: 1px solid transparent;
-    padding: 9px 16px;
+    padding: 9px 20px;
+    white-space: nowrap;
+    height: 36px;
   }
 
   .btn-primary {
     background: var(--gold);
     color: var(--navy);
-    width: 100%;
-    margin-top: 16px;
   }
 
   .btn-primary:hover { background: var(--gold-lt); }
@@ -206,27 +190,24 @@
     background: transparent;
     color: var(--muted);
     border-color: var(--border);
-    padding: 6px 10px;
+    padding: 5px 10px;
     font-size: 11px;
+    height: auto;
   }
 
-  .btn-ghost:hover {
-    color: var(--text);
-    border-color: var(--border-lt);
-  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-lt); }
 
   .btn-danger {
     background: transparent;
     color: var(--dim);
     border-color: transparent;
-    padding: 6px 8px;
+    padding: 5px 8px;
+    height: auto;
   }
 
-  .btn-danger:hover {
-    color: var(--danger-lt);
-  }
+  .btn-danger:hover { color: var(--danger-lt); }
 
-  /* SAVED LINKS TABLE */
+  /* LINKS TABLE */
   .links-panel {
     background: var(--slate);
     border: 1px solid var(--border);
@@ -234,7 +215,7 @@
   }
 
   .links-header {
-    padding: 16px 20px;
+    padding: 14px 20px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -244,20 +225,15 @@
   .links-count {
     font-size: 11px;
     color: var(--dim);
-    font-weight: 400;
-    letter-spacing: 0.04em;
   }
 
-  /* FILTER */
   .filter-bar {
-    padding: 12px 20px;
+    padding: 10px 20px;
     border-bottom: 1px solid var(--border);
-    display: flex;
-    gap: 8px;
   }
 
   .filter-bar input {
-    flex: 1;
+    width: 100%;
     background: var(--slate-el);
     border: 1px solid var(--border);
     border-radius: 2px;
@@ -266,16 +242,20 @@
     font-size: 12px;
     padding: 6px 10px;
     outline: none;
+    height: 32px;
   }
 
   .filter-bar input:focus { border-color: var(--gold); }
   .filter-bar input::placeholder { color: var(--dim); }
 
-  /* TABLE */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+
+  col.col-label   { width: 22%; }
+  col.col-campaign{ width: 14%; }
+  col.col-short   { width: 16%; }
+  col.col-full    { width: 30%; }
+  col.col-date    { width: 10%; }
+  col.col-actions { width: 8%; }
 
   thead th {
     text-align: left;
@@ -284,7 +264,7 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--dim);
-    padding: 10px 20px;
+    padding: 10px 16px;
     border-bottom: 1px solid var(--border);
   }
 
@@ -297,14 +277,26 @@
   tbody tr:hover { background: var(--slate-el); }
 
   td {
-    padding: 12px 20px;
-    vertical-align: top;
+    padding: 12px 16px;
+    vertical-align: middle;
+    overflow: hidden;
   }
 
   .td-label {
     font-size: 13px;
     color: var(--text);
     font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .td-sub {
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
@@ -313,14 +305,26 @@
     color: var(--gold);
     letter-spacing: 0.06em;
     text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .td-url {
     font-size: 11px;
     color: var(--muted);
-    word-break: break-all;
-    max-width: 340px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .td-short {
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .td-date {
@@ -332,11 +336,9 @@
   .td-actions {
     display: flex;
     align-items: center;
-    gap: 4px;
-    white-space: nowrap;
+    gap: 2px;
   }
 
-  /* EMPTY STATE */
   .empty-state {
     padding: 48px 20px;
     text-align: center;
@@ -344,14 +346,20 @@
     font-size: 13px;
   }
 
-  .empty-state p:first-child {
+  .empty-state p {
     font-family: 'Playfair Display', serif;
     font-size: 16px;
     color: var(--muted);
     margin-bottom: 6px;
   }
 
-  /* STATUS */
+  .loading-row td {
+    padding: 32px;
+    text-align: center;
+    color: var(--dim);
+    font-size: 12px;
+  }
+
   .toast {
     position: fixed;
     bottom: 24px;
@@ -370,95 +378,81 @@
     z-index: 100;
   }
 
-  .toast.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* LOADING */
-  .loading-row td {
-    padding: 32px 20px;
-    text-align: center;
-    color: var(--dim);
-    font-size: 12px;
-  }
-
-
+  .toast.show { opacity: 1; transform: translateY(0); }
 </style>
 </head>
 <body>
 
 <header>
   <div class="wordmark">Apex <span>Systematic</span></div>
-  <div class="divider"></div>
+  <div class="hd"></div>
   <div class="tool-label">UTM Link Generator</div>
 </header>
 
 <main>
 
-  <!-- LEFT: GENERATOR -->
-  <div>
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-label">Generate Link</span>
+  <!-- GENERATOR -->
+  <div class="gen-panel">
+    <div class="panel-header">
+      <span class="panel-label">Generate Link</span>
+    </div>
+    <div class="gen-body">
+      <div class="field">
+        <label>Label</label>
+        <input type="text" id="label" placeholder="e.g. Accounting report — post 1" />
       </div>
-      <div class="panel-body">
-
-        <div class="field">
-          <label>Label</label>
-          <input type="text" id="label" placeholder="e.g. Accounting report — post 1" />
-        </div>
-
-        <div class="field">
-          <label>Base URL</label>
-          <input type="url" id="baseUrl" placeholder="https://www.apexsystematic.com/reports/..." />
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label>Source</label>
-            <input type="text" id="source" value="linkedin" />
-          </div>
-          <div class="field">
-            <label>Medium</label>
-            <input type="text" id="medium" value="organic" />
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label>Campaign</label>
-            <input type="text" id="campaign" placeholder="e.g. accounting-report" />
-          </div>
-          <div class="field">
-            <label>Content</label>
-            <input type="text" id="content" placeholder="e.g. post-w21-1" />
-          </div>
-        </div>
-
-        <div class="url-preview" id="urlPreview">
-          <span style="color:var(--dim);">URL preview will appear here.</span>
-        </div>
-
-        <button class="btn btn-primary" id="saveBtn" onclick="saveLink()" disabled>
-          Save Link
-        </button>
-
+      <div class="field">
+        <label>Base URL</label>
+        <input type="url" id="baseUrl" placeholder="https://www.apexsystematic.com/..." />
+      </div>
+      <div class="field">
+        <label>Campaign</label>
+        <input type="text" id="campaign" placeholder="e.g. accounting-report" />
+      </div>
+      <div class="field">
+        <label>Content</label>
+        <input type="text" id="content" placeholder="e.g. post-w21-1" />
+      </div>
+      <div class="field" style="display:none;">
+        <label>Source</label>
+        <input type="text" id="source" value="linkedin" />
+      </div>
+      <div class="field" style="display:none;">
+        <label>Medium</label>
+        <input type="text" id="medium" value="organic" />
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" id="saveBtn" onclick="saveLink()" disabled>Save Link</button>
+      </div>
+    </div>
+    <div class="preview-row">
+      <span class="preview-label">Preview</span>
+      <div class="url-preview" id="urlPreview">
+        <span style="color:var(--dim);">URL preview will appear here.</span>
       </div>
     </div>
   </div>
 
-  <!-- RIGHT: SAVED LINKS -->
+  <!-- SAVED LINKS -->
   <div class="links-panel">
     <div class="links-header">
       <span class="panel-label">Saved Links</span>
-      <span class="links-count" id="linksCount">—</span>
+      <span class="links-count" id="linksCount"></span>
     </div>
     <div class="filter-bar">
       <input type="text" id="filterInput" placeholder="Filter by label, campaign, or URL…" oninput="filterLinks()" />
     </div>
     <div style="overflow-x:auto;">
       <table>
+        <colgroup>
+          <col class="col-label" />
+          <col class="col-campaign" />
+          <col class="col-short" />
+          <col class="col-full" />
+          <col class="col-date" />
+          <col class="col-actions" />
+        </colgroup>
         <thead>
           <tr>
             <th>Label</th>
@@ -482,9 +476,8 @@
 
 <script>
   let allLinks = [];
-  let WORKER_URL = 'https://utm-links-api.apexsystematic.workers.dev';
+  const WORKER_URL = 'https://utm-links-api.apexsystematic.workers.dev';
 
-  // --- INIT ---
   window.addEventListener('DOMContentLoaded', () => {
     fetchLinks();
     ['baseUrl','source','medium','campaign','content','label'].forEach(id => {
@@ -492,7 +485,6 @@
     });
   });
 
-  // --- BUILD URL ---
   function buildURL() {
     const base = document.getElementById('baseUrl').value.trim().replace(/\?.*$/, '');
     if (!base) return '';
@@ -517,31 +509,27 @@
       btn.disabled = true;
       return;
     }
-    const [basepart, querypart] = url.split('?');
-    preview.innerHTML = basepart + (querypart
-      ? '?<span class="highlight">' + querypart + '</span>'
-      : '');
+    const [base, query] = url.split('?');
+    preview.innerHTML = base + (query ? '?<span class="highlight">' + query + '</span>' : '');
     btn.disabled = !document.getElementById('label').value.trim();
   }
 
-  // --- FETCH LINKS ---
   async function fetchLinks() {
     try {
       const res = await fetch(WORKER_URL + '/links');
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      if (!res.ok) throw new Error();
       allLinks = await res.json();
       renderLinks(allLinks);
-      updateSaveBtn();
-    } catch (e) {
+    } catch {
       renderLinks([]);
+      showToast('Could not load links — check Worker.');
     }
   }
 
-  // --- SAVE LINK ---
   async function saveLink() {
     const label = document.getElementById('label').value.trim();
     const url   = buildURL();
-    if (!label || !url || !WORKER_URL) return;
+    if (!label || !url) return;
 
     const btn = document.getElementById('saveBtn');
     btn.disabled = true;
@@ -562,19 +550,20 @@
       const link = await res.json();
       allLinks.unshift(link);
       renderLinks(allLinks);
-      showToast('Link saved.');
+      showToast(link.shortUrl ? 'Link saved and shortened.' : 'Link saved. Short URL unavailable.');
       document.getElementById('label').value = '';
       document.getElementById('content').value = '';
+      document.getElementById('baseUrl').value = '';
+      document.getElementById('campaign').value = '';
       updatePreview();
     } catch {
       showToast('Failed to save. Check Worker connection.');
     } finally {
       btn.textContent = 'Save Link';
-      updateSaveBtn();
+      btn.disabled = false;
     }
   }
 
-  // --- DELETE LINK ---
   async function deleteLink(id) {
     try {
       const res = await fetch(WORKER_URL + '/links/' + id, { method: 'DELETE' });
@@ -587,7 +576,6 @@
     }
   }
 
-  // --- COPY ---
   function copyLink(url, btn) {
     navigator.clipboard.writeText(url).then(() => {
       const orig = btn.textContent;
@@ -596,7 +584,6 @@
     });
   }
 
-  // --- FILTER ---
   function filterLinks() {
     const q = document.getElementById('filterInput').value.toLowerCase();
     const filtered = q
@@ -609,12 +596,11 @@
     renderLinks(filtered, true);
   }
 
-  // --- RENDER ---
   function renderLinks(links, filtered) {
-    const tbody = document.getElementById('linksBody');
-    const count = document.getElementById('linksCount');
+    const tbody   = document.getElementById('linksBody');
+    const counter = document.getElementById('linksCount');
 
-    count.textContent = allLinks.length
+    counter.textContent = allLinks.length
       ? allLinks.length + ' link' + (allLinks.length !== 1 ? 's' : '')
       : '';
 
@@ -622,43 +608,36 @@
       tbody.innerHTML = `<tr><td colspan="6">
         <div class="empty-state">
           <p>${filtered ? 'No results' : 'No links yet'}</p>
-          <span>${filtered ? 'Try a different search.' : 'Generate your first link using the form.'}</span>
+          <span>${filtered ? 'Try a different search.' : 'Generate your first link using the form above.'}</span>
         </div>
       </td></tr>`;
       return;
     }
 
     tbody.innerHTML = links.map(l => {
-      const date = new Date(l.created);
-      const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
+      const dateStr = new Date(l.created).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
       const copyTarget = l.shortUrl || l.url;
-      return `
-        <tr>
-          <td>
-            <div class="td-label">${esc(l.label)}</div>
-            ${l.content ? `<div style="font-size:11px;color:var(--dim);margin-top:2px;">${esc(l.content)}</div>` : ''}
-          </td>
-          <td><div class="td-campaign">${esc(l.campaign || '—')}</div></td>
-          <td>
-            ${l.shortUrl
-              ? `<div class="td-url" style="color:var(--gold);">${esc(l.shortUrl)}</div>`
-              : `<div style="font-size:11px;color:var(--dim);">—</div>`}
-          </td>
-          <td><div class="td-url">${esc(l.url)}</div></td>
-          <td><div class="td-date">${dateStr}</div></td>
-          <td>
-            <div class="td-actions">
-              <button class="btn btn-ghost" onclick="copyLink('${esc(copyTarget)}', this)" title="Copy ${l.shortUrl ? 'short' : 'full'} URL">Copy</button>
-              <button class="btn btn-danger" onclick="deleteLink('${esc(l.id)}')" title="Delete">✕</button>
-            </div>
-          </td>
-        </tr>`;
-    }).join('');
-  }
+      const shortDisplay = l.shortUrl
+        ? `<div class="td-short">${esc(l.shortUrl)}</div>`
+        : `<div style="font-size:11px;color:var(--dim);">—</div>`;
 
-  function updateSaveBtn() {
-    const btn = document.getElementById('saveBtn');
-    btn.disabled = !document.getElementById('label').value.trim() || !buildURL();
+      return `<tr>
+        <td>
+          <div class="td-label">${esc(l.label)}</div>
+          ${l.content ? `<div class="td-sub">${esc(l.content)}</div>` : ''}
+        </td>
+        <td><div class="td-campaign">${esc(l.campaign || '—')}</div></td>
+        <td>${shortDisplay}</td>
+        <td><div class="td-url" title="${esc(l.url)}">${esc(l.url)}</div></td>
+        <td><div class="td-date">${dateStr}</div></td>
+        <td>
+          <div class="td-actions">
+            <button class="btn btn-ghost" onclick="copyLink('${esc(copyTarget)}',this)">Copy</button>
+            <button class="btn btn-danger" onclick="deleteLink('${esc(l.id)}')" title="Delete">✕</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
   }
 
   function esc(str) {
@@ -669,7 +648,7 @@
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2500);
+    setTimeout(() => t.classList.remove('show'), 2800);
   }
 </script>
 </body>
