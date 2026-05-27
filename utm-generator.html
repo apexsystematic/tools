@@ -387,6 +387,183 @@
   }
 
   .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* Mobile card list — hidden on desktop */
+  .links-cards { display: none; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    header {
+      padding: 16px 20px;
+      gap: 12px;
+    }
+
+    .wordmark { font-size: 13px; }
+    .tool-label { font-size: 11px; }
+
+    main {
+      padding: 24px 16px 60px;
+      gap: 16px;
+    }
+
+    /* Generator: stack everything */
+    .gen-body {
+      grid-template-columns: 1fr;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .gen-body .btn-primary {
+      width: 100%;
+    }
+
+    /* Hide the spacer label above the save button on mobile */
+    .gen-body .field:has(> .btn-primary) > label {
+      display: none;
+    }
+
+    .panel-header { padding: 12px 16px; }
+
+    .preview-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 14px 16px 16px;
+    }
+
+    .url-preview { font-size: 12px; }
+
+    /* Saved links header & filter */
+    .links-header { padding: 12px 16px; }
+    .filter-bar { padding: 10px 16px; }
+
+    /* Swap table for cards */
+    .links-panel table,
+    .links-panel > div[style*="overflow-x"] {
+      display: none;
+    }
+
+    .links-cards {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .link-card {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .link-card:last-child { border-bottom: none; }
+
+    .link-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .link-card-label {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .link-card-sub {
+      font-size: 11px;
+      color: var(--dim);
+      margin-top: 2px;
+      word-break: break-word;
+    }
+
+    .link-card-campaign {
+      display: inline-block;
+      font-size: 10px;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      border-radius: 2px;
+      white-space: nowrap;
+      word-break: keep-all;
+    }
+
+    .link-card-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .link-card-row-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    .link-card-short {
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 500;
+      word-break: break-all;
+      cursor: pointer;
+    }
+
+    .link-card-url {
+      font-size: 11px;
+      color: var(--muted);
+      word-break: break-all;
+      cursor: pointer;
+      line-height: 1.5;
+    }
+
+    .link-card-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 4px;
+    }
+
+    .link-card-date {
+      font-size: 11px;
+      color: var(--dim);
+    }
+
+    .link-card .btn-danger {
+      padding: 6px 10px;
+      font-size: 14px;
+    }
+
+    .link-card-empty {
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .link-card-empty p {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .link-card-empty span {
+      font-size: 12px;
+      color: var(--dim);
+    }
+
+    .toast {
+      bottom: 16px;
+      right: 16px;
+      left: 16px;
+      text-align: center;
+    }
+  }
 </style>
 </head>
 <body>
@@ -476,6 +653,7 @@
         </tbody>
       </table>
     </div>
+    <div class="links-cards" id="linksCards"></div>
   </div>
 
 </main>
@@ -610,6 +788,7 @@
 
   function renderLinks(links, filtered) {
     const tbody   = document.getElementById('linksBody');
+    const cards   = document.getElementById('linksCards');
     const counter = document.getElementById('linksCount');
 
     counter.textContent = allLinks.length
@@ -617,12 +796,18 @@
       : '';
 
     if (!links.length) {
+      const emptyTitle = filtered ? 'No results' : 'No links yet';
+      const emptySub   = filtered ? 'Try a different search.' : 'Generate your first link using the form above.';
       tbody.innerHTML = `<tr><td colspan="6">
         <div class="empty-state">
-          <p>${filtered ? 'No results' : 'No links yet'}</p>
-          <span>${filtered ? 'Try a different search.' : 'Generate your first link using the form above.'}</span>
+          <p>${emptyTitle}</p>
+          <span>${emptySub}</span>
         </div>
       </td></tr>`;
+      cards.innerHTML = `<div class="link-card-empty">
+        <p>${emptyTitle}</p>
+        <span>${emptySub}</span>
+      </div>`;
       return;
     }
 
@@ -647,6 +832,35 @@
           </div>
         </td>
       </tr>`;
+    }).join('');
+
+    cards.innerHTML = links.map(l => {
+      const dateStr = new Date(l.created).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
+      const shortBlock = l.shortUrl
+        ? `<div class="link-card-row">
+             <span class="link-card-row-label">Short URL</span>
+             <span class="link-card-short" onclick="copyText('${esc(l.shortUrl)}',this)">${esc(l.shortUrl)}</span>
+           </div>`
+        : '';
+
+      return `<div class="link-card">
+        <div class="link-card-top">
+          <div>
+            <div class="link-card-label">${esc(l.label)}</div>
+            ${l.content ? `<div class="link-card-sub">${esc(l.content)}</div>` : ''}
+          </div>
+          ${l.campaign ? `<span class="link-card-campaign">${esc(l.campaign)}</span>` : ''}
+        </div>
+        ${shortBlock}
+        <div class="link-card-row">
+          <span class="link-card-row-label">Full URL</span>
+          <span class="link-card-url" onclick="copyText('${esc(l.url)}',this)">${esc(l.url)}</span>
+        </div>
+        <div class="link-card-foot">
+          <span class="link-card-date">${dateStr}</span>
+          <button class="btn btn-danger" onclick="deleteLink('${esc(l.id)}')" title="Delete">✕</button>
+        </div>
+      </div>`;
     }).join('');
   }
 
