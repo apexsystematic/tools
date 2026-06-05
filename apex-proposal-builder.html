@@ -217,6 +217,105 @@
     background: var(--bg);
   }
 
+  /* ── Mobile tab bar ── */
+  .mobile-tab-bar {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+  }
+
+  .mobile-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 14px 0;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .mobile-tab:hover { color: var(--body); }
+  .mobile-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* ── Mobile responsive ── */
+  @media (max-width: 768px) {
+    html, body { overflow: auto; height: auto; }
+    .app { flex-direction: column; height: auto; min-height: 100vh; }
+
+    .mobile-tab-bar { display: flex; }
+
+    .editor {
+      width: 100%;
+      flex-shrink: initial;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      overflow: visible;
+    }
+
+    .editor-body { overflow: visible; }
+
+    .editor-header {
+      padding: 16px 16px 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .editor-header > div {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .e-section { padding: 16px 16px; }
+
+    .preview {
+      width: 100%;
+      min-height: 70vh;
+      border-top: 1px solid var(--border);
+    }
+
+    .preview iframe { min-height: 70vh; }
+
+    /* View switching */
+    .app.view-editor .preview { display: none; }
+    .app.view-preview .editor { display: none; }
+
+    /* Catalogue modal mobile */
+    .cat-overlay { padding: 12px 8px; }
+    .cat-modal { max-width: 100%; }
+    .cat-header { padding: 16px 16px 14px; flex-wrap: wrap; gap: 8px; }
+    .cat-header-right { width: 100%; justify-content: flex-end; }
+    .cat-tabs { padding: 0 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .cat-tab { padding: 12px 12px; font-size: 11px; }
+    .cat-body { padding: 16px 12px 20px; }
+    .cat-summary { padding: 10px 12px; }
+  }
+
+  @media (max-width: 420px) {
+    .editor-header {
+      padding: 12px 12px 10px;
+    }
+
+    .btn-export, .btn-catalogue {
+      padding: 7px 12px;
+      font-size: 11px;
+    }
+
+    .e-section { padding: 14px 12px; }
+    .e-label { font-size: 10px; }
+    .e-input, .e-textarea { font-size: 14px; padding: 10px 12px; }
+  }
+
   /* ── Scrollbar for editor ── */
   * { scrollbar-width: thin; scrollbar-color: var(--border-lt) transparent; }
 </style>
@@ -225,10 +324,16 @@
 
 <div class="app">
 
+  <!-- ── Mobile view toggle ── -->
+  <div class="mobile-tab-bar">
+    <button class="mobile-tab active" id="tab-editor" onclick="switchView('editor')">Editor</button>
+    <button class="mobile-tab" id="tab-preview" onclick="switchView('preview')">Preview</button>
+  </div>
+
   <!-- ════════════════════════════════════════
        EDITOR PANEL
   ════════════════════════════════════════ -->
-  <div class="editor">
+  <div class="editor" id="panel-editor">
 
     <div class="editor-header">
       <span class="editor-title">Proposal Builder</span>
@@ -252,21 +357,6 @@
         <div class="e-field">
           <label class="e-label">Subtitle</label>
           <textarea class="e-textarea" id="f-subtitle" rows="2" placeholder="One or two sentences — what it does and the core outcome." oninput="render()"></textarea>
-        </div>
-
-        <div class="e-field">
-          <label class="e-label">Investment</label>
-          <input class="e-input" id="f-investment" type="text" placeholder="€535 fixed price" oninput="render()">
-        </div>
-
-        <div class="e-field">
-          <label class="e-label">Timeline</label>
-          <input class="e-input" id="f-timeline" type="text" placeholder="1–2 weeks" oninput="render()">
-        </div>
-
-        <div class="e-field">
-          <label class="e-label">Running cost <span style="color:var(--dim);font-size:10px;text-transform:none;letter-spacing:0">(leave blank to hide)</span></label>
-          <input class="e-input" id="f-running" type="text" placeholder="~€0.80–€1.20 per run" oninput="render()">
         </div>
       </div>
 
@@ -311,6 +401,17 @@
         <button class="btn-add" onclick="addExclusion()">Add exclusion</button>
       </div>
 
+      <!-- Client Responsibilities (optional) -->
+      <div class="e-section">
+        <div class="e-section-title">Client responsibilities <span style="color:var(--dim);font-size:10px;text-transform:none;letter-spacing:0;font-weight:400">(optional — leave empty to hide)</span></div>
+        <div class="e-field">
+          <label class="e-label">Section title</label>
+          <input class="e-input" id="f-responsibilities-title" type="text" placeholder="Client responsibilities" value="Client responsibilities" oninput="render()">
+        </div>
+        <div class="e-list" id="responsibilities-list"></div>
+        <button class="btn-add" onclick="addResponsibility()">Add responsibility</button>
+      </div>
+
       <!-- Investment block -->
       <div class="e-section">
         <div class="e-section-title">Price & timeline</div>
@@ -337,7 +438,7 @@
   <!-- ════════════════════════════════════════
        PREVIEW PANEL
   ════════════════════════════════════════ -->
-  <div class="preview">
+  <div class="preview" id="panel-preview">
     <iframe id="preview-frame"></iframe>
   </div>
 
@@ -347,10 +448,11 @@
 // ── State ──────────────────────────────────────────────────────────────────
 
 const state = {
-  steps:        [],
-  stack:        [],
-  deliverables: [],
-  exclusions:   []
+  steps:            [],
+  stack:            [],
+  deliverables:     [],
+  exclusions:       [],
+  responsibilities: []
 };
 
 // ── Boot with defaults ─────────────────────────────────────────────────────
@@ -489,6 +591,26 @@ function removeItem(list, id) {
   render();
 }
 
+function addResponsibility(doRender = true, val = '') {
+  const id = Date.now() + Math.random();
+  state.responsibilities.push({ id, val });
+  renderResponsibilityRow(id, val);
+  if (doRender) render();
+}
+
+function renderResponsibilityRow(id, val = '') {
+  const list = document.getElementById('responsibilities-list');
+  const div = document.createElement('div');
+  div.className = 'e-list-item';
+  div.dataset.id = id;
+  div.innerHTML = `
+    <input class="e-input" placeholder="Responsibility" value="${esc(val)}"
+      oninput="updateItem('responsibilities',${id},this.value)" style="flex:1;">
+    <button class="btn-remove" onclick="removeItem('responsibilities',${id})" title="Remove">×</button>
+  `;
+  list.appendChild(div);
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function esc(str) {
@@ -518,13 +640,11 @@ function toParagraphs(text) {
 function buildHTML() {
   const title       = v('f-title')      || 'Project Title';
   const subtitle    = v('f-subtitle')   || '';
-  const investment  = v('f-investment') || '';
-  const timeline    = v('f-timeline')   || '';
-  const running     = v('f-running')    || '';
   const overview    = v('f-overview')   || '';
   const price       = v('f-price')      || '';
   const delivery    = v('f-delivery')   || '';
   const running2    = v('f-running2')   || '';
+  const respTitle   = v('f-responsibilities-title') || 'Client responsibilities';
 
   // Steps
   const stepsHTML = state.steps.map((s, i) => {
@@ -554,12 +674,10 @@ function buildHTML() {
   const exclHTML = state.exclusions.map(e =>
     `      <li>${escHtml(e.val) || '&mdash;'}</li>`).join('\n');
 
-  // Optional meta items
-  const runningMeta = running ? `
-        <div class="meta-item">
-          <div class="meta-label">Running cost</div>
-          <div class="meta-value">${escHtml(running)}</div>
-        </div>` : '';
+  // Responsibilities (optional — only rendered if items exist with non-empty values)
+  const respItems = state.responsibilities.filter(r => r.val && r.val.trim());
+  const respHTML = respItems.map(r =>
+    `      <li>${escHtml(r.val)}</li>`).join('\n');
 
   const runningRow = running2 ? `
           <div class="inv-row">
@@ -650,11 +768,6 @@ function buildHTML() {
     <span class="label">Project Proposal</span>
     <h1>${escHtml(title)}</h1>
     ${subtitle ? `<p class="header-sub">${escHtml(subtitle)}</p>` : ''}
-    <div class="header-meta">
-      ${investment ? `<div class="meta-item"><div class="meta-label">Investment</div><div class="meta-value">${escHtml(investment)}</div></div>` : ''}
-      ${timeline   ? `<div class="meta-item"><div class="meta-label">Timeline</div><div class="meta-value">${escHtml(timeline)}</div></div>` : ''}
-      ${runningMeta}
-    </div>
   </header>
 
   <section class="section">
@@ -702,6 +815,14 @@ ${delivHTML}
 ${exclHTML}
     </ul>
   </section>
+
+  ${respItems.length ? `<section class="section">
+    <span class="label">Your side</span>
+    <h2>${escHtml(respTitle)}</h2>
+    <ul class="exclusions">
+${respHTML}
+    </ul>
+  </section>` : ''}
 
   <hr class="divider">
 
@@ -767,6 +888,37 @@ function exportHTML() {
 // ── Init ───────────────────────────────────────────────────────────────────
 
 boot();
+
+// ── Mobile view toggle ──────────────────────────────────────────────────────
+
+function switchView(view) {
+  const app = document.querySelector('.app');
+  app.classList.remove('view-editor', 'view-preview');
+  app.classList.add('view-' + view);
+
+  document.getElementById('tab-editor').classList.toggle('active', view === 'editor');
+  document.getElementById('tab-preview').classList.toggle('active', view === 'preview');
+
+  if (view === 'preview') render();
+  window.scrollTo(0, 0);
+}
+
+// Set initial mobile view
+(function() {
+  const mq = window.matchMedia('(max-width: 768px)');
+  function applyMobileView(e) {
+    const app = document.querySelector('.app');
+    if (e.matches) {
+      if (!app.classList.contains('view-editor') && !app.classList.contains('view-preview')) {
+        app.classList.add('view-editor');
+      }
+    } else {
+      app.classList.remove('view-editor', 'view-preview');
+    }
+  }
+  mq.addEventListener('change', applyMobileView);
+  applyMobileView(mq);
+})();
 </script>
 
 <!-- ════════════════════════════════════════
