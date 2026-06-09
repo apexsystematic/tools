@@ -2557,14 +2557,19 @@ function getToken() {
 async function apiFetch(path, options = {}) {
   const token = getToken();
   if (!token) throw new Error('No API token');
-  const res = await fetch(API_BASE + path, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + token,
-      ...(options.headers || {}),
-    },
-  });
+  let res;
+  try {
+    res = await fetch(API_BASE + path, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        ...(options.headers || {}),
+      },
+    });
+  } catch (networkErr) {
+    throw new Error('Network error — check worker is deployed');
+  }
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || `HTTP ${res.status}`);
@@ -2678,7 +2683,7 @@ async function saveProposal() {
     showSaveStatus('Saved ✓', 'saved');
   } catch (e) {
     console.error('Save error:', e);
-    showSaveStatus('Error', 'error');
+    showSaveStatus(e.message || 'Error', 'error');
   }
 }
 
