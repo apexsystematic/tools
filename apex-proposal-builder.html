@@ -202,6 +202,130 @@
   .btn-add:hover { border-color: var(--gold); color: var(--gold); }
   .btn-add::before { content: '+'; font-size: 16px; line-height: 1; }
 
+  /* ── Small editor buttons (save, load, lang) ── */
+  .btn-sm {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 7px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .btn-sm:hover { border-color: var(--muted); color: var(--white); }
+  .btn-sm.active { border-color: var(--gold); color: var(--gold); }
+
+  /* ── Language toggle ── */
+  .lang-toggle { display: flex; gap: 0; }
+  .lang-toggle .btn-sm { border-radius: 0; margin-right: -1px; }
+  .lang-toggle .btn-sm:first-child { border-radius: 2px 0 0 2px; }
+  .lang-toggle .btn-sm:last-child { border-radius: 0 2px 2px 0; margin-right: 0; }
+
+  /* ── Saved proposals modal ── */
+  .saved-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.82);
+    z-index: 1000;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 20px;
+    overflow-y: auto;
+  }
+  .saved-overlay.open { display: flex; }
+
+  .saved-modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    margin: auto;
+  }
+
+  .saved-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .saved-header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    color: var(--white);
+  }
+
+  .saved-body {
+    padding: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .saved-empty {
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--dim);
+    font-size: 13px;
+  }
+
+  .saved-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .saved-item:last-child { border-bottom: none; }
+  .saved-item:hover { background: var(--surface); }
+
+  .saved-item-body { flex: 1; min-width: 0; }
+  .saved-item-title { font-size: 13px; font-weight: 500; color: var(--white); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .saved-item-meta { font-size: 11px; color: var(--dim); }
+  .saved-item-lang { font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .saved-item-delete {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--dim);
+    cursor: pointer;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .saved-item-delete:hover { border-color: #c0392b; color: #c0392b; }
+
+  /* ── Save status indicator ── */
+  .save-status {
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    white-space: nowrap;
+  }
+  .save-status.saved { color: var(--gold); }
+  .save-status.error { color: #c0392b; }
+
   /* ── Preview panel ── */
   .preview {
     flex: 1;
@@ -306,9 +430,9 @@
       padding: 12px 12px 10px;
     }
 
-    .btn-export, .btn-catalogue {
-      padding: 7px 12px;
-      font-size: 11px;
+    .btn-export, .btn-catalogue, .btn-sm {
+      padding: 7px 10px;
+      font-size: 10px;
     }
 
     .e-section { padding: 14px 12px; }
@@ -337,13 +461,31 @@
 
     <div class="editor-header">
       <span class="editor-title">Proposal Builder</span>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <div class="lang-toggle">
+          <button class="btn-sm active" id="lang-en" onclick="setLang('en')">EN</button>
+          <button class="btn-sm" id="lang-es" onclick="setLang('es')">ES</button>
+        </div>
+        <button class="btn-sm" onclick="openSavedProposals()">Load</button>
+        <button class="btn-sm" onclick="saveProposal()">Save</button>
+        <button class="btn-sm" onclick="document.getElementById('import-file').click()">Import</button>
+        <input type="file" id="import-file" accept=".md,.txt" style="display:none" onchange="importMd(this)">
         <button class="btn-catalogue" onclick="openCatalogue()">+ Catalogue</button>
-        <button class="btn-export" onclick="exportHTML()">Export HTML</button>
+        <button class="btn-export" onclick="exportHTML()">Export</button>
+        <span class="save-status" id="save-status"></span>
       </div>
     </div>
 
     <div class="editor-body">
+
+      <!-- Client -->
+      <div class="e-section">
+        <div class="e-section-title">Client</div>
+        <div class="e-field">
+          <label class="e-label">Client / firm name</label>
+          <input class="e-input" id="f-client" type="text" placeholder="Smith & Partners LLP" oninput="render()">
+        </div>
+      </div>
 
       <!-- Header fields -->
       <div class="e-section">
@@ -638,13 +780,16 @@ function toParagraphs(text) {
 // ── Render proposal HTML ───────────────────────────────────────────────────
 
 function buildHTML() {
+  const L           = LANG[currentLang];
+  const client      = v('f-client')     || '';
   const title       = v('f-title')      || 'Project Title';
   const subtitle    = v('f-subtitle')   || '';
   const overview    = v('f-overview')   || '';
   const price       = v('f-price')      || '';
   const delivery    = v('f-delivery')   || '';
   const running2    = v('f-running2')   || '';
-  const respTitle   = v('f-responsibilities-title') || 'Client responsibilities';
+  const respTitle   = v('f-responsibilities-title') || (currentLang === 'es' ? 'Responsabilidades del cliente' : 'Client responsibilities');
+  const today       = new Date().toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // Steps
   const stepsHTML = state.steps.map((s, i) => {
@@ -681,7 +826,7 @@ function buildHTML() {
 
   const runningRow = running2 ? `
           <div class="inv-row">
-            <span class="inv-key">Running costs</span>
+            <span class="inv-key">${L.runningKey}</span>
             <span class="inv-val">${escHtml(running2)}</span>
           </div>` : '';
 
@@ -689,7 +834,7 @@ function buildHTML() {
   const overviewHTML = overview ? toParagraphs(overview) : '<p></p>';
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${currentLang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -765,15 +910,19 @@ function buildHTML() {
       <text x="88" y="82" font-family="Georgia, serif" font-size="46" font-weight="400" letter-spacing="10" fill="#FFFFFF">APEX</text>
       <text x="88" y="104" font-family="Helvetica Neue, Arial, sans-serif" font-size="11" font-weight="300" letter-spacing="9.5" fill="#C9A84C">SYSTEMATIC</text>
     </svg>
-    <span class="label">Project Proposal</span>
+    <span class="label">${L.proposalLabel}</span>
     <h1>${escHtml(title)}</h1>
     ${subtitle ? `<p class="header-sub">${escHtml(subtitle)}</p>` : ''}
+    <div class="header-meta">
+      ${client ? `<div class="meta-item"><div class="meta-label">${L.preparedFor}</div><div class="meta-value">${escHtml(client)}</div></div>` : ''}
+      <div class="meta-item"><div class="meta-label">${L.dateLabel}</div><div class="meta-value">${today}</div></div>
+    </div>
   </header>
 
   <section class="section">
     <div class="gold-rule"></div>
-    <span class="label">Overview</span>
-    <h2>What it does</h2>
+    <span class="label">${L.overviewLabel}</span>
+    <h2>${L.overviewTitle}</h2>
     ${overviewHTML}
   </section>
 
@@ -781,8 +930,8 @@ function buildHTML() {
 
   <section class="section">
     <div class="gold-rule"></div>
-    <span class="label">Process</span>
-    <h2>How it works</h2>
+    <span class="label">${L.processLabel}</span>
+    <h2>${L.processTitle}</h2>
     <div class="steps">${stepsHTML}
     </div>
   </section>
@@ -791,8 +940,8 @@ function buildHTML() {
 
   <section class="section">
     <div class="gold-rule"></div>
-    <span class="label">Technical</span>
-    <h2>Tech stack</h2>
+    <span class="label">${L.techLabel}</span>
+    <h2>${L.techTitle}</h2>
     <div class="stack-grid">${stackHTML}
     </div>
   </section>
@@ -801,23 +950,23 @@ function buildHTML() {
 
   <section class="section">
     <div class="gold-rule"></div>
-    <span class="label">Scope</span>
-    <h2>Deliverables</h2>
+    <span class="label">${L.scopeLabel}</span>
+    <h2>${L.scopeTitle}</h2>
     <ul class="deliverables">
 ${delivHTML}
     </ul>
   </section>
 
   <section class="section">
-    <span class="label">Exclusions</span>
-    <h2>Not included</h2>
+    <span class="label">${L.exclusionsLabel}</span>
+    <h2>${L.exclusionsTitle}</h2>
     <ul class="exclusions">
 ${exclHTML}
     </ul>
   </section>
 
   ${respItems.length ? `<section class="section">
-    <span class="label">Your side</span>
+    <span class="label">${L.respLabel}</span>
     <h2>${escHtml(respTitle)}</h2>
     <ul class="exclusions">
 ${respHTML}
@@ -828,20 +977,20 @@ ${respHTML}
 
   <section class="section">
     <div class="gold-rule"></div>
-    <span class="label">Investment</span>
-    <h2>Price &amp; timeline</h2>
+    <span class="label">${L.investmentLabel}</span>
+    <h2>${L.investmentTitle}</h2>
     <div class="investment-block">
       <div class="investment-price">${escHtml(price) || '—'}</div>
-      <div class="investment-sub">One-time fixed price. No retainer. You own everything built.</div>
+      <div class="investment-sub">${L.investmentSub}</div>
       <div class="investment-details">
-        ${delivery ? `<div class="inv-row"><span class="inv-key">Delivery</span><span class="inv-val">${escHtml(delivery)}</span></div>` : ''}
-        <div class="inv-row"><span class="inv-key">Payment</span><span class="inv-val">50% on agreement, 50% on delivery</span></div>
+        ${delivery ? `<div class="inv-row"><span class="inv-key">${L.deliveryKey}</span><span class="inv-val">${escHtml(delivery)}</span></div>` : ''}
+        <div class="inv-row"><span class="inv-key">${L.paymentKey}</span><span class="inv-val">${L.paymentVal}</span></div>
         ${runningRow}
-        <div class="inv-row"><span class="inv-key">Bug fix guarantee</span><span class="inv-val">30 days post-handover</span></div>
+        <div class="inv-row"><span class="inv-key">${L.guaranteeKey}</span><span class="inv-val">${L.guaranteeVal}</span></div>
       </div>
     </div>
     <div class="guarantee">
-      <strong>Fixed price means fixed price.</strong> The scope above is what gets built. If something in that scope does not work as described, it gets fixed at no extra cost within 30 days of handover. Changes outside the scope are quoted separately, agreed before any work begins.
+      ${L.guaranteeText}
     </div>
   </section>
 
@@ -874,13 +1023,17 @@ function render() {
 // ── Export ─────────────────────────────────────────────────────────────────
 
 function exportHTML() {
-  const title = v('f-title') || 'proposal';
-  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const client = v('f-client') || 'Client';
+  const title = v('f-title') || 'Proposal';
+  const date = new Date().toISOString().slice(0, 10);
+  const safeName = (str) => str.replace(/[<>:"/\\|?*]+/g, '').replace(/\s+/g, ' ').trim();
+  const filename = `${date} - ${safeName(client)} - ${safeName(title)} - Apex Systematic Proposal.html`;
+
   const html = buildHTML();
   const blob = new Blob([html], { type: 'text/html' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `apex-proposal-${slug}.html`;
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(a.href);
 }
@@ -2299,6 +2452,447 @@ document.addEventListener('keydown', function(e) {
 
 // Init summary state
 updateCatSummary();
+</script>
+
+<!-- ════════════════════════════════════════
+     SAVED PROPOSALS MODAL
+════════════════════════════════════════ -->
+<div class="saved-overlay" id="saved-overlay">
+  <div class="saved-modal">
+    <div class="saved-header">
+      <span class="saved-header-title">Saved Proposals</span>
+      <button class="btn-cat-close" onclick="closeSavedProposals()">✕</button>
+    </div>
+    <div class="saved-body" id="saved-body">
+      <div class="saved-empty">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// LANGUAGE SYSTEM
+// ════════════════════════════════════════
+
+const LANG = {
+  en: {
+    proposalLabel: 'Project Proposal',
+    preparedFor: 'Prepared for',
+    dateLabel: 'Date',
+    overviewLabel: 'Overview',
+    overviewTitle: 'What it does',
+    processLabel: 'Process',
+    processTitle: 'How it works',
+    techLabel: 'Technical',
+    techTitle: 'Tech stack',
+    scopeLabel: 'Scope',
+    scopeTitle: 'Deliverables',
+    exclusionsLabel: 'Exclusions',
+    exclusionsTitle: 'Not included',
+    respLabel: 'Your side',
+    investmentLabel: 'Investment',
+    investmentTitle: 'Price &amp; timeline',
+    investmentSub: 'One-time fixed price. No retainer. You own everything built.',
+    deliveryKey: 'Delivery',
+    paymentKey: 'Payment',
+    paymentVal: '50% on agreement, 50% on delivery',
+    runningKey: 'Running costs',
+    guaranteeKey: 'Bug fix guarantee',
+    guaranteeVal: '30 days post-handover',
+    guaranteeText: '<strong>Fixed price means fixed price.</strong> The scope above is what gets built. If something in that scope does not work as described, it gets fixed at no extra cost within 30 days of handover. Changes outside the scope are quoted separately, agreed before any work begins.',
+  },
+  es: {
+    proposalLabel: 'Propuesta de Proyecto',
+    preparedFor: 'Preparado para',
+    dateLabel: 'Fecha',
+    overviewLabel: 'Resumen',
+    overviewTitle: 'Qué hace',
+    processLabel: 'Proceso',
+    processTitle: 'Cómo funciona',
+    techLabel: 'Técnico',
+    techTitle: 'Stack tecnológico',
+    scopeLabel: 'Alcance',
+    scopeTitle: 'Entregables',
+    exclusionsLabel: 'Exclusiones',
+    exclusionsTitle: 'No incluido',
+    respLabel: 'Su parte',
+    investmentLabel: 'Inversión',
+    investmentTitle: 'Precio y plazo',
+    investmentSub: 'Precio fijo único. Sin cuota mensual. Todo lo construido es suyo.',
+    deliveryKey: 'Entrega',
+    paymentKey: 'Pago',
+    paymentVal: '50% al acordar, 50% a la entrega',
+    runningKey: 'Costes recurrentes',
+    guaranteeKey: 'Garantía de correcciones',
+    guaranteeVal: '30 días tras la entrega',
+    guaranteeText: '<strong>Precio fijo significa precio fijo.</strong> El alcance descrito es lo que se construye. Si algo dentro de ese alcance no funciona como se describe, se corrige sin coste adicional en los 30 días posteriores a la entrega. Cambios fuera del alcance se presupuestan por separado y se acuerdan antes de iniciar cualquier trabajo.',
+  }
+};
+
+let currentLang = 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  document.getElementById('lang-es').classList.toggle('active', lang === 'es');
+  render();
+}
+
+// ════════════════════════════════════════
+// API CONFIG
+// ════════════════════════════════════════
+
+const API_BASE = 'https://builder.apexsystematic.com';
+const API_TOKEN = localStorage.getItem('apex_builder_token') || '';
+
+// Simple token prompt if not set
+function getToken() {
+  let token = localStorage.getItem('apex_builder_token');
+  if (!token) {
+    token = prompt('Enter your Proposal Builder API token:');
+    if (token) localStorage.setItem('apex_builder_token', token);
+  }
+  return token || '';
+}
+
+async function apiFetch(path, options = {}) {
+  const token = getToken();
+  if (!token) throw new Error('No API token');
+  const res = await fetch(API_BASE + path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token,
+      ...(options.headers || {}),
+    },
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// ════════════════════════════════════════
+// SAVE / LOAD
+// ════════════════════════════════════════
+
+let currentProposalId = null;
+
+function collectState() {
+  return {
+    id: currentProposalId || crypto.randomUUID(),
+    client: v('f-client'),
+    title: v('f-title'),
+    subtitle: v('f-subtitle'),
+    overview: v('f-overview'),
+    price: v('f-price'),
+    delivery: v('f-delivery'),
+    running2: v('f-running2'),
+    responsibilitiesTitle: v('f-responsibilities-title'),
+    lang: currentLang,
+    date: new Date().toISOString().slice(0, 10),
+    steps: state.steps.map(s => ({ title: s.title, desc: s.desc })),
+    stack: state.stack.map(s => ({ tool: s.tool, role: s.role })),
+    deliverables: state.deliverables.map(d => ({ val: d.val, fromCat: !!d.fromCat })),
+    exclusions: state.exclusions.map(e => ({ val: e.val, fromCat: !!e.fromCat })),
+    responsibilities: state.responsibilities.map(r => ({ val: r.val })),
+    catSelected: [...catSelected],
+  };
+}
+
+function loadState(data) {
+  currentProposalId = data.id || null;
+
+  // Set simple fields
+  document.getElementById('f-client').value = data.client || '';
+  document.getElementById('f-title').value = data.title || '';
+  document.getElementById('f-subtitle').value = data.subtitle || '';
+  document.getElementById('f-overview').value = data.overview || '';
+  document.getElementById('f-price').value = data.price || '';
+  document.getElementById('f-delivery').value = data.delivery || '';
+  document.getElementById('f-running2').value = data.running2 || '';
+  document.getElementById('f-responsibilities-title').value = data.responsibilitiesTitle || 'Client responsibilities';
+
+  // Language
+  if (data.lang) setLang(data.lang);
+
+  // Clear and rebuild lists
+  state.steps = [];
+  document.getElementById('steps-list').innerHTML = '';
+  (data.steps || []).forEach(s => {
+    const id = Date.now() + Math.random();
+    state.steps.push({ id, title: s.title || '', desc: s.desc || '' });
+    renderStepRow(id);
+  });
+
+  state.stack = [];
+  document.getElementById('stack-list').innerHTML = '';
+  (data.stack || []).forEach(s => {
+    const id = Date.now() + Math.random();
+    state.stack.push({ id, tool: s.tool || '', role: s.role || '' });
+    renderStackRow(id);
+  });
+
+  state.deliverables = [];
+  document.getElementById('deliverables-list').innerHTML = '';
+  (data.deliverables || []).forEach(d => {
+    const id = Date.now() + Math.random();
+    state.deliverables.push({ id, val: d.val || '', fromCat: !!d.fromCat });
+    renderDeliverableRow(id, d.val || '');
+  });
+
+  state.exclusions = [];
+  document.getElementById('exclusions-list').innerHTML = '';
+  (data.exclusions || []).forEach(e => {
+    const id = Date.now() + Math.random();
+    state.exclusions.push({ id, val: e.val || '', fromCat: !!e.fromCat });
+    renderExclusionRow(id, e.val || '');
+  });
+
+  state.responsibilities = [];
+  document.getElementById('responsibilities-list').innerHTML = '';
+  (data.responsibilities || []).forEach(r => {
+    addResponsibility(false, r.val || '');
+  });
+
+  // Restore catalogue selection
+  catSelected.clear();
+  (data.catSelected || []).forEach(id => catSelected.add(id));
+
+  render();
+}
+
+function showSaveStatus(text, cls) {
+  const el = document.getElementById('save-status');
+  el.textContent = text;
+  el.className = 'save-status ' + (cls || '');
+  if (cls) setTimeout(() => { el.textContent = ''; el.className = 'save-status'; }, 3000);
+}
+
+async function saveProposal() {
+  showSaveStatus('Saving...');
+  try {
+    const data = collectState();
+    currentProposalId = data.id;
+    await apiFetch('/save', { method: 'POST', body: JSON.stringify(data) });
+    showSaveStatus('Saved ✓', 'saved');
+  } catch (e) {
+    console.error('Save error:', e);
+    showSaveStatus('Error', 'error');
+  }
+}
+
+// ════════════════════════════════════════
+// SAVED PROPOSALS MODAL
+// ════════════════════════════════════════
+
+async function openSavedProposals() {
+  const body = document.getElementById('saved-body');
+  body.innerHTML = '<div class="saved-empty">Loading...</div>';
+  document.getElementById('saved-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  try {
+    const data = await apiFetch('/list');
+    const proposals = data.proposals || [];
+
+    if (!proposals.length) {
+      body.innerHTML = '<div class="saved-empty">No saved proposals yet.</div>';
+      return;
+    }
+
+    body.innerHTML = '';
+    proposals.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'saved-item';
+      div.innerHTML = `
+        <div class="saved-item-body" onclick="loadProposal('${p.id}')">
+          <div class="saved-item-title">${esc(p.title || 'Untitled')}</div>
+          <div class="saved-item-meta">${esc(p.client || 'No client')} · ${p.date || '—'}</div>
+        </div>
+        <span class="saved-item-lang">${p.lang || 'en'}</span>
+        <button class="saved-item-delete" onclick="event.stopPropagation();deleteProposal('${p.id}')" title="Delete">×</button>
+      `;
+      body.appendChild(div);
+    });
+  } catch (e) {
+    console.error('List error:', e);
+    body.innerHTML = '<div class="saved-empty">Failed to load. Check API token.</div>';
+  }
+}
+
+function closeSavedProposals() {
+  document.getElementById('saved-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function loadProposal(id) {
+  try {
+    const data = await apiFetch('/load/' + id);
+    loadState(data);
+    closeSavedProposals();
+    showSaveStatus('Loaded ✓', 'saved');
+  } catch (e) {
+    console.error('Load error:', e);
+    alert('Failed to load proposal.');
+  }
+}
+
+async function deleteProposal(id) {
+  if (!confirm('Delete this proposal? This cannot be undone.')) return;
+  try {
+    await apiFetch('/delete/' + id, { method: 'DELETE' });
+    openSavedProposals(); // Refresh list
+  } catch (e) {
+    console.error('Delete error:', e);
+    alert('Failed to delete.');
+  }
+}
+
+// ════════════════════════════════════════
+// IMPORT MARKDOWN
+// ════════════════════════════════════════
+
+function importMd(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = ''; // reset so same file can be re-imported
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    parseMdProposal(text);
+    showSaveStatus('Imported ✓', 'saved');
+  };
+  reader.readAsText(file);
+}
+
+function parseMdProposal(text) {
+  // Extract a field value: everything after "LABEL:" until the next known label or EOF
+  const labels = ['CLIENT', 'LANG', 'TITLE', 'SUBTITLE', 'OVERVIEW', 'STEPS', 'STACK', 'DELIVERABLES', 'EXCLUSIONS', 'RESPONSIBILITIES TITLE', 'RESPONSIBILITIES', 'PRICE', 'DELIVERY', 'RUNNING COSTS'];
+  const labelPattern = labels.map(l => l.replace(/\s+/g, '\\s+')).join('|');
+  const regex = new RegExp(`^(${labelPattern}):\\s*(.*)$`, 'im');
+
+  function getSection(label) {
+    // Find the line starting with "LABEL:" and capture everything until the next label
+    const escapedLabel = label.replace(/\s+/g, '\\s+');
+    const sectionRegex = new RegExp(`^${escapedLabel}:\\s*(.*)$`, 'im');
+    const match = text.match(sectionRegex);
+    if (!match) return '';
+
+    const startIdx = match.index + match[0].length;
+    // Find next label
+    const remaining = text.slice(startIdx);
+    const nextLabelRegex = new RegExp(`^(?:${labelPattern}):\\s`, 'im');
+    const nextMatch = remaining.match(nextLabelRegex);
+    const endIdx = nextMatch ? nextMatch.index : remaining.length;
+
+    const inline = match[1].trim();
+    const block = remaining.slice(0, endIdx).trim();
+
+    // If inline value exists and no block content, return inline
+    if (inline && !block) return inline;
+    // If block content exists, combine
+    if (inline && block) return inline + '\n' + block;
+    return block;
+  }
+
+  function getList(label) {
+    const raw = getSection(label);
+    return raw.split('\n')
+      .map(line => line.replace(/^[-*•]\s*/, '').trim())
+      .filter(line => line.length > 0);
+  }
+
+  // ── Simple fields ──
+  const client = getSection('CLIENT');
+  const lang = getSection('LANG').toLowerCase();
+  const title = getSection('TITLE');
+  const subtitle = getSection('SUBTITLE');
+  const overview = getSection('OVERVIEW');
+  const price = getSection('PRICE');
+  const delivery = getSection('DELIVERY');
+  const running = getSection('RUNNING COSTS');
+  const respTitle = getSection('RESPONSIBILITIES TITLE');
+
+  // Set fields
+  if (client) document.getElementById('f-client').value = client;
+  if (title) document.getElementById('f-title').value = title;
+  if (subtitle) document.getElementById('f-subtitle').value = subtitle;
+  if (overview) document.getElementById('f-overview').value = overview;
+  if (price) document.getElementById('f-price').value = price;
+  if (delivery) document.getElementById('f-delivery').value = delivery;
+  if (running) document.getElementById('f-running2').value = running;
+  if (respTitle) document.getElementById('f-responsibilities-title').value = respTitle;
+  if (lang === 'es') setLang('es');
+  else if (lang === 'en') setLang('en');
+
+  // ── Steps (format: "1. Title | Description") ──
+  const stepsRaw = getList('STEPS');
+  if (stepsRaw.length) {
+    state.steps = [];
+    document.getElementById('steps-list').innerHTML = '';
+    stepsRaw.forEach(line => {
+      const cleaned = line.replace(/^\d+\.\s*/, '');
+      const parts = cleaned.split('|').map(s => s.trim());
+      const id = Date.now() + Math.random();
+      state.steps.push({ id, title: parts[0] || '', desc: parts[1] || '' });
+      renderStepRow(id);
+    });
+  }
+
+  // ── Stack (format: "- Tool | Role") ──
+  const stackRaw = getList('STACK');
+  if (stackRaw.length) {
+    state.stack = [];
+    document.getElementById('stack-list').innerHTML = '';
+    stackRaw.forEach(line => {
+      const parts = line.split('|').map(s => s.trim());
+      const id = Date.now() + Math.random();
+      state.stack.push({ id, tool: parts[0] || '', role: parts[1] || '' });
+      renderStackRow(id);
+    });
+  }
+
+  // ── Deliverables ──
+  const delivRaw = getList('DELIVERABLES');
+  if (delivRaw.length) {
+    state.deliverables = [];
+    document.getElementById('deliverables-list').innerHTML = '';
+    delivRaw.forEach(val => addDeliverable(false, val));
+  }
+
+  // ── Exclusions ──
+  const exclRaw = getList('EXCLUSIONS');
+  if (exclRaw.length) {
+    state.exclusions = [];
+    document.getElementById('exclusions-list').innerHTML = '';
+    exclRaw.forEach(val => addExclusion(false, val));
+  }
+
+  // ── Responsibilities ──
+  const respRaw = getList('RESPONSIBILITIES');
+  if (respRaw.length) {
+    state.responsibilities = [];
+    document.getElementById('responsibilities-list').innerHTML = '';
+    respRaw.forEach(val => addResponsibility(false, val));
+  }
+
+  // Reset proposal ID so next save creates a new entry
+  currentProposalId = null;
+  render();
+}
+
+// Close on overlay click / Escape
+document.getElementById('saved-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSavedProposals();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('saved-overlay').classList.contains('open')) {
+    closeSavedProposals();
+  }
+});
 </script>
 </body>
 </html>
